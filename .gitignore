@@ -1,0 +1,26 @@
+.env
+dados/
+logs/
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+*.parquet.tmp
+.DS_Store
+Thumbs.db
+
+# --- acervo e credenciais: nunca versionar ---
+# dados/ pode chegar a 5 GB e é reprodutível a partir das fontes.
+# .env guarda a chave da CGU.
+.env.*
+!.env.example
+
+# Sistema
+desktop.ini
+*.tmp
+
+# Resíduos de editor
+tempCodeRunnerFile*
+.vscode/
+.idea/

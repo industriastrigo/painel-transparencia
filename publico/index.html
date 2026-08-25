@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Painel da Transparência — Brasil</title>
+<link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+
+<header>
+  <h1>Painel da Transparência</h1>
+  <p>Dados políticos, socioeconômicos e orçamentários do Brasil, a partir de fontes oficiais.</p>
+  <nav role="tablist">
+    <button data-aba="mapa" aria-selected="true">Mapa</button>
+    <button data-aba="politicos" aria-selected="false">Políticos</button>
+    <button data-aba="proposicoes" aria-selected="false">Projetos de lei</button>
+    <button data-aba="fontes" aria-selected="false">Fontes</button>
+    <button data-aba="custo" aria-selected="false">Custo do Estado</button>
+    <button data-aba="atualizar" aria-selected="false">Atualizar</button>
+  </nav>
+</header>
+
+<main>
+
+  <!-- ------------------------------------------------------------ mapa -->
+  <section id="aba-mapa">
+    <div class="barra">
+      <div>
+        <label for="ano">Ano</label>
+        <select id="ano"></select>
+      </div>
+      <div>
+        <label for="metrica">Métrica</label>
+        <select id="metrica">
+          <option value="despesa_per_capita">Despesa total per capita</option>
+          <option value="despesa_total">Despesa total</option>
+          <option value="populacao">População</option>
+        </select>
+      </div>
+    </div>
+
+    <p class="migalha" id="migalha">Brasil</p>
+
+    <div class="painel">
+      <div class="cartao">
+        <h2>Clique num estado para ver seus municípios · num município, para a ficha dele</h2>
+        <svg id="mapa" role="img" aria-label="Mapa do Brasil"></svg>
+        <div class="legenda">
+          <span id="legenda-min">—</span>
+          <span class="faixa" id="legenda-faixa"></span>
+          <span id="legenda-max">—</span>
+          <span>· cinza = sem dado coletado</span>
+        </div>
+        <p class="rodape-mapa" id="rodape-mapa"></p>
+      </div>
+
+      <div class="cartao">
+        <h2 id="titulo-ranking">Estados por valor</h2>
+        <ol class="ranking" id="ranking"></ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- -------------------------------------------------------- políticos -->
+  <section id="aba-politicos" hidden>
+    <div class="aviso">
+      <strong>Limite honesto de escopo</strong>
+      Cadastro de eleitos existe do presidente ao vereador (TSE). Já a votação
+      nominal em projetos só existe de forma estruturada no Congresso Nacional
+      — são 27 assembleias e 5.570 câmaras municipais, cada uma com seu site.
+      Para estadual e municipal o painel mostra cadastro e finanças, nunca
+      votos que não pôde verificar.
+    </div>
+
+    <div class="barra">
+      <div><label for="filtro-uf">UF</label>
+        <input id="filtro-uf" size="4" placeholder="SP" maxlength="2"></div>
+      <div><label for="filtro-cargo">Cargo</label>
+        <select id="filtro-cargo">
+          <option value="">todos</option>
+          <option value="presidente">presidente</option>
+          <option value="governador">governador</option>
+          <option value="senador">senador</option>
+          <option value="deputado_federal">deputado federal</option>
+          <option value="deputado_estadual">deputado estadual</option>
+          <option value="prefeito">prefeito</option>
+          <option value="vereador">vereador</option>
+        </select></div>
+      <div><label for="filtro-nome">Nome</label>
+        <input id="filtro-nome" placeholder="buscar"></div>
+      <div><label>&nbsp;</label><button id="buscar-politicos">Buscar</button></div>
+    </div>
+
+    <div class="painel">
+      <div class="cartao">
+        <h2>Resultados</h2>
+        <table id="tabela-politicos">
+          <thead><tr><th>Nome</th><th>Cargo</th><th>Partido</th><th>UF</th><th>Fonte</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="cartao">
+        <h2>Quantos existem</h2>
+        <div id="resumo-politicos"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ------------------------------------------------------ proposições -->
+  <section id="aba-proposicoes" hidden>
+    <div class="barra">
+      <div><label for="filtro-proposicao">Texto</label>
+        <input id="filtro-proposicao" placeholder="ementa ou PL 1234/2024"></div>
+      <div><label for="filtro-situacao">Situação</label>
+        <select id="filtro-situacao" style="max-width:280px">
+          <option value="">todas</option>
+        </select></div>
+      <div><label for="filtro-tipo">Tipo</label>
+        <select id="filtro-tipo"><option value="">todos</option></select></div>
+      <div><label for="filtro-de">De</label><input type="date" id="filtro-de"></div>
+      <div><label for="filtro-ate">Até</label><input type="date" id="filtro-ate"></div>
+      <div><label>&nbsp;</label><button id="buscar-proposicoes">Buscar</button></div>
+      <div><label>&nbsp;</label>
+        <button id="limpar-proposicoes" class="discreto">Limpar</button></div>
+    </div>
+
+    <div class="cartao">
+      <h2>Clique numa linha para ver etapas e quem votou a favor e contra</h2>
+      <p class="rodape-mapa" id="resumo-proposicoes"></p>
+      <table id="tabela-proposicoes">
+        <thead><tr><th>Proposição</th><th>Ementa</th><th>Autor</th>
+          <th>Apresentada</th><th>Situação</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ----------------------------------------------------------- fontes -->
+  <section id="aba-fontes" hidden>
+    <div class="cartao">
+      <h2>Última coleta por fonte</h2>
+      <div id="situacao-fontes"></div>
+    </div>
+
+    <div class="cartao" style="margin-top:16px">
+      <h2>De onde vem cada número</h2>
+      <table>
+        <thead><tr><th>Camada</th><th>Fonte</th><th>Cadência</th></tr></thead>
+        <tbody>
+          <tr><td>Geografia e malhas</td><td>IBGE — Localidades e Malhas v3</td><td>anual</td></tr>
+          <tr><td>População e PIB</td><td>IBGE — Agregados/SIDRA v3</td><td>anual</td></tr>
+          <tr><td>Finanças de estados e municípios</td><td>SICONFI — Tesouro Nacional</td><td>mensal/anual</td></tr>
+          <tr><td>Deputados, projetos, votos</td><td>Câmara — arquivos em lote</td><td>diária</td></tr>
+          <tr><td>Senadores e votações</td><td>Senado — dados abertos</td><td>diária</td></tr>
+          <tr><td>Eleitos, do presidente ao vereador</td><td>TSE — dados abertos</td><td>eleitoral</td></tr>
+          <tr><td>Emendas parlamentares</td><td>Portal da Transparência — CGU</td><td>mensal</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ------------------------------------------------------------ custo -->
+  <section id="aba-custo" hidden>
+    <div class="tiras" id="topo-custo"></div>
+    <div id="avisos-custo"></div>
+
+    <div class="painel">
+      <div class="cartao">
+        <h2>Subsídio por cargo</h2>
+        <p class="rodape-mapa">
+          Custo anual estimado = ocupantes × subsídio mensal × 13,33
+          (12 meses + 13º + terço de férias). É uma <strong>conta</strong>,
+          não um valor medido: não inclui gabinete, auxílios, diárias nem
+          encargos.
+        </p>
+        <table id="tabela-custo">
+          <thead><tr>
+            <th>Cargo</th><th>Ocupantes</th><th>Subsídio mensal</th>
+            <th>Custo anual estimado</th><th>Norma</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="cartao">
+        <h2>Quanto sai dos cofres</h2>
+        <div id="lateral-custo"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- -------------------------------------------------------- atualizar -->
+  <section id="aba-atualizar" hidden>
+    <div class="painel">
+      <div class="cartao">
+        <h2>O que atualizar</h2>
+        <div id="catalogo-fontes" class="lista-selecao"></div>
+
+        <div class="barra" style="margin-top:16px">
+          <div>
+            <label for="coleta-ano">Ano</label>
+            <input id="coleta-ano" type="number" min="1998" max="2099"
+                   placeholder="padrão de cada fonte" style="width:170px">
+          </div>
+          <div>
+            <label for="coleta-nivel">SICONFI — abrangência</label>
+            <select id="coleta-nivel">
+              <option value="estado">27 UFs (rápido)</option>
+              <option value="municipio">5.570 municípios (15–25 min)</option>
+              <option value="todos">UFs e municípios</option>
+            </select>
+          </div>
+          <div>
+            <label for="coleta-uf">Só esta UF</label>
+            <input id="coleta-uf" size="4" maxlength="2" placeholder="BA">
+          </div>
+        </div>
+
+        <p class="rodape-mapa">
+          Sem ano informado, cada fonte usa o seu: Câmara e Senado o ano
+          corrente, SICONFI e emendas o exercício fechado, TSE as duas últimas
+          eleições.
+        </p>
+
+        <div class="barra" style="margin-top:6px">
+          <button id="botao-atualizar" class="principal">Atualizar</button>
+          <span id="aviso-coleta" class="rodape-mapa"></span>
+        </div>
+      </div>
+
+      <div class="cartao" id="cartao-chave" hidden>
+        <h2>Chave do Portal da Transparência</h2>
+        <p class="rodape-mapa" id="estado-chave"></p>
+        <div class="barra" style="margin-top:8px">
+          <div style="flex:1; min-width:240px">
+            <label for="campo-chave">Chave da CGU</label>
+            <input id="campo-chave" type="password" style="width:100%"
+                   autocomplete="off" spellcheck="false"
+                   placeholder="cole aqui — a chave ou o bloco de exemplo">
+          </div>
+          <div><label>&nbsp;</label>
+            <button id="salvar-chave" class="principal">Salvar</button></div>
+        </div>
+        <p class="rodape-mapa" id="resposta-chave"></p>
+        <p class="rodape-mapa">
+          Gratuita: cadastre seu e-mail em
+          <a href="https://portaldatransparencia.gov.br/api-de-dados/cadastrar-email"
+             target="_blank" rel="noopener">portaldatransparencia.gov.br</a>.
+          A chave fica só no arquivo <code>.env</code> desta pasta — não sai
+          da sua máquina e não vai para o git.
+        </p>
+      </div>
+
+      <div class="cartao">
+        <h2>Andamento</h2>
+        <div id="progresso-coleta">
+          <p class="vazio">Nenhuma atualização em andamento.</p>
+        </div>
+        <pre id="log-coleta" class="log" hidden></pre>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<dialog id="detalhe">
+  <button class="fechar" id="fechar-detalhe" aria-label="Fechar">×</button>
+  <div id="detalhe-conteudo"></div>
+</dialog>
+
+<script type="module" src="painel.js"></script>
+</body>
+</html>

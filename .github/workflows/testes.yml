@@ -1,0 +1,70 @@
+# Roda a suíte a cada push e em cada pull request.
+#
+# Um painel de transparência vive de ser conferível: se alguém abrir o
+# repositório, o selo verde aqui é a primeira evidência de que os números da
+# tela passam por verificação automática.
+name: testes
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Instalar dependências
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Testes do núcleo, da API e dos coletores
+        run: python -m pytest
+
+      - name: Conferir isolamento entre arquivos de teste
+        # Fora de ordem: se algum falhar só assim, é acoplamento entre testes.
+        run: >
+          python -m pytest
+          testes/teste_auditoria.py testes/teste_cli.py
+          testes/teste_de_para.py testes/teste_api.py
+
+  javascript:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Testes da projeção e da escala de cor
+        run: node --test testes/teste_mapa.mjs
+
+  segredos:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Nenhum segredo versionado
+        run: |
+          set -e
+          if git ls-files --error-unmatch .env 2>/dev/null; then
+            echo "::error::.env está versionado — ele guarda a chave da CGU"
+            exit 1
+          fi
+          if git ls-files | grep -q '^dados/'; then
+            echo "::error::a pasta dados/ está versionada"
+            exit 1
+          fi
+          # Chave da CGU tem 32 hexadecimais; procura por atribuição preenchida
+          if git grep -nEI 'CHAVE_PORTAL_TRANSPARENCIA=[0-9a-fA-F]{16,}' -- . ; then
+            echo "::error::parece haver uma chave de API no código"
+            exit 1
+          fi
+          echo "ok: nenhum segredo versionado"

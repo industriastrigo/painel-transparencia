@@ -1,0 +1,17 @@
+cod_cargo,cargo,poder,esfera,ramo,vigencia_inicio,valor_mensal,norma,url_norma,conferido,observacao
+presidente,Presidente da República,executivo,federal,,2019-01-01,30934.70,Lei 13.752/2018,https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/L13752.htm,nao,valor de rascunho — confira o reajuste vigente
+vice_presidente,Vice-Presidente da República,executivo,federal,,2019-01-01,30934.70,Lei 13.752/2018,https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/L13752.htm,nao,valor de rascunho — confira o reajuste vigente
+ministro_estado,Ministro de Estado,executivo,federal,,2019-01-01,30934.70,Lei 13.752/2018,https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/L13752.htm,nao,valor de rascunho — confira o reajuste vigente
+ministro_stf,Ministro do STF,judiciario,federal,supremo,2025-02-01,46366.19,Lei 14.520/2023 (escalonamento),https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2023/lei/L14520.htm,nao,teto constitucional — confira a parcela vigente
+deputado_federal,Deputado Federal,legislativo,federal,,2023-02-01,41650.92,Decreto Legislativo da Mesa,https://www.camara.leg.br/transparencia/remuneracao,nao,NÃO CONFIRMADO — verifique o decreto vigente
+senador,Senador,legislativo,federal,,2023-02-01,41650.92,Ato da Mesa do Senado,https://www12.senado.leg.br/transparencia,nao,NÃO CONFIRMADO — verifique o ato vigente
+governador,Governador,executivo,estadual,,,,cada estado fixa em lei própria,,nao,varia por UF — preencher por estado
+prefeito,Prefeito,executivo,municipal,,,,cada município fixa em lei própria,,nao,varia por município
+deputado_estadual,Deputado Estadual,legislativo,estadual,,,,limitado a 75% do subsídio de deputado federal,https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm,nao,teto constitucional art. 27
+vereador,Vereador,legislativo,municipal,,,,faixa por população — art. 29 VI da Constituição,https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm,nao,varia por faixa populacional
+desembargador,Desembargador,judiciario,estadual,estadual,,,"90,25% do subsídio de ministro do STF",,nao,derivado do teto
+juiz_direito,Juiz de Direito,judiciario,estadual,estadual,,,,escalonamento CNJ,nao,varia por entrância
+juiz_federal,Juiz Federal,judiciario,federal,federal,,,,escalonamento CNJ,nao,varia por classe
+juiz_trabalho,Juiz do Trabalho,judiciario,federal,trabalho,,,,escalonamento CNJ,nao,varia por classe
+juiz_eleitoral,Juiz Eleitoral,judiciario,federal,eleitoral,,,,acumulação com a magistratura de origem,nao,não é carreira própria
+juiz_militar,Juiz Militar,judiciario,federal,militar,,,,escalonamento CNJ,nao,varia por classe

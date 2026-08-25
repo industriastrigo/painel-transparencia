@@ -1,0 +1,11 @@
+# Normaliza fim de linha: o repositório guarda LF, o Windows recebe CRLF.
+* text=auto eol=lf
+
+# Estes precisam de CRLF no Windows para o cmd.exe não engasgar.
+*.bat text eol=crlf
+*.vbs text eol=crlf
+
+# Não tente fazer diff de binário.
+*.parquet binary
+*.zip     binary
+*.png     binary
