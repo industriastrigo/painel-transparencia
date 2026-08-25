@@ -33,6 +33,10 @@ if "%usuario%"=="" (
 set /p repo="Nome do repositorio [painel-transparencia]: "
 if "%repo%"=="" set repo=painel-transparencia
 
+rem O nome do repositorio nao leva ".git" - isso e sufixo da URL, e digitado
+rem aqui viraria painel-transparencia.git.git no endereco final.
+if /i "%repo:~-4%"==".git" set "repo=%repo:~0,-4%"
+
 if not exist ".git" (
   echo.
   echo [1/5] Criando o repositorio local...
