@@ -8,6 +8,7 @@ import assert from 'node:assert/strict';
 
 import {
   criarProjecao, desenharGeoJson, calcularQuebras, corDe, RAMPA,
+  centroideDeAnel,
 } from '../publico/mapa.js';
 
 const quadrado = (lon, lat, tamanho, props) => ({
@@ -108,4 +109,57 @@ test('cor sobe monotonicamente com o valor', () => {
 
 test('sem valores, tudo fica sem-dado', () => {
   assert.equal(corDe(5, calcularQuebras([])), 'var(--sem-dado)');
+});
+
+/* --------------------------------------------------- rótulos e centroides */
+
+test('centroide de área não é puxado pelo lado com mais vértices', () => {
+  // Quadrado 0..10, mas a aresta de baixo tem dez vezes mais pontos. A média
+  // de vértices desceria o rótulo para lá; o centroide de área não.
+  const denso = [];
+  for (let x = 0; x <= 10; x += 1) denso.push([x, 0]);
+  const anel = [...denso, [10, 10], [0, 10]];
+  const { centro } = centroideDeAnel(anel);
+  assert.ok(Math.abs(centro[0] - 5) < 0.01, `x=${centro[0]}`);
+  assert.ok(Math.abs(centro[1] - 5) < 0.5,
+    `y=${centro[1]} — a média de vértices daria ~1,5`);
+});
+
+test('anel degenerado cai para o centro da caixa em vez de NaN', () => {
+  const { centro, area } = centroideDeAnel([[3, 4], [3, 4], [3, 4]]);
+  assert.equal(area, 0);
+  assert.deepEqual(centro, [3, 4]);
+  assert.ok(Number.isFinite(centro[0]) && Number.isFinite(centro[1]));
+});
+
+test('o rótulo vai no maior anel, não no primeiro', () => {
+  // MultiPolygon cujo PRIMEIRO anel é uma ilhota longe do continente. Escrever
+  // o nome do estado sobre a ilha é o defeito que este teste impede.
+  const geo = { features: [{
+    properties: { codarea: '35', nome: 'Teste' },
+    geometry: { type: 'MultiPolygon', coordinates: [
+      [[[-40, -25], [-39.9, -25], [-39.9, -24.9], [-40, -24.9]]],
+      [[[-52, -23], [-46, -23], [-46, -20], [-52, -20]]],
+    ] },
+  }] };
+  const [forma] = desenharGeoJson(geo, { largura: 300, altura: 300 });
+  assert.ok(forma.centro, 'a forma precisa trazer um centro para o rótulo');
+  assert.ok(forma.caixa > 20,
+    'a caixa deve descrever o anel grande, e é ela que decide se cabe rótulo');
+
+  // O centro tem de cair dentro do continente desenhado, não sobre a ilhota.
+  const xs = [...forma.d.matchAll(/[ML]([-\d.]+),/g)].map((m) => Number(m[1]));
+  assert.ok(forma.centro[0] > Math.min(...xs) && forma.centro[0] < Math.max(...xs));
+});
+
+test('a caixa da forma é o menor lado, que é o que limita o texto', () => {
+  const geo = { features: [{
+    properties: { codarea: '99', nome: 'Fita' },
+    // Retângulo bem largo e baixo: cabe pouco texto, e é a altura que manda.
+    geometry: { type: 'Polygon', coordinates: [
+      [[-60, -10], [-40, -10], [-40, -9.5], [-60, -9.5]],
+    ] },
+  }] };
+  const [forma] = desenharGeoJson(geo, { largura: 400, altura: 400 });
+  assert.ok(forma.caixa < 40, `caixa=${forma.caixa} deveria ser o lado curto`);
 });

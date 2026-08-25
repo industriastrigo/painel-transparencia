@@ -69,7 +69,7 @@ python -m src.scripts.painel
 
 | Aba | Conteúdo |
 |---|---|
-| **Mapa** | Brasil → estado → município, colorido por despesa per capita, despesa total ou população. Clique num estado e o mapa troca para os municípios dele; clique num município e abre a ficha — quem governa, em que gasta, indicadores. |
+| **Mapa** | Brasil → estado → município, colorido por despesa, arrecadação, transferências recebidas, dependência de transferências ou população. Estados levam a sigla, municípios o nome; passar o mouse abre a dica com os números do ente. Roda do mouse aproxima, arrastar move, **Ampliar** joga o mapa na tela inteira. Clique num estado e o mapa troca para os municípios dele; clique num município e abre a ficha. |
 | **Políticos** | Quantos existem e quem são, do presidente ao vereador, por UF, cargo e partido. |
 | **Projetos de lei** | Proposição, autor, ementa, todas as etapas de tramitação e, em cada votação, quem votou a favor e contra — nominalmente. Filtros por situação, tipo, texto e período. |
 | **Fontes** | Quando cada fonte foi lida pela última vez, quantas linhas trouxe e o que falhou. |
@@ -85,7 +85,7 @@ Todas as fontes são oficiais e abertas:
 | Camada | Fonte |
 |---|---|
 | Geografia, população e PIB | IBGE — Localidades, Malhas v3 e Agregados/SIDRA |
-| Finanças de estados e municípios | SICONFI — Tesouro Nacional |
+| Despesa e arrecadação de estados e municípios | SICONFI — Tesouro Nacional (DCA, anexos I-D e I-C) |
 | Custo apurado do governo federal | Tesouro Transparente — SIC |
 | Deputados, projetos, votos e cota | Câmara dos Deputados — dados abertos |
 | Senadores e votações | Senado Federal — dados abertos |
@@ -180,8 +180,8 @@ recusa o commit se isso for tentado.
 ## Testes
 
 ```bash
-python -m pytest          # 207 testes
-node --test testes/teste_mapa.mjs   # 10 testes
+python -m pytest          # 216 testes
+node --test testes/teste_mapa.mjs   # 14 testes
 ```
 
 ---

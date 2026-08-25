@@ -9,7 +9,7 @@ Pipeline, armazém, API e painel funcionam ponta a ponta. O que existe:
 - API com mapa, ranking, políticos, proposições, tramitações e voto nominal
 - Painel com drill-down país → estado → município e ficha do ente
 - De-para TSE → IBGE ligando "quem governa" a "quanto gasta"
-- 217 testes (207 Python, 10 JavaScript)
+- 230 testes (216 Python, 14 JavaScript)
 
 O que **não** existe ainda está abaixo, em ordem de valor.
 
@@ -87,9 +87,19 @@ O que **não** existe ainda está abaixo, em ordem de valor.
   se apresentando como mínimo e máximo; máscara da chave expondo início e fim.
 
 - **Publicação no GitHub** — README com o propósito do projeto, licença MIT,
-  CI rodando os 217 testes a cada push (e um job que recusa segredo
+  CI rodando os 230 testes a cada push (e um job que recusa segredo
   versionado), `.bat` de um clique para publicar e para enviar alterações, e
   trava local que aborta o commit se `.env` ou `dados/` entrarem.
+
+- **Arrecadação e transferências** — o DCA passou a trazer também o Anexo I-C
+  (receitas). Com isso o painel responde "quanto entra" ao lado de "quanto
+  sai", e a fatia da arrecadação que veio de transferência — o número que
+  explica a dependência do FPM num município pequeno. Vale a mesma cautela
+  hierárquica da despesa, testada com amostra de pai e filhas.
+- **Mapa legível** — sigla nos estados, nome nos municípios (só onde couber,
+  no centroide de área do maior anel), zoom com roda e arrasto, ampliação para
+  a tela inteira e dica ao passar o mouse com população, arrecadação, despesa
+  e transferências. Campo sem dado diz "não coletado", nunca R$ 0.
 
 ## Próximo passo — tramitação em massa
 

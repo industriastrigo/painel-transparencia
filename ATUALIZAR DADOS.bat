@@ -2,7 +2,11 @@
 chcp 65001 >nul
 title Painel da Transparencia - Atualizacao de dados
 cd /d "%~dp0"
-if exist ".venv\Scripts\activate.bat" call ".venv\Scripts\activate.bat"
+call "%~dp0scripts\usar-python.bat"
+if errorlevel 1 (
+  pause
+  exit /b 1
+)
 
 echo Dica: com o painel aberto, a aba "Atualizar" faz tudo isto por
 echo caixas de selecao, com progresso e log na tela. Este menu existe
@@ -25,21 +29,21 @@ if not "%opcao%"=="7" if not "%opcao%"=="8" (
 )
 if not "%ano%"=="" set param_ano=--ano %ano%
 
-if "%opcao%"=="1" python -m src.scripts.coletar camara senado %param_ano%
-if "%opcao%"=="2" python -m src.scripts.coletar siconfi portal_transparencia %param_ano%
+if "%opcao%"=="1" "%PY%" -m src.scripts.coletar camara senado %param_ano%
+if "%opcao%"=="2" "%PY%" -m src.scripts.coletar siconfi portal_transparencia %param_ano%
 if "%opcao%"=="3" (
   echo.
   echo Pode fechar no meio: a varredura retoma de onde parou.
-  python -m src.scripts.coletar siconfi --nivel municipio %param_ano%
+  "%PY%" -m src.scripts.coletar siconfi --nivel municipio %param_ano%
 )
 if "%opcao%"=="4" (
   set /p uf="Sigla da UF: "
-  call python -m src.scripts.coletar siconfi --nivel municipio --uf %%uf%% %param_ano%
+  call "%PY%" -m src.scripts.coletar siconfi --nivel municipio --uf %%uf%% %param_ano%
 )
-if "%opcao%"=="5" python -m src.scripts.coletar ibge
-if "%opcao%"=="6" python -m src.scripts.coletar tse
-if "%opcao%"=="7" python -m src.scripts.coletar --situacao
-if "%opcao%"=="8" python -m src.scripts.coletar --pendencias
+if "%opcao%"=="5" "%PY%" -m src.scripts.coletar ibge
+if "%opcao%"=="6" "%PY%" -m src.scripts.coletar tse
+if "%opcao%"=="7" "%PY%" -m src.scripts.coletar --situacao
+if "%opcao%"=="8" "%PY%" -m src.scripts.coletar --pendencias
 
 echo.
 pause

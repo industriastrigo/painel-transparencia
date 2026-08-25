@@ -50,6 +50,54 @@ Se um dia quiser exploração 3D, `deck.gl` com `GeoJsonLayer` extrudado é o
 caminho — mas como camada exploratória, jamais como o gráfico principal, e
 sempre com o ranking ordenado ao lado, que é onde a leitura precisa acontece.
 
+## Rótulos: sigla no país, nome na UF
+
+No mapa do Brasil cada estado leva a **sigla** (SP, AM). Dentro de uma UF, cada
+município leva o **nome**.
+
+Duas decisões evitam que isso vire mancha:
+
+**O rótulo vai no centroide de ÁREA do maior anel.** Não na média dos vértices
+— ela é puxada para onde a costa tem mais pontos, e no Brasil isso significa
+sempre o litoral. E não no primeiro anel do MultiPolygon, que pode ser uma
+ilha: "SP" escrito sobre Ilhabela.
+
+**Só aparece quem tem largura para caber.** O menor lado da caixa do ente é
+comparado, já multiplicado pela escala do zoom, com um mínimo de 34 px. Por
+isso os nomes vão surgindo conforme se aproxima — 5.570 nomes sobrepostos não
+são informação. O seletor **Nomes** força "sempre" ou "nenhum" para quem
+prefere decidir.
+
+O texto fica dentro do grupo que escala, mas com `font-size` dividido pela
+escala: é o mapa que amplia, não a tipografia. E leva halo (`paint-order:
+stroke`) da cor do papel — sem ele, um rótulo sobre o verde escuro fica
+ilegível justamente nos entes de valor mais alto.
+
+## Zoom, arrasto e ampliar
+
+Roda do mouse aproxima no ponto sob o cursor; arrastar move; **Enquadrar**
+volta ao início. O deslocamento é limitado à moldura, senão o mapa some da
+tela e não há como trazê-lo de volta.
+
+Arrasto só conta a partir de 4 px — sem essa folga, um clique com a mão trêmula
+vira arrasto e a ficha do município não abre.
+
+**Ampliar** não usa a API de fullscreen do navegador, de propósito: ela esconde
+a barra de ano e métrica, que é justamente o que se quer mexer enquanto se
+olha o mapa grande. É um `position: fixed` sobre a página, e `Esc` fecha.
+
+## A dica ao passar o mouse
+
+Mostra população, arrecadação, despesa, transferências recebidas e despesa por
+habitante, mais a fatia da arrecadação que veio de transferência.
+
+Campo sem dado escreve **"não coletado"**, em cinza — nunca `R$ 0`, nunca
+linha omitida. Omitir seria pior que cinza: o leitor conclui que o ente não
+tem aquela receita.
+
+O `<title>` nativo do SVG foi removido dos polígonos: ele e a dica apareceriam
+juntos dizendo a mesma coisa. O `aria-label` continua, para o leitor de tela.
+
 ## Drill-down
 
 Um único estado (`estado.nivel`, `estado.uf`) governa o mapa. A malha do Brasil

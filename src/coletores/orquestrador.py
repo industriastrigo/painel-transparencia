@@ -26,7 +26,7 @@ ORDEM = ["referencias", "ibge", "siconfi", "camara", "senado", "tse",
 
 ROTULOS = {
     "ibge": "IBGE — municípios, população, PIB e malhas",
-    "siconfi": "SICONFI — finanças de estados e municípios",
+    "siconfi": "SICONFI — despesa e arrecadação de estados e municípios",
     "camara": "Câmara — deputados, projetos, votos e cota",
     "senado": "Senado — senadores e votações",
     "tse": "TSE — eleitos, do presidente ao vereador",

@@ -52,6 +52,43 @@ DERIVADAS = {
           FROM vw_financas_funcao
          GROUP BY ALL
     """,
+    # ---------------------------------------------------------- receita
+    # As contas de receita são hierárquicas como as de despesa, e o mesmo
+    # erro é possível: `1.0.0.0.00.0.0` (Receitas Correntes) é o pai de
+    # `1.1.0.0.00.0.0`, e somar os dois conta o mesmo real duas vezes.
+    #
+    # O nível sai do próprio código. Os segmentos zerados são sempre os
+    # finais, então contar quantos segmentos são diferentes de zero dá a
+    # profundidade da conta: `1.0.0.0.00.0.0` → 1, `1.7.0.0.00.0.0` → 2.
+    "vw_receita_conta": """
+        SELECT *,
+               LEN(list_filter(str_split(cod_conta, '.'),
+                               x -> COALESCE(TRY_CAST(x AS INTEGER), 0) <> 0))
+                   AS nivel_receita
+          FROM financas_ente
+         WHERE estagio ILIKE '%Receitas%Realizadas%'
+    """,
+    # Arrecadação = receitas correntes (1) + receitas de capital (2), no
+    # primeiro nível. As deduções (grupo 9, FUNDEB e restituições) ficam de
+    # fora: a coluna da fonte é BRUTA, e misturar dedução aqui produziria um
+    # número que não é nem bruto nem líquido.
+    "vw_receita_total": """
+        SELECT cod_ibge, ano, esfera, SUM(valor) AS receita_total
+          FROM vw_receita_conta
+         WHERE nivel_receita = 1
+           AND (cod_conta LIKE '1%' OR cod_conta LIKE '2%')
+         GROUP BY ALL
+    """,
+    # Transferências RECEBIDAS de outros entes: correntes (1.7) e de capital
+    # (2.4). Segundo nível, porque é onde a conta "Transferências" vive.
+    "vw_transferencia_recebida": """
+        SELECT cod_ibge, ano, esfera,
+               SUM(valor) AS transferencia_recebida
+          FROM vw_receita_conta
+         WHERE nivel_receita = 2
+           AND (cod_conta LIKE '1.7%' OR cod_conta LIKE '2.4%')
+         GROUP BY ALL
+    """,
     "vw_populacao": """
         SELECT cod_ibge, ano, valor AS populacao
           FROM indicador_ente
@@ -70,14 +107,27 @@ DERIVADAS = {
     "vw_mapa": """
         SELECT e.cod_ibge, e.nome, e.nivel, e.sigla_uf, e.cod_uf,
                a.ano, d.esfera, d.despesa_total, p.populacao,
+               r.receita_total, t.transferencia_recebida,
                CASE WHEN COALESCE(p.populacao, 0) > 0
-                    THEN d.despesa_total / p.populacao END AS despesa_per_capita
+                    THEN d.despesa_total / p.populacao END AS despesa_per_capita,
+               CASE WHEN COALESCE(p.populacao, 0) > 0
+                    THEN r.receita_total / p.populacao END AS receita_per_capita,
+               -- Fatia da arrecadação que veio de transferência em vez de
+               -- tributo próprio. Num município pequeno costuma passar de 90%,
+               -- e é o número que explica por que ele depende do FPM.
+               CASE WHEN COALESCE(r.receita_total, 0) > 0
+                    THEN 100 * t.transferencia_recebida / r.receita_total END
+                    AS dependencia_transferencia
           FROM dim_ente e
          CROSS JOIN vw_anos a
           LEFT JOIN vw_despesa_total d
                  ON d.cod_ibge = e.cod_ibge AND d.ano = a.ano
           LEFT JOIN vw_populacao p
                  ON p.cod_ibge = e.cod_ibge AND p.ano = a.ano
+          LEFT JOIN vw_receita_total r
+                 ON r.cod_ibge = e.cod_ibge AND r.ano = a.ano
+          LEFT JOIN vw_transferencia_recebida t
+                 ON t.cod_ibge = e.cod_ibge AND t.ano = a.ano
     """,
     # Mandato já ligado ao ente pelo de-para. `resolvido` diz se a ponte
     # existe — o painel precisa distinguir "não tem prefeito" de "não

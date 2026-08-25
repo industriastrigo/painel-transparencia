@@ -28,6 +28,32 @@ export function criarProjecao({ lon0, lat0, phi1, phi2 } = ALBERS_BR) {
   };
 }
 
+/** Centroide de área do anel (fórmula do polígono, não média de vértices).
+ *
+ * Média de vértices puxa o rótulo para onde a costa tem mais pontos — no
+ * Brasil, sempre para o litoral. O centroide de área não tem esse viés.
+ * Anel degenerado (área ~0) cai para o centro da caixa, que é o que sobra.
+ */
+export function centroideDeAnel(pontos) {
+  let area2 = 0, cx = 0, cy = 0;
+  for (let i = 0, j = pontos.length - 1; i < pontos.length; j = i, i += 1) {
+    const [x0, y0] = pontos[j], [x1, y1] = pontos[i];
+    const cruz = x0 * y1 - x1 * y0;
+    area2 += cruz;
+    cx += (x0 + x1) * cruz;
+    cy += (y0 + y1) * cruz;
+  }
+  if (Math.abs(area2) < 1e-9) {
+    const xs = pontos.map((p) => p[0]), ys = pontos.map((p) => p[1]);
+    return {
+      centro: [(Math.min(...xs) + Math.max(...xs)) / 2,
+               (Math.min(...ys) + Math.max(...ys)) / 2],
+      area: 0,
+    };
+  }
+  return { centro: [cx / (3 * area2), cy / (3 * area2)], area: Math.abs(area2) / 2 };
+}
+
 function* percorrerCoordenadas(geometria) {
   const { type, coordinates } = geometria;
   if (type === 'Polygon') for (const anel of coordinates) yield anel;
@@ -60,19 +86,41 @@ export function desenharGeoJson(geojson, { largura, altura, margem = 8 }) {
   const deslocX = margem + (largura - margem * 2 - (maxX - minX) * escala) / 2;
   const deslocY = margem + (altura - margem * 2 - (maxY - minY) * escala) / 2;
   const ajustar = ([x, y]) => [
-    ((x - minX) * escala + deslocX).toFixed(1),
-    ((y - minY) * escala + deslocY).toFixed(1),
+    (x - minX) * escala + deslocX,
+    (y - minY) * escala + deslocY,
   ];
 
-  return projetadas.map(({ feicao, aneis }) => ({
-    codigo: String(
-      feicao.properties?.codarea ?? feicao.properties?.id ?? feicao.id ?? '',
-    ).trim(),
-    nome: feicao.properties?.nome ?? feicao.properties?.name ?? '',
-    d: aneis
-      .map((anel) => 'M' + anel.map(ajustar).map((p) => p.join(',')).join('L') + 'Z')
-      .join(''),
-  }));
+  return projetadas.map(({ feicao, aneis }) => {
+    const ajustados = aneis.map((anel) => anel.map(ajustar));
+
+    // O rótulo vai no maior anel, não no primeiro: em MultiPolygon o primeiro
+    // pode ser uma ilha. Escrever "SP" sobre Ilhabela seria o resultado.
+    let maior = { centro: [0, 0], area: -1 };
+    let caixa = 0;
+    for (const anel of ajustados) {
+      const c = centroideDeAnel(anel);
+      if (c.area > maior.area) {
+        maior = c;
+        const xs = anel.map((p) => p[0]), ys = anel.map((p) => p[1]);
+        caixa = Math.min(Math.max(...xs) - Math.min(...xs),
+                         Math.max(...ys) - Math.min(...ys));
+      }
+    }
+
+    return {
+      codigo: String(
+        feicao.properties?.codarea ?? feicao.properties?.id ?? feicao.id ?? '',
+      ).trim(),
+      nome: feicao.properties?.nome ?? feicao.properties?.name ?? '',
+      d: ajustados
+        .map((anel) => 'M' + anel.map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join('L') + 'Z')
+        .join(''),
+      centro: maior.centro,
+      // Menor lado da caixa do maior anel, em px do viewBox. É o que decide se
+      // cabe rótulo: 5.570 nomes de município sobrepostos não são informação.
+      caixa,
+    };
+  });
 }
 
 /* ------------------------------------------------------------------ cores */

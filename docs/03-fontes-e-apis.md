@@ -63,11 +63,25 @@ REST público, sem autenticação, cobrindo as 27 UFs e mais de 5.500 município
 
 | Endpoint | O que traz |
 |---|---|
-| `/dca` | Declaração de Contas Anuais — despesa por função, comparável |
+| `/dca` | Declaração de Contas Anuais — o anexo escolhe o assunto |
 | `/rreo` | Relatório Resumido da Execução Orçamentária — bimestral |
 | `/rgf` | Relatório de Gestão Fiscal — pessoal, dívida |
 
-Freio recomendado: 0,5 s entre requisições.
+Dois anexos do DCA são coletados, e o parâmetro `no_anexo` é o que os separa:
+
+| `no_anexo` | Conteúdo | Coluna usada |
+|---|---|---|
+| `DCA-Anexo I-D` | despesa por função de governo | `Despesas Empenhadas` |
+| `DCA-Anexo I-C` | receitas orçamentárias | `Receitas Brutas Realizadas` |
+
+A coluna importa tanto quanto o anexo: cada linha vem repetida por estágio
+(empenhada, liquidada, paga) e misturar dois estágios soma o mesmo real duas
+vezes. Empenhada é a comparável entre entes e anos.
+
+As contas dos dois anexos são **hierárquicas** — ver a armadilha 2j.
+
+Freio recomendado: 0,5 s entre requisições. Como são dois anexos, a varredura
+municipal completa é o dobro do tempo: 30 a 50 minutos na primeira vez.
 
 **Portal da Transparência (CGU)**
 `https://api.portaldatransparencia.gov.br/api-de-dados`

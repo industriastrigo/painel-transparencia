@@ -6,8 +6,8 @@ tudo o mais é simples: **número que não veio da fonte não aparece na tela.**
 ## Antes de mexer
 
 ```bash
-python -m pytest                     # 207 testes
-node --test testes/teste_mapa.mjs    # 10 testes
+python -m pytest                     # 216 testes
+node --test testes/teste_mapa.mjs    # 14 testes
 ```
 
 E, para provar que os testes não dependem da ordem em que rodam:

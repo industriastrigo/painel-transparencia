@@ -120,8 +120,8 @@ legível.
 
 | Job | O que confere |
 |---|---|
-| `python` | os 207 testes, e depois roda os arquivos **fora de ordem** para provar que não há acoplamento entre eles |
-| `javascript` | os 10 testes da projeção do mapa e da escala de cor |
+| `python` | os 216 testes, e depois roda os arquivos **fora de ordem** para provar que não há acoplamento entre eles |
+| `javascript` | os 14 testes da projeção do mapa e da escala de cor |
 | `segredos` | que `.env` e `dados/` não foram versionados e que não há chave de API no código |
 
 O selo verde na página do repositório é a primeira evidência, para quem chega

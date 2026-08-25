@@ -12,6 +12,7 @@ const estado = {
   uf: null,
   ano: null,
   metrica: 'despesa_per_capita',
+  rotulos: 'auto',     // auto | todos | nenhum
   entes: [],
   malha: null,
 };
@@ -31,10 +32,23 @@ const data = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short' });
  *  dizendo "cinza = ainda não coletado, não zero". */
 const aNumero = (v) => (v === null || v === undefined || v === '' ? NaN : Number(v));
 
+const porcento = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1 });
+
 const formatar = (valor, metrica) => {
   if (!Number.isFinite(valor)) return '—';
   if (metrica === 'populacao') return numero.format(valor);
+  if (metrica === 'dependencia_transferencia') return `${porcento.format(valor)}%`;
   return dinheiro.format(valor);
+};
+
+const ROTULO_METRICA = {
+  despesa_per_capita: 'Despesa por habitante',
+  despesa_total: 'Despesa total',
+  receita_total: 'Arrecadação',
+  receita_per_capita: 'Arrecadação por habitante',
+  transferencia_recebida: 'Transferências recebidas',
+  dependencia_transferencia: 'Dependência de transferências',
+  populacao: 'População',
 };
 
 const formatarData = (texto) => {
@@ -100,18 +114,141 @@ async function carregarMapa() {
   renderizarMigalha();
 }
 
+/* ------------------------------------------------------- zoom e rótulos */
+
+const NS = 'http://www.w3.org/2000/svg';
+const LARGURA = 760, ALTURA = 620;
+
+// Largura mínima, em pixels da tela, para um ente caber com o nome escrito
+// dentro. Abaixo disto o rótulo sai — 5.570 nomes sobrepostos não são
+// informação, são uma mancha.
+const CABE_ROTULO = 34;
+
+const zoom = { escala: 1, x: 0, y: 0 };
+
+function aplicarZoom() {
+  const grupo = $('#camada-mapa');
+  if (!grupo) return;
+  grupo.setAttribute('transform',
+    `translate(${zoom.x} ${zoom.y}) scale(${zoom.escala})`);
+  // O rótulo vive dentro do grupo que escala, então o tamanho da fonte é
+  // dividido pela escala para o texto continuar do mesmo tamanho na tela —
+  // é o zoom do mapa, não o da tipografia.
+  $$('#mapa text.rotulo').forEach((texto) => {
+    texto.setAttribute('font-size', `${Number(texto.dataset.corpo) / zoom.escala}`);
+    texto.setAttribute('stroke-width', `${2.6 / zoom.escala}`);
+    const cabe = Number(texto.dataset.caixa) * zoom.escala >= CABE_ROTULO;
+    texto.style.display =
+      (estado.rotulos === 'todos' || (estado.rotulos === 'auto' && cabe))
+        ? '' : 'none';
+  });
+  $('#zoom-reset').disabled = zoom.escala === 1 && !zoom.x && !zoom.y;
+}
+
+function ajustarZoom(fator, foco) {
+  const antes = zoom.escala;
+  const novo = Math.min(12, Math.max(1, antes * fator));
+  if (novo === antes) return;
+  // Mantém sob o cursor o mesmo ponto do mapa que estava lá antes.
+  const px = foco ? foco.x : LARGURA / 2;
+  const py = foco ? foco.y : ALTURA / 2;
+  zoom.x = px - ((px - zoom.x) * novo) / antes;
+  zoom.y = py - ((py - zoom.y) * novo) / antes;
+  zoom.escala = novo;
+  limitarZoom();
+  aplicarZoom();
+}
+
+/** Impede que o mapa seja arrastado para fora da moldura. */
+function limitarZoom() {
+  const folgaX = LARGURA * (zoom.escala - 1);
+  const folgaY = ALTURA * (zoom.escala - 1);
+  zoom.x = Math.min(0, Math.max(-folgaX, zoom.x));
+  zoom.y = Math.min(0, Math.max(-folgaY, zoom.y));
+}
+
+function reenquadrar() {
+  zoom.escala = 1; zoom.x = 0; zoom.y = 0;
+  aplicarZoom();
+}
+
+/** Converte coordenada da tela para coordenada do viewBox. */
+function pontoNoMapa(evento) {
+  const svg = $('#mapa');
+  const caixa = svg.getBoundingClientRect();
+  return {
+    x: ((evento.clientX - caixa.left) / caixa.width) * LARGURA,
+    y: ((evento.clientY - caixa.top) / caixa.height) * ALTURA,
+  };
+}
+
+/* ------------------------------------------------------------- tooltip */
+
+function linhaDica(rotulo, valor, metrica) {
+  const vazio = !Number.isFinite(valor);
+  return `<dt>${rotulo}</dt><dd class="${vazio ? 'ausente' : ''}">`
+    + `${vazio ? 'não coletado' : formatar(valor, metrica)}</dd>`;
+}
+
+function mostrarDica(ente, evento) {
+  const dica = $('#dica-mapa');
+  if (!ente) { dica.hidden = true; return; }
+
+  const uf = ente.sigla_uf ? ` <span style="color:var(--texto-fraco)">${ente.sigla_uf}</span>` : '';
+  dica.innerHTML = `
+    <h3>${ente.nome}${uf}</h3>
+    <dl>
+      ${linhaDica('População', aNumero(ente.populacao), 'populacao')}
+      ${linhaDica('Arrecadação', aNumero(ente.receita_total), 'receita_total')}
+      ${linhaDica('Despesa', aNumero(ente.despesa_total), 'despesa_total')}
+      ${linhaDica('Transferências recebidas',
+                  aNumero(ente.transferencia_recebida), 'transferencia_recebida')}
+      ${linhaDica('Despesa por habitante',
+                  aNumero(ente.despesa_per_capita), 'despesa_per_capita')}
+    </dl>
+    ${Number.isFinite(aNumero(ente.dependencia_transferencia))
+      ? `<p class="pe">${porcento.format(ente.dependencia_transferencia)}% da
+         arrecadação veio de transferências.</p>` : ''}
+    <p class="pe">Receita bruta realizada e despesa empenhada, SICONFI ${estado.ano}.</p>`;
+
+  dica.hidden = false;
+  posicionarDica(evento);
+}
+
+function posicionarDica(evento) {
+  const dica = $('#dica-mapa');
+  if (dica.hidden) return;
+  const moldura = $('#moldura-mapa').getBoundingClientRect();
+  const largura = dica.offsetWidth, altura = dica.offsetHeight;
+  let x = evento.clientX - moldura.left + 16;
+  let y = evento.clientY - moldura.top + 16;
+  // Perto da borda direita ou de baixo, a dica vira para o outro lado em vez
+  // de ser cortada pela moldura.
+  if (x + largura > moldura.width) x = evento.clientX - moldura.left - largura - 12;
+  if (y + altura > moldura.height) y = evento.clientY - moldura.top - altura - 12;
+  dica.style.left = `${Math.max(4, x)}px`;
+  dica.style.top = `${Math.max(4, y)}px`;
+}
+
+/* ---------------------------------------------------------------- desenho */
+
 function renderizarMapa(resposta) {
   const svg = $('#mapa');
-  const largura = 760, altura = 620;
+  const largura = LARGURA, altura = ALTURA;
   svg.setAttribute('viewBox', `0 0 ${largura} ${altura}`);
   svg.innerHTML = '';
+
+  const camada = document.createElementNS(NS, 'g');
+  camada.id = 'camada-mapa';
+  svg.appendChild(camada);
+  const rotulos = document.createElementNS(NS, 'g');
 
   const porCodigo = new Map(estado.entes.map((e) => [String(e.cod_ibge), e]));
   const valores = estado.entes.map((e) => aNumero(e[estado.metrica]));
   const quebras = calcularQuebras(valores);
   const formas = desenharGeoJson(estado.malha, { largura, altura });
 
-  const ns = 'http://www.w3.org/2000/svg';
+  const ns = NS;
   formas.forEach((forma) => {
     // No mapa do Brasil o código vem com 2 dígitos (UF); no de UF, com 7.
     const ente = porCodigo.get(forma.codigo)
@@ -127,9 +264,38 @@ function renderizarMapa(resposta) {
     path.setAttribute('aria-label',
       `${nome}: ${Number.isFinite(valor) ? formatar(valor, estado.metrica) : 'sem dado'}`);
 
-    const titulo = document.createElementNS(ns, 'title');
-    titulo.textContent = path.getAttribute('aria-label');
-    path.appendChild(titulo);
+    // Sem <title> nativo: ele e a dica apareceriam juntos, dizendo a mesma
+    // coisa duas vezes. O aria-label continua servindo ao leitor de tela.
+    path.addEventListener('mouseenter', (ev) => {
+      path.classList.add('realcada');
+      mostrarDica(ente, ev);
+    });
+    path.addEventListener('mousemove', posicionarDica);
+    path.addEventListener('mouseleave', () => {
+      path.classList.remove('realcada');
+      $('#dica-mapa').hidden = true;
+    });
+    path.addEventListener('focus', (ev) => mostrarDica(ente, {
+      clientX: path.getBoundingClientRect().left,
+      clientY: path.getBoundingClientRect().top,
+      ...ev,
+    }));
+    path.addEventListener('blur', () => { $('#dica-mapa').hidden = true; });
+
+    // O rótulo é o nome curto: sigla no mapa do país, nome no da UF.
+    const texto = ente?.sigla_uf && estado.nivel === 'pais'
+      ? ente.sigla_uf : (ente?.nome || forma.nome);
+    if (texto && forma.centro) {
+      const marca = document.createElementNS(ns, 'text');
+      marca.setAttribute('class',
+        `rotulo${estado.nivel === 'pais' ? '' : ' municipio'}`);
+      marca.setAttribute('x', forma.centro[0].toFixed(1));
+      marca.setAttribute('y', forma.centro[1].toFixed(1));
+      marca.dataset.corpo = estado.nivel === 'pais' ? '11' : '8.5';
+      marca.dataset.caixa = String(forma.caixa || 0);
+      marca.textContent = texto;
+      rotulos.appendChild(marca);
+    }
 
     // No país, clicar desce um nível. Dentro de uma UF, clicar abre a ficha
     // do município — que é onde "quem governa" encontra "quanto gasta".
@@ -147,8 +313,13 @@ function renderizarMapa(resposta) {
       path.classList.add('inerte');
       path.removeAttribute('tabindex');
     }
-    svg.appendChild(path);
+    camada.appendChild(path);
   });
+
+  // Rótulos por último: dentro do mesmo grupo que escala, mas depois de todos
+  // os polígonos, senão o vizinho desenhado a seguir cobre o nome.
+  camada.appendChild(rotulos);
+  aplicarZoom();
 
   renderizarLegenda(quebras);
   $('#rodape-mapa').textContent =
@@ -176,8 +347,10 @@ function renderizarRanking(resposta) {
     .filter((e) => Number.isFinite(aNumero(e[estado.metrica])))
     .sort((a, b) => aNumero(b[estado.metrica]) - aNumero(a[estado.metrica]));
 
+  const medida = ROTULO_METRICA[estado.metrica] ?? 'valor';
   $('#titulo-ranking').textContent = estado.nivel === 'pais'
-    ? 'Estados por valor' : `Municípios de ${estado.uf}`;
+    ? `Estados por ${medida.toLowerCase()}`
+    : `Municípios de ${estado.uf} por ${medida.toLowerCase()}`;
 
   if (!ordenados.length) {
     lista.innerHTML = '<li class="vazio">Nenhum ente com dado neste recorte.</li>';
@@ -212,7 +385,7 @@ function renderizarMigalha() {
     + (codUf ? ` · <button id="ficha-uf">ver ficha do estado</button>` : '');
 
   $('#voltar-brasil')?.addEventListener('click', () => {
-    estado.uf = null; estado.nivel = 'pais'; carregarMapa();
+    estado.uf = null; estado.nivel = 'pais'; reenquadrar(); carregarMapa();
   });
   $('#ficha-uf')?.addEventListener('click', () => abrirFicha(codUf));
 }
@@ -220,7 +393,64 @@ function renderizarMigalha() {
 function entrarNaUf(uf) {
   if (!uf) return;
   estado.uf = uf; estado.nivel = 'estado';
+  reenquadrar();   // o zoom do Brasil não faz sentido sobre outra malha
   carregarMapa();
+}
+
+function ligarControlesDoMapa() {
+  $('#rotulos').addEventListener('change', (e) => {
+    estado.rotulos = e.target.value;
+    aplicarZoom();
+  });
+  $('#zoom-mais').addEventListener('click', () => ajustarZoom(1.5));
+  $('#zoom-menos').addEventListener('click', () => ajustarZoom(1 / 1.5));
+  $('#zoom-reset').addEventListener('click', reenquadrar);
+
+  $('#tela-cheia').addEventListener('click', () => {
+    const cartao = $('#cartao-mapa');
+    const ampliado = cartao.classList.toggle('ampliado');
+    $('#tela-cheia').textContent = ampliado ? 'Reduzir' : 'Ampliar';
+    $('#tela-cheia').setAttribute('aria-pressed', String(ampliado));
+  });
+  // Esc fecha a ampliação. Sem isto, quem ampliou fica preso: o cartão cobre
+  // a tela inteira e o botão de reduzir é a única saída visível.
+  document.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Escape' && $('#cartao-mapa').classList.contains('ampliado')) {
+      $('#tela-cheia').click();
+    }
+  });
+
+  const svg = $('#mapa');
+  svg.addEventListener('wheel', (ev) => {
+    ev.preventDefault();
+    ajustarZoom(ev.deltaY < 0 ? 1.18 : 1 / 1.18, pontoNoMapa(ev));
+  }, { passive: false });
+
+  // Arrastar move o mapa; só a partir de 4px, senão um clique com a mão
+  // trêmula vira arrasto e a ficha do município não abre.
+  let arrastando = null;
+  svg.addEventListener('pointerdown', (ev) => {
+    if (zoom.escala === 1) return;
+    arrastando = { x: ev.clientX, y: ev.clientY, x0: zoom.x, y0: zoom.y, moveu: false };
+    svg.setPointerCapture(ev.pointerId);
+  });
+  svg.addEventListener('pointermove', (ev) => {
+    if (!arrastando) return;
+    const caixa = svg.getBoundingClientRect();
+    const dx = ((ev.clientX - arrastando.x) / caixa.width) * LARGURA;
+    const dy = ((ev.clientY - arrastando.y) / caixa.height) * ALTURA;
+    if (Math.abs(dx) + Math.abs(dy) > 4) arrastando.moveu = true;
+    zoom.x = arrastando.x0 + dx;
+    zoom.y = arrastando.y0 + dy;
+    limitarZoom();
+    aplicarZoom();
+  });
+  const soltar = () => { arrastando = null; };
+  svg.addEventListener('pointerup', soltar);
+  svg.addEventListener('pointercancel', soltar);
+  svg.addEventListener('click', (ev) => {
+    if (arrastando?.moveu) { ev.stopPropagation(); ev.preventDefault(); }
+  }, true);
 }
 
 /* ---------------------------------------------------------- ficha do ente */
@@ -824,6 +1054,7 @@ async function iniciar() {
   $$('nav button').forEach((b) => b.addEventListener('click', () => trocarAba(b.dataset.aba)));
   $('#ano').addEventListener('change', (e) => { estado.ano = Number(e.target.value); carregarMapa(); });
   $('#metrica').addEventListener('change', (e) => { estado.metrica = e.target.value; carregarMapa(); });
+  ligarControlesDoMapa();
   $('#buscar-politicos').addEventListener('click', carregarPoliticos);
   $('#buscar-proposicoes').addEventListener('click', carregarProposicoes);
   $('#filtro-situacao').addEventListener('change', carregarProposicoes);

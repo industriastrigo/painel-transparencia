@@ -101,7 +101,10 @@ Limpe periodicamente — nada os apaga sozinho.
 
 | Sintoma | Causa provável |
 |---|---|
+| `ModuleNotFoundError: No module named 'uvicorn'` | a pasta do projeto foi renomeada ou movida e o `activate.bat` do `.venv` guardava o caminho antigo — corrigido: os `.bat` chamam `.venv\Scripts\python.exe` direto (ver `08`) |
 | Mapa todo cinza | SICONFI não coletado, ou ano selecionado sem dado |
+| Arrecadação "não coletada" na dica | o acervo é anterior ao Anexo I-C; recolete o SICONFI |
+| Nome de município não aparece no mapa | ele é estreito demais para o nome caber na escala atual — aproxime, ou troque **Nomes** para "sempre" |
 | Municípios cinzas ao entrar num estado | só as UFs foram coletadas; rode `--nivel municipio` |
 | "0 de 27 UFs com dados" | a carga do SICONFI falhou; veja o log |
 | Votos vazios numa votação recente | use o coletor em lote, não a API (ver `08`) |
@@ -161,8 +164,8 @@ net start winnat
 ## Testes antes de mexer
 
 ```bash
-python -m pytest                     # 207 testes: núcleo, API, varredura, de-para, coleta, chave, CLI
-node --test testes/teste_mapa.mjs    # 10 testes: projeção e cor
+python -m pytest                     # 216 testes: núcleo, API, varredura, de-para, coleta, chave, CLI
+node --test testes/teste_mapa.mjs    # 14 testes: projeção e cor
 ```
 
 Cada arquivo de teste roda num armazém temporário próprio (`testes/conftest.py`).

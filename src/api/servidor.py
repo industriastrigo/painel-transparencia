@@ -343,29 +343,32 @@ def recarregar():
 def mapa(
     ano: int = Query(..., description="Ano de referência"),
     uf: str | None = Query(None, description="Sigla da UF para descer ao município"),
-    metrica: str = Query("despesa_per_capita",
-                         pattern="^(despesa_per_capita|despesa_total|populacao)$"),
+    metrica: str = Query(
+        "despesa_per_capita",
+        pattern="^(despesa_per_capita|despesa_total|populacao"
+                "|receita_total|receita_per_capita|transferencia_recebida"
+                "|dependencia_transferencia)$"),
 ):
     """País → estado → município. Sem UF devolve as 27 UFs; com UF, os municípios."""
+    # As mesmas colunas nos dois recortes: o tooltip do painel lê uma estrutura
+    # só, e uma diferença entre os dois SELECTs viraria campo vazio conforme o
+    # nível — o tipo de falha silenciosa que o item 2d do catálogo descreve.
+    COLUNAS = """
+        cod_ibge, nome, sigla_uf, ano, despesa_total, populacao,
+        despesa_per_capita, receita_total, receita_per_capita,
+        transferencia_recebida, dependencia_transferencia
+    """
     if uf:
-        sql = """
-            SELECT cod_ibge, nome, sigla_uf, ano, despesa_total, populacao,
-                   despesa_per_capita
-              FROM vw_mapa
-             WHERE nivel = 'municipio' AND sigla_uf = ? AND ano = ?
-             ORDER BY nome
-        """
-        linhas = _consultar(sql, [uf.upper(), ano])
+        linhas = _consultar(
+            f"SELECT {COLUNAS} FROM vw_mapa"
+            "  WHERE nivel = 'municipio' AND sigla_uf = ? AND ano = ?"
+            "  ORDER BY nome", [uf.upper(), ano])
         nivel = "municipio"
     else:
-        sql = """
-            SELECT cod_ibge, nome, sigla_uf, ano, despesa_total, populacao,
-                   despesa_per_capita
-              FROM vw_mapa
-             WHERE nivel = 'estado' AND ano = ?
-             ORDER BY nome
-        """
-        linhas = _consultar(sql, [ano])
+        linhas = _consultar(
+            f"SELECT {COLUNAS} FROM vw_mapa"
+            "  WHERE nivel = 'estado' AND ano = ?"
+            "  ORDER BY nome", [ano])
         nivel = "estado"
 
     com_dado = [l for l in linhas if l.get(metrica) is not None]

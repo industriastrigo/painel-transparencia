@@ -184,6 +184,17 @@ níveis.** E teste a agregação contra uma amostra hierárquica: com contas
 planas, somar tudo dá certo por acidente, e foi assim que meus testes
 passaram.
 
+A receita (Anexo I-C) tem a mesma estrutura: `1.0.0.0.00.0.0` (Receitas
+Correntes) é o pai de `1.1.0.0.00.0.0`. O nível sai do código de outro jeito,
+porque o formato é outro — conta-se quantos segmentos são diferentes de zero,
+já que os zeros são sempre os finais. `testes/teste_receita.py` cobre isso com
+uma amostra hierárquica, pelo mesmo motivo.
+
+Cuidado irmão: a coluna da fonte é **Receitas Brutas Realizadas**. As deduções
+(grupo 9 — FUNDEB, restituições) vêm no mesmo anexo e ficam de fora. Subtrair
+metade delas produziria um número que não é nem bruto nem líquido, e nenhuma
+fonte oficial confirmaria.
+
 ---
 
 ## 2k. Conexão DuckDB compartilhada entre requisições
@@ -203,6 +214,51 @@ as mesmas views.
 **E cuidado com o teste.** O meu verificava que consultas simultâneas não
 levantavam EXCEÇÃO. Não levantavam — devolviam a resposta errada. Teste o
 resultado, não a ausência de erro.
+
+---
+
+## 2l. Pedir um número que a fonte não produz
+
+"Quanto cada estado transferiu para os outros estados" parece uma pergunta de
+transparência legítima, e não tem resposta — **porque a transferência entre
+entes federados de mesmo nível não existe** no arranjo fiscal brasileiro.
+O fluxo é vertical: a União repassa a estados e municípios (FPE, FPM), e cada
+estado repassa aos municípios **dele** (25% do ICMS, 50% do IPVA).
+
+O que o painel mostra, porque existe no Anexo I-C, é a **transferência
+recebida** por cada ente — e a fatia da arrecadação que ela representa. Num
+município pequeno passa de 90%, e é esse número que explica a dependência do
+FPM.
+
+Construir um "transferido para outros estados" a partir do que existe daria um
+número inventado com aparência de apurado. Num painel de transparência, isso é
+pior do que a lacuna.
+
+---
+
+## 2m. `activate.bat` guarda o caminho absoluto
+
+Renomear a pasta do projeto quebra o ambiente virtual. `pyvenv.cfg` e
+`activate.bat` gravam o caminho da criação, e depois do rename ele aponta
+para uma pasta que não existe mais:
+
+    set VIRTUAL_ENV=...\Trigo Labs\Painel_Transparencia\.venv
+
+O `activate` então **não tem efeito e não reclama**. O `python` seguinte é o
+do sistema, e o erro que chega ao usuário é:
+
+    ModuleNotFoundError: No module named 'uvicorn'
+
+que parece falta de instalação, manda a pessoa reinstalar dependências, e a
+reinstalação não resolve — porque o ambiente certo estava lá o tempo todo.
+
+**Chame `.venv\Scripts\python.exe` direto.** O Python descobre o ambiente pela
+localização do próprio executável, então sobrevive a mover e renomear pasta.
+`scripts\usar-python.bat` resolve o interpretador uma vez e os lançadores
+usam `%PY%`.
+
+Vale para qualquer caminho absoluto gravado em arquivo de configuração: se ele
+existe, mover a pasta é uma operação que quebra em silêncio.
 
 ---
 

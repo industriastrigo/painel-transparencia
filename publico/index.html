@@ -33,19 +33,42 @@
       <div>
         <label for="metrica">Métrica</label>
         <select id="metrica">
-          <option value="despesa_per_capita">Despesa total per capita</option>
+          <option value="despesa_per_capita">Despesa por habitante</option>
           <option value="despesa_total">Despesa total</option>
+          <option value="receita_total">Arrecadação</option>
+          <option value="receita_per_capita">Arrecadação por habitante</option>
+          <option value="transferencia_recebida">Transferências recebidas</option>
+          <option value="dependencia_transferencia">Dependência de transferências (%)</option>
           <option value="populacao">População</option>
+        </select>
+      </div>
+      <div>
+        <label for="rotulos">Nomes</label>
+        <select id="rotulos">
+          <option value="auto">Onde couber</option>
+          <option value="todos">Sempre</option>
+          <option value="nenhum">Nenhum</option>
         </select>
       </div>
     </div>
 
     <p class="migalha" id="migalha">Brasil</p>
 
-    <div class="painel">
-      <div class="cartao">
-        <h2>Clique num estado para ver seus municípios · num município, para a ficha dele</h2>
-        <svg id="mapa" role="img" aria-label="Mapa do Brasil"></svg>
+    <div class="painel" id="painel-mapa">
+      <div class="cartao" id="cartao-mapa">
+        <h2>
+          Clique num estado para ver seus municípios · num município, para a ficha dele
+          <span class="ferramentas-mapa">
+            <button type="button" class="discreto" id="zoom-menos" title="Afastar" aria-label="Afastar">−</button>
+            <button type="button" class="discreto" id="zoom-mais" title="Aproximar" aria-label="Aproximar">+</button>
+            <button type="button" class="discreto" id="zoom-reset" title="Enquadrar de novo">Enquadrar</button>
+            <button type="button" class="discreto" id="tela-cheia" aria-pressed="false">Ampliar</button>
+          </span>
+        </h2>
+        <div class="moldura-mapa" id="moldura-mapa">
+          <svg id="mapa" role="img" aria-label="Mapa do Brasil"></svg>
+          <div class="dica" id="dica-mapa" role="status" aria-live="polite" hidden></div>
+        </div>
         <div class="legenda">
           <span id="legenda-min">—</span>
           <span class="faixa" id="legenda-faixa"></span>

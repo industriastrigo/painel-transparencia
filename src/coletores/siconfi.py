@@ -28,6 +28,12 @@ FONTE = "siconfi"
 # Anexo 2 do DCA: despesa por função. É o recorte comparável entre entes.
 ANEXO_DESPESA_FUNCAO = "DCA-Anexo I-D"
 
+# Receitas orçamentárias. A coluna comparável é "Receitas Brutas Realizadas":
+# BRUTAS, isto é, antes das deduções (FUNDEB, restituições). É o que o ente
+# efetivamente arrecadou, e o painel rotula assim — chamar de "arrecadação
+# líquida" seria um número diferente.
+ANEXO_RECEITA = "DCA-Anexo I-C"
+
 FUNCOES_DE_INTERESSE = {
     "10": "Saúde",
     "12": "Educação",
@@ -81,6 +87,60 @@ def coletar_dca(ano: int, cod_ibge: str) -> list[dict]:
             "uf": opcional(item.get("uf")),
             "data_referencia": f"{ano}-12-31",
         })
+    return linhas
+
+
+_contas_vistas: set[str] = set()
+
+
+def coletar_dca_receita(ano: int, cod_ibge: str) -> list[dict]:
+    """Receita orçamentária do ente — a arrecadação.
+
+    As contas de receita são hierárquicas do mesmo jeito que as de despesa
+    (`1.0.0.0.00.0.0` é o pai de `1.1.0.0.00.0.0`), então valem aqui as mesmas
+    cautelas da armadilha 2j: quem somar tudo conta o mesmo real várias vezes.
+    O nível é derivado do código na leitura, em `vw_receita_conta`.
+
+    Na primeira execução o coletor registra no log as contas de primeiro nível
+    que encontrou. Não é ruído: é como se confere, sem adivinhação, que a
+    regra de nível corresponde ao que a fonte realmente devolve.
+    """
+    corpo = rede.buscar(FONTE, f"{config.SICONFI}/dca", {
+        "an_exercicio": ano,
+        "no_anexo": ANEXO_RECEITA,
+        "id_ente": cod_ibge,
+    })
+
+    linhas = []
+    for item in corpo.get("items", []):
+        coluna = texto(item.get("coluna"))
+        if "Realizada" not in coluna:
+            continue
+        valor = item.get("valor")
+        if valor in (None, ""):
+            continue
+        conta = texto(item.get("cod_conta"))
+        linhas.append({
+            "cod_ibge": str(cod_ibge),
+            "ano": ano,
+            "periodo": "anual",
+            "cod_conta": conta,
+            "cod_funcao": None,
+            "funcao": None,
+            "rotulo_conta": opcional(item.get("conta")),
+            "estagio": coluna,
+            "valor": numero(valor),
+            "esfera": _esfera(cod_ibge),
+            "uf": opcional(item.get("uf")),
+            "data_referencia": f"{ano}-12-31",
+        })
+
+    if linhas and not _contas_vistas:
+        for linha in linhas:
+            _contas_vistas.add(f"{linha['cod_conta']} {linha['rotulo_conta']}")
+        log.info("SICONFI receita: contas devolvidas pelo ente %s — %s",
+                 cod_ibge, " | ".join(sorted(_contas_vistas)[:12]))
+
     return linhas
 
 
@@ -194,8 +254,12 @@ def varrer(
         if desistir.is_set():
             return
         try:
-            linhas = (coletar_dca(ano, cod) if recurso == "dca"
-                      else coletar_rreo(ano, 6, cod))
+            if recurso == "dca":
+                linhas = coletar_dca(ano, cod)
+            elif recurso == "receita":
+                linhas = coletar_dca_receita(ano, cod)
+            else:
+                linhas = coletar_rreo(ano, 6, cod)
             desfecho = {"cod_ibge": cod, "linhas": len(linhas),
                         "situacao": "ok" if linhas else "vazio"}
         except Exception as erro:  # noqa: BLE001
@@ -293,7 +357,8 @@ def executar(ano: int | None = None, entes: list[str] | None = None,
              limite: int | None = None, nivel: str = "estado",
              uf: str | None = None, trabalhadores: int = 6,
              intervalo: float = 0.15, refazer_vazios: bool = False,
-             refazer_tudo: bool = False) -> int:
+             refazer_tudo: bool = False,
+             recursos: tuple[str, ...] = ("dca", "receita")) -> int:
     """Carrega o DCA do ano.
 
     `nivel='estado'` (padrão) são 27 entes e leva menos de um minuto.
@@ -310,10 +375,16 @@ def executar(ano: int | None = None, entes: list[str] | None = None,
     if limite:
         entes = entes[:limite]
 
-    total = varrer(ano, entes, trabalhadores=trabalhadores,
-                   intervalo=intervalo, refazer_vazios=refazer_vazios,
-                   refazer_tudo=refazer_tudo)
-    return total["linhas"]
+    # Despesa e receita são dois anexos, logo duas varreduras. Cada uma tem a
+    # própria retomada em `_ctl/coleta_ente`, então interromper entre elas não
+    # custa o que já foi feito.
+    linhas = 0
+    for recurso in recursos:
+        total = varrer(ano, entes, recurso=recurso, trabalhadores=trabalhadores,
+                       intervalo=intervalo, refazer_vazios=refazer_vazios,
+                       refazer_tudo=refazer_tudo)
+        linhas += total["linhas"]
+    return linhas
 
 
 if __name__ == "__main__":
