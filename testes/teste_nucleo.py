@@ -139,3 +139,68 @@ def test_marca_dagua_vai_e_volta():
     controle.gravar_marca("teste", "recurso", "2024-09-01", linhas=12)
     assert controle.ler_marca("teste", "recurso") == "2024-09-01"
     assert len(controle.situacao()) >= 1
+
+
+# ---------------- download grande: truncamento e retomada (30/08/2026)
+class _RespostaFalsa:
+    def __init__(self, conteudo=b"", status=200, cabecalhos=None):
+        self.content = conteudo
+        self.status_code = status
+        self.headers = cabecalhos or {}
+        self.encoding = "utf-8"
+
+    def raise_for_status(self):
+        return None
+
+    def json(self):
+        raise AssertionError("este teste não usa json")
+
+
+def test_corpo_menor_que_o_declarado_e_truncamento_nomeado(monkeypatch):
+    """`proposicoes-2025.csv` caía sempre, e a mensagem falava de conexão. Já
+    `eventosPresencaDeputados-2026.csv` chegava cortado em silêncio e só
+    estourava depois, como "não consegui ler como tabela" — com a
+    investigação indo para o leitor de CSV em vez do download."""
+    from src.nucleo import rede  # noqa: PLC0415
+
+    resp = _RespostaFalsa(b"12345", 200, {"Content-Length": "10"})
+    with pytest.raises(rede.RespostaTruncada) as erro:
+        rede._completo("camara", "http://x/a.csv", resp, bytearray())
+    assert "5 de 10 bytes" in str(erro.value)
+
+
+def test_corpo_comprimido_nao_e_acusado_de_truncado():
+    """Com `Content-Encoding`, o tamanho declarado é o COMPRIMIDO e o corpo já
+    veio descomprimido: comparar os dois acusaria todo download bom."""
+    from src.nucleo import rede  # noqa: PLC0415
+
+    resp = _RespostaFalsa(b"conteudo bem maior", 200,
+                          {"Content-Length": "5", "Content-Encoding": "gzip"})
+    assert rede._completo("camara", "http://x", resp, bytearray()) == b"conteudo bem maior"
+
+
+def test_retomada_junta_os_pedacos_em_ordem():
+    """206 continua de onde parou; 200 significa que o servidor ignorou o
+    Range, e aí o que já veio tem de ser descartado para não duplicar."""
+    from src.nucleo import rede  # noqa: PLC0415
+
+    parcial = bytearray(b"comeco-")
+    resp = _RespostaFalsa(b"fim", 206,
+                          {"Content-Range": "bytes 7-9/10"})
+    assert rede._completo("camara", "http://x", resp, parcial) == b"comeco-fim"
+
+    parcial = bytearray(b"comeco-")
+    resp = _RespostaFalsa(b"tudo de novo", 200)
+    assert rede._completo("camara", "http://x", resp, parcial) == b"tudo de novo"
+
+
+def test_arquivo_cortado_explica_que_e_download_e_nao_separador():
+    """A mensagem antiga mandava investigar separador e codificação. O erro do
+    pandas dizia "EOF inside string", que é assinatura de arquivo cortado."""
+    from src.nucleo import tabela  # noqa: PLC0415
+
+    # Aspas abertas e arquivo termina: exatamente o que um download cortado faz.
+    cortado = b'"idEvento";"uriEvento"\n"74889";"https://dadosabertos'
+    with pytest.raises(RuntimeError) as erro:
+        tabela.ler(cortado, origem="presenca.csv")
+    assert "CORTADO" in str(erro.value)

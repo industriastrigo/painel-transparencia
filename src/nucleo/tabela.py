@@ -95,7 +95,10 @@ def _de_csv(dados: bytes | io.IOBase, origem: str) -> pd.DataFrame:
             df = pd.read_csv(io.BytesIO(conteudo), sep=sep, encoding=enc,
                              on_bad_lines="skip", **_LEITURA)
         except Exception as erro:  # noqa: BLE001
-            motivos.append(f"{sep!r}/{enc}: {type(erro).__name__}")
+            # A mensagem, não só o tipo: `ParserError` sozinho não diz se o
+            # separador está errado ou se o arquivo veio cortado.
+            motivos.append(f"{sep!r}/{enc}: {type(erro).__name__} "
+                           f"({str(erro).splitlines()[0][:120]})")
             continue
 
         if len(df.columns) > 1:
@@ -105,9 +108,19 @@ def _de_csv(dados: bytes | io.IOBase, origem: str) -> pd.DataFrame:
             return sem_nan(df)
         motivos.append(f"{sep!r}/{enc}: {len(df.columns)} coluna")
 
+    # "EOF inside string" é assinatura de ARQUIVO CORTADO, não de CSV
+    # malformado: o leitor abriu aspas e o arquivo acabou antes de fechar. Foi
+    # o que aconteceu com `eventosPresencaDeputados-2026.csv`, e a mensagem
+    # antiga mandava investigar o separador — o problema estava no download.
+    truncado = any("EOF inside string" in m for m in motivos)
+    pista = (" O arquivo parece CORTADO no meio: o leitor chegou ao fim dentro "
+             "de um campo entre aspas. Quase sempre é download incompleto, "
+             "não CSV malformado — vale recoletar." if truncado else "")
+
     raise RuntimeError(
         f"não consegui ler {origem} como tabela. {len(conteudo)} bytes; "
-        f"começo: {_descrever(conteudo)}. Tentativas: {'; '.join(motivos[:4])}")
+        f"começo: {_descrever(conteudo)}.{pista} "
+        f"Tentativas: {'; '.join(motivos[:4])}")
 
 
 def ler(dados: bytes, origem: str = "conteúdo",

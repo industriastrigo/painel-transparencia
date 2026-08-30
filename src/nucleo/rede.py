@@ -177,6 +177,50 @@ class ErroDefinitivo(RuntimeError):
 _REPETIVEIS = {408, 425, 429, 500, 502, 503, 504}
 
 
+class RespostaTruncada(Exception):
+    """A resposta chegou pela metade. Repetível, e nomeada de propósito.
+
+    O `Content-Length` dizia um tamanho e o corpo veio menor. Sem esta
+    checagem, o truncamento passa silencioso e só aparece muito depois, com a
+    cara de outra coisa: `eventosPresencaDeputados-2026.csv` falhou como
+    "não consegui ler como tabela / ParserError", e a investigação foi para o
+    leitor de CSV quando o problema era o download.
+
+    Erro que chega com o nome errado custa mais caro que erro nenhum.
+    """
+
+
+def _completo(fonte: str, url: str, resp, parcial: bytearray) -> bytes:
+    """Junta o pedaço novo ao que já veio e confere contra o tamanho declarado."""
+    if resp.status_code == 206 and parcial:
+        parcial.extend(resp.content)          # continuou de onde parou
+    else:
+        parcial.clear()                       # servidor ignorou o Range
+        parcial.extend(resp.content)
+
+    # Corpo comprimido: `Content-Length` é o tamanho COMPRIMIDO, e o
+    # `requests` já entregou descomprimido. Comparar os dois acusaria
+    # truncamento em todo download que veio certinho.
+    if resp.headers.get("Content-Encoding"):
+        return bytes(parcial)
+
+    total = None
+    faixa = resp.headers.get("Content-Range")      # "bytes 100-999/1000"
+    if faixa and "/" in faixa:
+        cauda = faixa.rsplit("/", 1)[1].strip()
+        total = int(cauda) if cauda.isdigit() else None
+    elif resp.status_code == 200:
+        declarado = (resp.headers.get("Content-Length") or "").strip()
+        total = int(declarado) if declarado.isdigit() else None
+
+    if total is not None and len(parcial) < total:
+        raise RespostaTruncada(
+            f"{fonte}: {url} veio truncado — {len(parcial)} de {total} bytes "
+            f"({len(parcial) / total:.0%}). A próxima tentativa continua "
+            f"deste ponto.")
+    return bytes(parcial)
+
+
 def buscar(
     fonte: str,
     url: str,
@@ -196,6 +240,8 @@ def buscar(
     """
     tentativas = tentativas or config.TENTATIVAS
     ultimo_erro: Exception | None = None
+    # O que já veio, entre tentativas, para downloads grandes. Ver `_completo`.
+    parcial = bytearray()
 
     # Em replay, a fonte é o disco. Nem freio nem rede: reprocessar 400 mil
     # respostas guardadas leva minutos, contra as horas que a coleta levou.
@@ -206,9 +252,32 @@ def buscar(
     for tentativa in range(1, tentativas + 1):
         _frear(fonte)
         try:
+            # RETOMADA POR POSIÇÃO nos arquivos grandes.
+            #
+            # `proposicoes-2025.csv` tem ~90 MB e a conexão caía sempre — nas
+            # quatro tentativas, em pontos diferentes (78 MB, 71 MB, 67 MB,
+            # 84 MB). Recomeçar do zero a cada vez não converge: o arquivo
+            # nunca chega inteiro, e o log mostra quatro falhas iguais que na
+            # verdade eram quatro progressos jogados fora.
+            #
+            # Com `Range`, cada tentativa continua de onde a anterior parou. Se
+            # o servidor ignorar o cabeçalho (responde 200 em vez de 206), o
+            # que veio é descartado e a leitura recomeça — sem duplicar bytes.
+            cabecalhos = {"Range": f"bytes={len(parcial)}-"} if parcial else None
             resp = sessao(fonte).get(
-                url, params=parametros, timeout=config.TEMPO_LIMITE
+                url, params=parametros, timeout=config.TEMPO_LIMITE,
+                headers=cabecalhos,
             )
+            # 416: pedimos a partir de um ponto que já é o fim do arquivo.
+            # Quer dizer que o corpo inteiro já está na mão e a conexão caiu
+            # no último byte — tratar como erro definitivo jogaria fora um
+            # download completo.
+            if resp.status_code == 416 and parcial:
+                log.info("%s %s: já estava completo (%d bytes)",
+                         fonte, url, len(parcial))
+                corpo = bytes(parcial)
+                bruto.guardar(fonte, url, parametros, formato, corpo, recurso)
+                return corpo
             if 400 <= resp.status_code < 500 and resp.status_code not in _REPETIVEIS:
                 raise ErroDefinitivo(
                     f"{fonte}: HTTP {resp.status_code} em {url}", resp.status_code)
@@ -218,10 +287,11 @@ def buscar(
             _avisar_se_depreciado(fonte, url, resp)
             if formato == "json":
                 corpo = resp.json()
-            elif formato == "texto":
-                corpo = resp.text
             else:
-                corpo = resp.content
+                bytes_recebidos = _completo(fonte, url, resp, parcial)
+                corpo = (bytes_recebidos.decode(resp.encoding or "utf-8",
+                                                errors="replace")
+                         if formato == "texto" else bytes_recebidos)
             # Depois de `raise_for_status`: só resposta boa entra no arquivo.
             # Guardar 404 seria guardar a ausência como se fosse dado.
             bruto.guardar(fonte, url, parametros, formato, corpo, recurso)
