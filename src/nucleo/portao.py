@@ -385,6 +385,32 @@ def conferir_situacao(criticos: Iterable[str] = ()) -> list[Achado]:
     return achados
 
 
+def conferir_marcas_vazias() -> list[Achado]:
+    """Recorte marcado `ok` com zero linha.
+
+    É pior do que um número errado, porque é PERMANENTE: só `ok` é terminal,
+    então esse recorte nunca mais será tentado. Aconteceu com `dca_2026`, que
+    ficou `ok` com 0 linhas e sumiu da fila de coleta para sempre — o ano
+    inteiro deixou de existir sem ninguém decidir isso.
+
+    O coletor do SICONFI já grava `sem_dado` nesse caso. Esta regra existe
+    para as marcas antigas, gravadas antes do conserto, e para o próximo
+    coletor que esquecer.
+    """
+    df = controle.situacao()
+    if df.empty or "situacao" not in df or "linhas" not in df:
+        return []
+
+    vazias = df[(df["situacao"] == "ok") & (df["linhas"].fillna(0) == 0)]
+    return [Achado(
+        regra="marca", alvo=f"{l.get('fonte')}/{l.get('recurso')}",
+        bloqueia=True,
+        mensagem="marcado como `ok` com 0 linha(s). Só `ok` é terminal, então "
+                 "este recorte nunca mais será coletado. Regrave como "
+                 "`sem_dado` para ele voltar à fila.")
+        for _, l in vazias.iterrows()]
+
+
 # ------------------------------------------------------------------ portão
 def avaliar(
     tabelas: Sequence[str] | None = None,
@@ -397,4 +423,5 @@ def avaliar(
     achados += conferir_preenchimento(tabelas, gravar=gravar_perfil)
     achados += conferir_ouro()
     achados += conferir_situacao(criticos)
+    achados += conferir_marcas_vazias()
     return Veredito(achados)

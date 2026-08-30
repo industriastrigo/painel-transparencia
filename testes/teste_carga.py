@@ -59,9 +59,9 @@ def test_custos_pula_o_que_ja_concluiu(monkeypatch):
     _marcar("tesouro", "depreciacao_2020", "ok")
     pedidos = []
 
-    def falso(conjunto, ano, mes=None):
+    def falso(conjunto, ano, mes=None, offset=0, retomar=False):
         pedidos.append((conjunto, ano))
-        return [], True
+        return [], True, 0
 
     monkeypatch.setattr(tesouro, "coletar", falso)
     tesouro.executar(anos=[2020], conjuntos=["depreciacao", "pensionista"])
@@ -76,7 +76,8 @@ def test_refazer_ignora_as_marcas(monkeypatch):
     _marcar("tesouro", "depreciacao_2021", "ok")
     pedidos = []
     monkeypatch.setattr(tesouro, "coletar",
-                        lambda c, a, mes=None: (pedidos.append((c, a)), ([], True))[1])
+                        lambda c, a, mes=None, offset=0, retomar=False:
+                        (pedidos.append((c, a)), ([], True, 0))[1])
     tesouro.executar(anos=[2021], conjuntos=["depreciacao"], refazer=True)
     assert ("depreciacao", 2021) in pedidos
 
@@ -87,11 +88,11 @@ def test_resultado_parcial_nao_vira_marca_de_concluido(monkeypatch):
     from src.coletores import tesouro  # noqa: PLC0415
 
     monkeypatch.setattr(tesouro, "coletar",
-                        lambda c, a, mes=None: ([{
+                        lambda c, a, mes=None, offset=0, retomar=False: ([{
                             "conjunto": c, "orgao_nome": "X",
                             "orgao_codigo": None, "item_custo": c,
                             "ano": a, "mes": 1, "valor": 1.0,
-                            "data_referencia": f"{a}-01-01"}], False))
+                            "data_referencia": f"{a}-01-01"}], False, 17))
 
     tesouro.executar(anos=[2019], conjuntos=["depreciacao"])
     assert controle.concluido("tesouro", "depreciacao_2019") is False
@@ -102,11 +103,11 @@ def test_coleta_completa_vira_marca_de_concluido(monkeypatch):
     from src.coletores import tesouro  # noqa: PLC0415
 
     monkeypatch.setattr(tesouro, "coletar",
-                        lambda c, a, mes=None: ([{
+                        lambda c, a, mes=None, offset=0, retomar=False: ([{
                             "conjunto": c, "orgao_nome": "X",
                             "orgao_codigo": None, "item_custo": c,
                             "ano": a, "mes": 1, "valor": 1.0,
-                            "data_referencia": f"{a}-01-01"}], True))
+                            "data_referencia": f"{a}-01-01"}], True, 0))
 
     tesouro.executar(anos=[2018], conjuntos=["pensionista"])
     assert controle.concluido("tesouro", "pensionista_2018") is True

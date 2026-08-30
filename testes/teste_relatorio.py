@@ -307,7 +307,7 @@ def test_custos_le_o_registro_real_da_api(monkeypatch):
         return {"items": [_REAL], "hasMore": False}
 
     monkeypatch.setattr(tesouro.rede, "buscar", falso)
-    linhas, completo = tesouro.coletar("pessoal_ativo", 2025)
+    linhas, completo, _ = tesouro.coletar("pessoal_ativo", 2025)
 
     assert completo
     assert pedidos[0][0].endswith("/pessoal_ativo")
@@ -360,7 +360,7 @@ def test_custos_agrega_as_dimensoes_que_o_painel_nao_usa(monkeypatch):
          "va_custo_de_pessoal": 200},
     ], "hasMore": False})
 
-    linhas, _ = tesouro.coletar("pessoal_ativo", 2025)
+    linhas, _, _ = tesouro.coletar("pessoal_ativo", 2025)
     assert len(linhas) == 1, "três recortes do mesmo órgão viram uma linha"
     assert linhas[0]["valor"] == 450
 
@@ -417,7 +417,7 @@ def test_falha_no_meio_da_paginacao_nao_zera_o_que_ja_veio(monkeypatch, caplog):
 
     monkeypatch.setattr(tesouro.rede, "buscar", falso)
     with caplog.at_level("WARNING"):
-        linhas, completo = tesouro.coletar("demais_custos", 2025)
+        linhas, completo, _ = tesouro.coletar("demais_custos", 2025)
 
     assert not completo, "parcial precisa ser declarado"
     assert linhas, "o que já tinha vindo não pode ser descartado"
@@ -446,7 +446,7 @@ def test_custos_sem_valor_nao_vira_linha(monkeypatch):
         "items": [{"ds_organizacao_n1": "A"},
                   {"ds_organizacao_n1": "B", "va_custo_depreciacao": 10}],
         "hasMore": False})
-    linhas, _ = tesouro.coletar("depreciacao", 2025)
+    linhas, _, _ = tesouro.coletar("depreciacao", 2025)
     assert [l["orgao_nome"] for l in linhas] == ["B"]
 
 
@@ -709,3 +709,132 @@ def test_contrato_de_financas_cobre_o_que_o_coletor_grava():
                 "data_referencia"}
     assert not (gravadas - declaradas), (
         f"o coletor grava colunas fora do contrato: {gravadas - declaradas}")
+
+
+# ---------- Custos: paginação medida contra a API real (29/08/2026)
+# `scripts/medir_paginacao_custos.py` mediu no endpoint de verdade:
+#   limit=250 → 208 linhas/s | limit=10000 → 2.857 linhas/s | totalResults: null
+# Estes testes travam as três consequências disso no código.
+
+def test_pede_pagina_grande_porque_o_servidor_honra(monkeypatch):
+    """250 era o PADRÃO do servidor, não um limite. Pedir 10 mil é o que
+    separa horas de minutos: um ano de pessoal_ativo passa de um milhão de
+    linhas brutas."""
+    from src.coletores import tesouro
+
+    pedidos = []
+
+    def falso(fonte, url, parametros=None, **k):
+        pedidos.append(dict(parametros or {}))
+        return {"items": [_REAL], "hasMore": False, "limit": parametros["limit"]}
+
+    monkeypatch.setattr(tesouro.rede, "buscar", falso)
+    tesouro.coletar("demais_custos", 2025)
+
+    assert pedidos[0]["limit"] == tesouro.PAGINA == 10_000
+    assert "offset" not in pedidos[0], "a primeira página não pede offset"
+
+
+def test_adota_o_limite_que_o_servidor_aplicou(monkeypatch, caplog):
+    """Se o servidor devolver menos do que foi pedido, andar `limit` posições
+    pularia registros. Quem manda é o que ele devolveu."""
+    from src.coletores import tesouro
+
+    paginas = []
+
+    def falso(fonte, url, parametros=None, **k):
+        paginas.append(dict(parametros or {}))
+        if len(paginas) == 1:
+            return {"items": [_REAL] * 2, "hasMore": True, "limit": 2}
+        return {"items": [_REAL], "hasMore": False, "limit": 2}
+
+    monkeypatch.setattr(tesouro.rede, "buscar", falso)
+    with caplog.at_level("INFO"):
+        _, completo, alcancado = tesouro.coletar("demais_custos", 2025)
+
+    assert completo and alcancado == 3
+    assert paginas[1]["offset"] == 2, "o offset anda pelo que veio, não pelo pedido"
+    assert "o servidor aplicou" in caplog.text
+
+
+def test_pagina_vazia_com_hasmore_nao_vira_laco_infinito(monkeypatch, caplog):
+    """Página vazia com hasMore verdadeiro girava em falso até bater o teto:
+    1.500 requisições para não trazer nada."""
+    from src.coletores import tesouro
+
+    def falso(fonte, url, parametros=None, **k):
+        return {"items": [], "hasMore": True, "limit": 10_000}
+
+    monkeypatch.setattr(tesouro.rede, "buscar", falso)
+    with caplog.at_level("WARNING"):
+        linhas, completo, _ = tesouro.coletar("demais_custos", 2025)
+
+    assert linhas == [] and not completo
+    assert "girar em falso" in caplog.text
+
+
+def test_retomada_continua_do_offset_e_soma_ao_que_ja_havia(monkeypatch):
+    """O defeito que fez 24 h de carga não terminarem nada: toda execução
+    recomeçava do offset zero, rebaixava o mesmo prefixo e parava no mesmo
+    lugar. Agora a segunda execução continua de onde a primeira parou, e o
+    valor gravado é a soma dos dois trechos — não o segundo sozinho."""
+    from src.nucleo import armazem  # noqa: PLC0415
+    from src.coletores import tesouro
+
+    armazem.remover("custo_orgao")
+    armazem.mesclar("custo_orgao", [{
+        "conjunto": "demais_custos", "orgao_nome": "MINISTERIO DA EDUCACAO",
+        # `item_custo` sai de ds_natureza_juridica no registro real: a
+        # semente precisa cair na MESMA chave, senão vira linha nova.
+        "orgao_codigo": "000244", "item_custo": "FUNDACAO PUBLICA",
+        "ano": 2025, "mes": 3, "valor": 100.0,
+        "data_referencia": "2025-03-01"}], "teste")
+
+    pedidos = []
+
+    def falso(fonte, url, parametros=None, **k):
+        pedidos.append(dict(parametros or {}))
+        return {"items": [_REAL], "hasMore": False, "limit": 10_000}
+
+    monkeypatch.setattr(tesouro.rede, "buscar", falso)
+    linhas, completo, _ = tesouro.coletar("demais_custos", 2025,
+                                          offset=250, retomar=True)
+
+    assert pedidos[0]["offset"] == 250, "tem de continuar de onde parou"
+    assert completo
+    assert len(linhas) == 1
+    assert linhas[0]["valor"] == 1600.5, (   # 100 já gravado + 1500,5 do trecho novo
+        "o trecho novo soma ao que já estava gravado; sem isso a tela passaria "
+        "a mostrar MENOS do que mostrava antes da retomada")
+
+
+def test_marca_guarda_a_posicao_quando_fica_pela_metade(monkeypatch):
+    """A marca precisa dizer ONDE parou. Guardando só o ano, a execução
+    seguinte não tem como retomar e recomeça do zero."""
+    from src.coletores import tesouro
+    from src.nucleo import controle  # noqa: PLC0415
+
+    estado = {"n": 0}
+
+    def falso(fonte, url, parametros=None, **k):
+        estado["n"] += 1
+        if estado["n"] > 1:
+            raise RuntimeError("Remote end closed connection")
+        return {"items": [_REAL] * 3, "hasMore": True, "limit": 10_000}
+
+    monkeypatch.setattr(tesouro.rede, "buscar", falso)
+    tesouro.executar(anos=[2025], conjuntos=["demais_custos"], refazer=True)
+
+    assert controle.ler_marca("tesouro", "demais_custos_2025") == "offset=3"
+    assert tesouro._retomada("demais_custos", 2025) == 3
+
+
+def test_marca_antiga_nao_e_confundida_com_posicao():
+    """Marca de versão anterior guardava o ANO. Lê-la como offset pularia o
+    começo do recorte — dado perdido em silêncio."""
+    from src.coletores import tesouro
+    from src.nucleo import controle  # noqa: PLC0415
+
+    controle.gravar_marca("tesouro", "pensionista_2019", "2019", 10,
+                          situacao="parcial")
+    assert tesouro._retomada("pensionista", 2019) == 0

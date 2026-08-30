@@ -39,7 +39,9 @@ ninguém precisar adivinhar (armadilha 2d).
 
 ## Freio
 
-Documentado: **uma requisição por segundo**, e 250 itens por página.
+Documentado: **uma requisição por segundo**. A página de 250 itens é o
+padrão do servidor, não um limite: ele honra `limit=10000`, e é isso que
+separa horas de minutos por recorte. Medido, não suposto — veja PAGINA.
 """
 
 from __future__ import annotations
@@ -123,60 +125,69 @@ def _campo(linha: dict, chave: str):
     return primeiro(linha, *CAMPOS[chave])
 
 
-# Teto de páginas por consulta. Não é folga arbitrária: era 400 e o volume de
-# `pessoal_ativo` e `demais_custos` passou disso, então a coleta terminava
-# `parcial` com o ano truncado — dado que a fonte mandou e nós não guardamos.
-# O `completo=False` já denunciava; o teto é que estava baixo.
-TETO_DE_PAGINAS = 1500
+# Tamanho de página, MEDIDO em 29/08/2026 contra o endpoint real
+# (`scripts/medir_paginacao_custos.py`), não suposto a partir do Swagger:
+#
+#   limit  |  linhas  |  tempo  |  vazão
+#   -------|----------|---------|---------------
+#      250 |      250 |  1,2 s  |    208 linhas/s   <- o padrão do servidor
+#     1000 |    1 000 |  1,3 s  |    769 linhas/s
+#    10000 |   10 000 |  3,5 s  |  2 857 linhas/s
+#
+# O servidor honra o `limit` e devolve exatamente o pedido. Pagina de 250 era
+# o padrão DELE, nunca uma escolha nossa: um ano de `pessoal_ativo` passa de
+# um milhão de linhas, o que dava mais de 4 mil requisições e horas de rede
+# por recorte-ano. Com 10 mil por página são ~120 requisições e minutos.
+#
+# `totalResults` NÃO é suportado: o endpoint devolve `null` sempre. Então não
+# há como saber o tamanho do recorte antes de baixá-lo, e a única prova de que
+# a coleta terminou é `hasMore: false`. É por isso que a retomada por posição
+# abaixo não é conforto, é o que faz a carga convergir.
+PAGINA = 10_000
 
 
-def _pedir(recurso: str, parametros: dict,
-           paginas: int = TETO_DE_PAGINAS) -> tuple[list[dict], bool]:
-    """Páginas do ORDS até acabar. Devolve `(linhas, completo)`.
+def _paginar(recurso: str, parametros: dict, consumir, offset: int = 0,
+             tamanho: int = PAGINA,
+             max_paginas: int | None = None) -> tuple[int, bool]:
+    """Percorre as páginas a partir de `offset`, entregando cada uma a
+    `consumir`. Devolve `(offset_alcançado, completo)`.
 
-    Três lições deste endpoint, todas caras:
-
-    1. **`paginas=1` existe para o diagnóstico.** `descobrir()` só quer saber
-       os NOMES dos campos e paginava o recorte inteiro: 232 páginas e quatro
-       minutos de rede para responder uma pergunta que a primeira página já
-       responde.
-
-    2. **Falha no meio não pode zerar o que já veio.** A conexão caiu na
-       página 232 e as 231 anteriores foram perdidas. Agora o que chegou é
-       devolvido com `completo=False`, e quem chama decide.
-
-    3. **Paginação longa precisa dar sinal de vida.** Sem log de progresso,
-       onze minutos de coleta são indistinguíveis de travamento.
+    Streaming, e não acumulação, por um motivo de memória: um ano de
+    `pessoal_ativo` tem mais de um milhão de registros brutos, e a versão
+    anterior guardava todos numa lista para só então agregar. Quem chama
+    agrega página a página e descarta o bruto — o que fica na memória é o
+    resultado, que tem dezenas de milhares de linhas, não milhões.
     """
-    coletadas: list[dict] = []
-    offset = 0
-    TETO = paginas
     inicio = time.monotonic()
+    paginas = 0
 
-    for pagina in range(TETO):
+    while True:
         consulta = dict(parametros)
+        consulta["limit"] = tamanho
         if offset:
             consulta["offset"] = offset
+
         try:
             corpo = rede.buscar(FONTE, f"{config.TESOURO_CUSTOS}/{recurso}",
                                 consulta)
         except Exception as erro:  # noqa: BLE001
-            if not coletadas:
+            if not paginas:
                 raise
-            # Perder 231 páginas porque a 232ª falhou é desperdício que a
-            # pessoa paga em minutos de espera.
-            log.warning("Custos %s: a conexão falhou na página %d (%s). "
-                        "Devolvendo as %d linhas já recebidas, marcadas como "
-                        "PARCIAIS.", recurso, pagina + 1, str(erro)[:80],
-                        len(coletadas))
-            return coletadas, False
+            # Perder o que já veio porque a página seguinte falhou é
+            # desperdício que a pessoa paga em minutos de espera. O `offset`
+            # devolvido é o ponto exato de retomada.
+            log.warning("Custos %s: a conexão falhou no offset %d (%s). "
+                        "Guardando o que veio e marcando para retomar daqui.",
+                        recurso, offset, str(erro)[:80])
+            return offset, False
 
-        if isinstance(corpo, list):
-            return coletadas + corpo, True
+        if isinstance(corpo, list):        # endpoint sem envelope
+            consumir(corpo)
+            return offset + len(corpo), True
         if not isinstance(corpo, dict):
             log.warning("Custos %s: resposta %s, esperava objeto",
                         recurso, type(corpo).__name__)
-            return coletadas, False
+            return offset, False
 
         itens = corpo.get("items")
         if itens is None:
@@ -187,84 +198,131 @@ def _pedir(recurso: str, parametros: dict,
         if not isinstance(itens, list):
             log.warning("Custos %s: sem lista na resposta. Chaves: %s",
                         recurso, list(corpo)[:8])
-            return coletadas, False
+            return offset, False
 
-        coletadas.extend(itens)
+        # O servidor pode não honrar o tamanho pedido. Quem manda é o que ele
+        # DEVOLVEU: adotar o valor dele evita um laço que anda menos do que
+        # pensa que anda — e que, com página vazia, não andaria nunca.
+        aplicado = corpo.get("limit")
+        if isinstance(aplicado, int) and aplicado and aplicado != tamanho:
+            log.info("Custos %s: pedi limit=%d e o servidor aplicou %d; "
+                     "seguindo com o dele.", recurso, tamanho, aplicado)
+            tamanho = aplicado
+
+        consumir(itens)
+        paginas += 1
+        if max_paginas is not None and paginas >= max_paginas:
+            # Só o diagnóstico usa isto: ele quer os NOMES dos campos, e a
+            # primeira página já responde. Não é `completo`, e dizer que é
+            # gravaria "recorte inteiro coletado" sobre uma amostra.
+            return offset + len(itens), False
+
+        if not itens:
+            # Página vazia com `hasMore` verdadeiro é laço infinito disfarçado.
+            log.warning("Custos %s: página vazia no offset %d com hasMore=%s "
+                        "— parando aqui em vez de girar em falso.",
+                        recurso, offset, corpo.get("hasMore"))
+            return offset, False
+
+        offset += len(itens)
+
         if not corpo.get("hasMore"):
-            break
-        offset += len(itens) or 1
+            return offset, True
 
-        # Sinal de vida a cada 50 páginas. Sem isto, onze minutos de coleta
-        # são indistinguíveis de travamento — e quem espera interrompe.
-        if pagina and pagina % 50 == 0:
+        if paginas % 20 == 0:
             decorrido = time.monotonic() - inicio
-            log.info("Custos %s: %d páginas, %d linhas, %.0f s",
-                     recurso, pagina, len(coletadas), decorrido)
-
-        if pagina == TETO - 1:
-            log.warning("Custos %s: teto de %d páginas — o resultado está "
-                        "TRUNCADO, não completo", recurso, TETO)
-            return coletadas, False
-
-    if coletadas and recurso not in _campos_vistos:
-        _campos_vistos[recurso] = set(coletadas[0])
-        log.info("Custos %s: campos devolvidos — %s. Primeiro registro: %s",
-                 recurso, ", ".join(sorted(coletadas[0])),
-                 str(coletadas[0])[:300])
-    return coletadas, True
+            log.info("Custos %s: %d páginas, %d linhas, %.0f s (%.0f linhas/s)",
+                     recurso, paginas, offset, decorrido,
+                     offset / decorrido if decorrido else 0)
 
 
-def coletar(conjunto: str, ano: int,
-            mes: int | None = None) -> tuple[list[dict], bool]:
-    """Um recorte de custo, de um ano (ou de um mês dele)."""
-    recurso = CONJUNTOS[conjunto]
-    parametros: dict = {"ano": ano}
-    if mes:
-        parametros["mes"] = mes
+def _agregador(conjunto: str, ano: int):
+    """Acumula (órgão, item, ano, mês) → valor, página a página.
 
-    brutos, completo = _pedir(recurso, parametros)
-    if not completo:
-        log.warning("Custos %s/%s: resultado PARCIAL — o total abaixo é um "
-                    "piso, não o valor do período. A marca fica como parcial "
-                    "para a próxima execução tentar de novo.", conjunto, ano)
-
-    # AGREGAÇÃO NA LEITURA, não depois. `pessoal_ativo` vem quebrado por sexo,
-    # escolaridade, faixa etária e área de atuação: um único mês de 2025 passou
-    # de 100 mil linhas e estourou o teto de páginas. O painel pergunta "quanto
-    # custa este órgão", não "quanto custa este órgão para servidores de tal
-    # faixa etária" — somar enquanto lê descarta a explosão combinatória sem
-    # perder a resposta.
+    `pessoal_ativo` vem quebrado por sexo, escolaridade, faixa etária e área
+    de atuação. O painel pergunta "quanto custa este órgão", não "quanto custa
+    este órgão para servidores de tal faixa etária": somar enquanto lê descarta
+    a explosão combinatória sem perder a resposta.
+    """
     somas: dict[tuple, float] = {}
-    rotulos: dict[tuple, dict] = {}
+    codigos: dict[tuple, str | None] = {}
 
-    for bruto in brutos:
-        valor = numero(_valor(bruto))
-        if valor is None:
-            continue
-        mes_linha = inteiro(_campo(bruto, "mes"))
-        chave = (
-            texto(_campo(bruto, "orgao_nome"), 200) or "(sem órgão)",
-            opcional(_campo(bruto, "item_custo")) or conjunto,
-            inteiro(_campo(bruto, "ano")) or ano,
-            mes_linha if mes_linha is not None else 0,
-        )
-        somas[chave] = somas.get(chave, 0.0) + valor
-        rotulos.setdefault(chave, {
-            "orgao_codigo": opcional(_campo(bruto, "orgao_codigo"))})
+    def consumir(brutos: list[dict]) -> None:
+        for bruto in brutos:
+            valor = numero(_valor(bruto))
+            if valor is None:
+                continue
+            mes_linha = inteiro(_campo(bruto, "mes"))
+            chave = (
+                texto(_campo(bruto, "orgao_nome"), 200) or "(sem órgão)",
+                opcional(_campo(bruto, "item_custo")) or conjunto,
+                inteiro(_campo(bruto, "ano")) or ano,
+                mes_linha if mes_linha is not None else 0,
+            )
+            somas[chave] = somas.get(chave, 0.0) + valor
+            codigos.setdefault(chave, opcional(_campo(bruto, "orgao_codigo")))
 
-    linhas = []
-    for (orgao, item, ano_linha, mes_linha), valor in somas.items():
-        linhas.append({
+    def linhas() -> list[dict]:
+        return [{
             "conjunto": conjunto,
             "orgao_nome": orgao,
-            "orgao_codigo": rotulos[(orgao, item, ano_linha, mes_linha)]["orgao_codigo"],
+            "orgao_codigo": codigos.get((orgao, item, ano_linha, mes_linha)),
             "item_custo": item,
             "ano": ano_linha,
             "mes": mes_linha,
             "valor": valor,
             "data_referencia": f"{ano_linha}-{(mes_linha or 12):02d}-01",
-        })
-    return linhas, completo
+        } for (orgao, item, ano_linha, mes_linha), valor in somas.items()]
+
+    return consumir, linhas, somas, codigos
+
+
+def _semear(conjunto: str, ano: int, somas: dict, codigos: dict) -> int:
+    """Carrega no agregador o que já foi gravado deste recorte.
+
+    Sem isto, retomar do offset N gravaria apenas a soma do trecho [N, fim), e
+    a tela mostraria MENOS do que já mostrava. Com a semente, cada execução
+    continua a soma anterior — e como os trechos são disjuntos por construção,
+    somar é exato, não aproximado.
+    """
+    try:
+        df = armazem.ler("custo_orgao",
+                         filtro=f"conjunto = '{conjunto}' AND ano = {int(ano)}")
+    except Exception as erro:  # noqa: BLE001
+        log.warning("Custos %s/%d: não consegui ler o que já havia (%s); "
+                    "recomeçando do zero.", conjunto, ano, str(erro)[:80])
+        return 0
+    if df.empty:
+        return 0
+    for linha in df.to_dict("records"):
+        chave = (linha["orgao_nome"], linha["item_custo"],
+                 int(linha["ano"]), int(linha["mes"] or 0))
+        somas[chave] = somas.get(chave, 0.0) + float(linha["valor"] or 0.0)
+        codigos.setdefault(chave, linha.get("orgao_codigo"))
+    return len(df)
+
+
+def coletar(conjunto: str, ano: int, mes: int | None = None,
+            offset: int = 0,
+            retomar: bool = False) -> tuple[list[dict], bool, int]:
+    """Um recorte de custo. Devolve `(linhas, completo, offset_alcançado)`."""
+    recurso = CONJUNTOS[conjunto]
+    parametros: dict = {"ano": ano}
+    if mes:
+        parametros["mes"] = mes
+
+    consumir, montar, somas, codigos = _agregador(conjunto, ano)
+    if retomar and offset:
+        semeadas = _semear(conjunto, ano, somas, codigos)
+        log.info("Custos %s/%d: retomando do offset %d sobre %d linha(s) já "
+                 "gravadas.", conjunto, ano, offset, semeadas)
+
+    alcancado, completo = _paginar(recurso, parametros, consumir, offset=offset)
+    if not completo:
+        log.warning("Custos %s/%s: PARCIAL no offset %d. O total é um piso; a "
+                    "próxima execução continua daqui, não do começo.",
+                    conjunto, ano, alcancado)
+    return montar(), completo, alcancado
 
 
 # A série começa em 2015, segundo a documentação de todos os seis recortes.
@@ -278,6 +336,22 @@ def anos_disponiveis() -> list[int]:
     construção, e coletá-lo grava um total que muda no mês seguinte.
     """
     return list(range(PRIMEIRO_ANO, date.today().year))
+
+
+def _retomada(conjunto: str, ano: int) -> int:
+    """O offset gravado pela execução anterior, ou 0.
+
+    Marca de execução antiga (que guardava o ano) não serve como posição, e
+    tratá-la como tal pularia o começo do recorte. Só retoma o que esta versão
+    escreveu.
+    """
+    marca = controle.ler_marca(FONTE, f"{conjunto}_{ano}")
+    if not marca or not str(marca).startswith("offset="):
+        return 0
+    try:
+        return max(0, int(str(marca).split("=", 1)[1]))
+    except ValueError:
+        return 0
 
 
 def executar(anos: list[int] | None = None,
@@ -309,15 +383,21 @@ def executar(anos: list[int] | None = None,
     total = 0
     for indice, (conjunto, ano) in enumerate(alvos, 1):
         log.info("Custos %s/%d — %d de %d", conjunto, ano, indice, len(alvos))
+        # Onde a execução anterior parou. Sem isto, cada carga rebaixava o
+        # mesmo prefixo e batia no mesmo limite: 24 h de rede para terminar
+        # exatamente onde a véspera terminou.
+        retomada = _retomada(conjunto, ano) if not refazer else 0
         try:
             if por_mes:
                 linhas, completo = [], True
                 for mes in range(1, 13):
-                    parte, inteiro = coletar(conjunto, ano, mes)
+                    parte, inteiro_mes, _ = coletar(conjunto, ano, mes)
                     linhas.extend(parte)
-                    completo = completo and inteiro
+                    completo = completo and inteiro_mes
+                alcancado = 0
             else:
-                linhas, completo = coletar(conjunto, ano)
+                linhas, completo, alcancado = coletar(
+                    conjunto, ano, offset=retomada, retomar=bool(retomada))
         except Exception as erro:  # noqa: BLE001
             log.error("Custos %s/%d falhou: %s", conjunto, ano, erro)
             controle.gravar_marca(FONTE, f"{conjunto}_{ano}", ano, 0,
@@ -340,7 +420,10 @@ def executar(anos: list[int] | None = None,
 
         log.info("Custos %s/%d: %d linhas (%s)",
                  conjunto, ano, len(linhas), situacao)
-        controle.gravar_marca(FONTE, f"{conjunto}_{ano}", ano, len(linhas),
+        # A marca guarda a POSIÇÃO quando ficou pela metade. `ler_marca` só
+        # entende o que ela mesma escreveu, então o formato é explícito.
+        marca = f"offset={alcancado}" if situacao == "parcial" else str(ano)
+        controle.gravar_marca(FONTE, f"{conjunto}_{ano}", marca, len(linhas),
                               situacao=situacao, detalhe=detalhe)
     return total
 
@@ -360,7 +443,11 @@ def descobrir(ano: int | None = None) -> dict[str, dict]:
             # UMA página: o diagnóstico quer os nomes dos campos, não o
             # recorte inteiro. Paginar tudo aqui custou quatro minutos de rede
             # para responder o que a primeira linha responde.
-            amostra, _ = _pedir(recurso, {"ano": ano, "mes": 1}, paginas=1)
+            # UMA página curta: `_paginar` pararia sozinho só no fim do
+            # recorte, e aqui basta a primeira linha.
+            amostra: list[dict] = []
+            _paginar(recurso, {"ano": ano, "mes": 1}, amostra.extend,
+                     tamanho=1, max_paginas=1)
             achados[conjunto] = {
                 "campos": sorted(amostra[0]) if amostra else [], "erro": ""}
         except Exception as erro:  # noqa: BLE001

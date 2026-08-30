@@ -156,3 +156,18 @@ def test_veredito_separa_bloqueio_de_aviso():
     assert v.bloqueia
     assert len(v.bloqueios) == 1 and len(v.avisos) == 1
     v.relatar()
+
+
+# ------------------------------------------------------------ marca vazia
+def test_marca_ok_com_zero_linha_bloqueia():
+    """`dca_2026` ficou `ok` com 0 linhas. Como só `ok` é terminal, aquele ano
+    saiu da fila de coleta para sempre — sem ninguém decidir isso."""
+    from src.nucleo import controle  # noqa: PLC0415
+
+    controle.gravar_marca("siconfi", "dca_2026", 2026, 0, situacao="ok")
+    controle.gravar_marca("siconfi", "dca_2025", 2025, 5000, situacao="ok")
+
+    achados = portao.conferir_marcas_vazias()
+    assert [a.alvo for a in achados] == ["siconfi/dca_2026"]
+    assert achados[0].bloqueia
+    assert "nunca mais será coletado" in achados[0].mensagem
