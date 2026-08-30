@@ -785,6 +785,50 @@ def ficha_do_politico(sk: str, ano: int | None = None):
         "não o ano inteiro.",
     ] if presenca else []
 
+    # POR QUE NÃO HÁ PRESENÇA, quando não há. São dois motivos diferentes e a
+    # tela dizia a mesma frase para os dois: "sem registro no acervo" faz o
+    # vereador parecer um dado que falta coletar, quando na verdade ele é um
+    # dado que não existe de forma estruturada em lugar nenhum.
+    #
+    # Confundir "ainda não coletei" com "a fonte não publica" é o mesmo erro
+    # de sempre, na direção contrária: aqui a tela estaria prometendo que um
+    # dia mostra o que nunca vai poder mostrar.
+    # Cargos cuja casa legislativa não publica presença em dado aberto. A
+    # lista existe porque `esfera` vem de `dim_cargo_publico`, que nasce do
+    # CSV de referências: num acervo em que ele não foi carregado, o campo é
+    # nulo e a mensagem cairia no genérico — justamente o que este trecho
+    # existe para não fazer. O cargo, esse, sempre está lá.
+    CARGOS_SEM_FONTE_DE_PRESENCA = {
+        "vereador", "prefeito", "vice_prefeito", "deputado_estadual",
+        "deputado_distrital", "governador", "vice_governador",
+    }
+
+    presenca_indisponivel = None
+    if not presenca:
+        esfera = str(politico.get("esfera") or "").lower()
+        casa = str(politico.get("casa") or "").lower()
+        cargo = str(politico.get("cargo") or "").lower()
+        if esfera in ("municipal", "estadual") or cargo in CARGOS_SEM_FONTE_DE_PRESENCA:
+            presenca_indisponivel = (
+                "Presença e voto nominal só existem de forma estruturada no "
+                "Congresso Nacional. São 27 assembleias e 5.570 câmaras "
+                "municipais, cada uma com o seu site: para este cargo o painel "
+                "mostra cadastro e finanças, e não afirma o que não pôde "
+                "verificar.")
+        elif casa == "senado":
+            presenca_indisponivel = (
+                "O painel coleta as votações do Senado, mas ainda não a "
+                "presença em sessão. Enquanto não coletar, não há número aqui "
+                "— e número que não existe não vira zero.")
+        elif casa == "camara":
+            presenca_indisponivel = (
+                "A Câmara publica a presença deste parlamentar, mas o acervo "
+                "ainda não tem o ano coletado. Marque a Câmara na aba "
+                "Atualizar para preencher.")
+        else:
+            presenca_indisponivel = (
+                "Sem registro de presença no acervo para este cargo.")
+
     fidelidade = _consultar("""
         SELECT ano, votos_com_orientacao, votos_divergentes, taxa_divergencia
           FROM vw_fidelidade_partidaria
@@ -809,6 +853,7 @@ def ficha_do_politico(sk: str, ano: int | None = None):
         "anos": [int(a["ano"]) for a in por_ano],
         "presenca": presenca,
         "presenca_ressalva": presenca_ressalva,
+        "presenca_indisponivel": presenca_indisponivel,
         "fidelidade": fidelidade,
         "divergencias": divergencias,
         "cota_por_ano": por_ano,

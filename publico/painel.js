@@ -1749,8 +1749,11 @@ function abaDeAtuacao(f) {
   const presenca = f.presenca || [];
   const fidelidade = f.fidelidade || [];
   if (!presenca.length && !fidelidade.length) {
-    return '<p class="vazio">Sem registro de presença ou de votação para '
-         + 'este parlamentar no acervo.</p>';
+    // A frase vem da API porque o MOTIVO muda: para um vereador a presença
+    // não existe em fonte estruturada, e dizer "sem registro no acervo"
+    // sugeriria que basta coletar.
+    return `<p class="vazio">${escapar(f.presenca_indisponivel
+      || 'Sem registro de presença ou de votação para este parlamentar no acervo.')}</p>`;
   }
 
   const doAno = presenca.find((p) => Number(p.ano) === Number(f.ano))

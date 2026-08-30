@@ -854,3 +854,32 @@ def test_numero_de_ausencia_nunca_sai_sem_a_ressalva(cliente):
     # E o denominador nunca pode faltar: "13 faltas" sozinho não é conferível.
     for linha in ficha["presenca"]:
         assert linha.get("sessoes_possiveis") is not None
+
+
+def test_ficha_de_vereador_explica_que_a_fonte_nao_existe(cliente):
+    """Para um vereador a ficha vinha vazia com "sem registro no acervo" — a
+    mesma frase de um deputado cujo ano ainda não foi coletado.
+
+    São coisas diferentes: um dia o deputado aparece, o vereador nunca. São 27
+    assembleias e 5.570 câmaras municipais, cada uma com o seu site, e o
+    painel não promete o que não pode entregar."""
+    from src.nucleo import armazem  # noqa: PLC0415
+
+    armazem.mesclar("dim_politico", [{
+        "fonte_origem": "tse", "id_origem": "999", "nome": "SICRANA DA SILVA",
+        "nome_eleitoral": "Sicrana", "sigla_partido": "YY", "sigla_uf": "MA",
+        "casa": None, "cargo": "vereador", "url_foto": None}], "teste")
+    cliente.post("/api/recarregar")
+
+    achados = cliente.get("/api/politicos",
+                          params={"nome": "SICRANA DA SILVA"}).json()
+    meu = [p for p in achados if p.get("nome") == "SICRANA DA SILVA"]
+    assert len(meu) == 1
+    ficha = cliente.get(f"/api/politicos/{meu[0]['sk']}/ficha").json()
+
+    assert ficha["presenca"] == []
+    motivo = ficha.get("presenca_indisponivel") or ""
+    assert "câmaras municipais" in motivo, (
+        "a tela precisa distinguir 'a fonte não publica' de 'ainda não "
+        "coletei' — a segunda frase promete um dado que nunca virá")
+    assert "acervo" not in motivo.lower()
