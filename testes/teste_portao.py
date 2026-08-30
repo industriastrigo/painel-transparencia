@@ -80,11 +80,13 @@ def test_coluna_que_despenca_de_cheia_para_vazia_bloqueia():
     assert portao.conferir_preenchimento(["dim_ente"]) == []
 
     armazem.mesclar("dim_ente", _entes(300, situacao=None), fonte="teste")
+    # Dois achados sobre a mesma coluna, e cada um diz uma coisa: caiu (bloqueia)
+    # e está inteiramente vazia (avisa). O que barra a carga é a queda.
     achados = portao.conferir_preenchimento(["dim_ente"])
+    queda = [a for a in achados if a.bloqueia]
 
-    assert [a.alvo for a in achados] == ["dim_ente.situacao"]
-    assert achados[0].bloqueia
-    assert "100%" in achados[0].mensagem and "0%" in achados[0].mensagem
+    assert [a.alvo for a in queda] == ["dim_ente.situacao"]
+    assert "100%" in queda[0].mensagem and "0%" in queda[0].mensagem
 
 
 def test_referencia_nao_afunda_com_a_carga_ruim():
@@ -171,3 +173,15 @@ def test_marca_ok_com_zero_linha_bloqueia():
     assert [a.alvo for a in achados] == ["siconfi/dca_2026"]
     assert achados[0].bloqueia
     assert "nunca mais será coletado" in achados[0].mensagem
+
+
+def test_coluna_inteiramente_vazia_vira_aviso():
+    """`votacao.id_proposicao` ficou 0% preenchida em 21.128 linhas porque o
+    coletor lia um nome de coluna que não existe no arquivo. Nada acusou."""
+    armazem.remover("dim_ente")
+    armazem.mesclar("dim_ente", _entes(300, situacao=None), fonte="teste")
+
+    achados = portao.conferir_preenchimento(["dim_ente"])
+    vazias = [a for a in achados if "TODAS" in a.mensagem]
+    assert [a.alvo for a in vazias] == ["dim_ente.situacao"]
+    assert not vazias[0].bloqueia, "coluna vazia por escolha da fonte existe"

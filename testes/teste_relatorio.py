@@ -838,3 +838,79 @@ def test_marca_antiga_nao_e_confundida_com_posicao():
     controle.gravar_marca("tesouro", "pensionista_2019", "2019", 10,
                           situacao="parcial")
     assert tesouro._retomada("pensionista", 2019) == 0
+
+
+# ---------- Câmara: os nomes de coluna do arquivo de votações (medidos 30/08)
+def test_votacao_le_a_proposicao_do_campo_que_existe(monkeypatch):
+    """`scripts/medir_votacoes_camara.py` mostrou que `votacoes-ANO.csv` NÃO
+    tem `ultimaAberturaVotacao_idProposicao` nem `idProposicaoObjeto`. Tem
+    `ultimaApresentacaoProposicao_idProposicao` — parecido o bastante para
+    ninguém desconfiar — e `uri`, não `uriVotacao`. Resultado: 21.128 votações
+    com proposição e URL vazias."""
+    import pandas as pd  # noqa: PLC0415
+
+    from src.coletores import camara  # noqa: PLC0415
+
+    linha = {
+        "id": "2585316-23", "uri": "https://dadosabertos.camara.leg.br/x",
+        "data": "2026-02-02", "dataHoraRegistro": "2026-02-02T14:38:11",
+        "siglaOrgao": "PLEN", "aprovacao": "1", "votosSim": "300",
+        "votosNao": "100", "votosOutros": "2", "descricao": "Aprovado",
+        "ultimaApresentacaoProposicao_idProposicao": "2644241",
+    }
+    gravadas = []
+    monkeypatch.setattr(camara, "_csv", lambda url, **k: pd.DataFrame([linha]))
+    monkeypatch.setattr(camara.armazem, "mesclar",
+                        lambda t, linhas, fonte: gravadas.extend(linhas))
+    monkeypatch.setattr(camara.controle, "gravar_marca",
+                        lambda *a, **k: None)
+
+    camara.coletar_votacoes(2026)
+
+    assert gravadas[0]["id_proposicao"] == "2644241"
+    assert gravadas[0]["url"] == "https://dadosabertos.camara.leg.br/x"
+
+
+def test_proposicao_zero_e_ausencia_nao_um_id():
+    """Votação de comissão vem com `0` no lugar da proposição. Guardar o
+    literal criaria uma proposição fantasma que junção nenhuma encontra."""
+    from src.coletores import camara  # noqa: PLC0415
+
+    assert camara._proposicao_ou_nada("0") is None
+    assert camara._proposicao_ou_nada("") is None
+    assert camara._proposicao_ou_nada(None) is None
+    assert camara._proposicao_ou_nada("2644241") == "2644241"
+
+
+def test_relacao_votacao_proposicao_e_n_para_n(monkeypatch):
+    """Uma votação pode decidir sobre várias proposições — é por isso que a
+    Câmara publica a relação num arquivo separado, e não como coluna."""
+    import pandas as pd  # noqa: PLC0415
+
+    from src.coletores import camara  # noqa: PLC0415
+
+    df = pd.DataFrame([
+        {"idVotacao": "2555417-29", "data": "2026-02-02",
+         "descricao": "Aprovada a MP", "proposicao_id": "2592069",
+         "proposicao__titulo": "PAR 25/2025", "proposicao_siglaTipo": "PAR",
+         "proposicao_numero": "25", "proposicao_ano": "2025"},
+        {"idVotacao": "2555417-29", "data": "2026-02-02",
+         "descricao": "Aprovada a MP", "proposicao_id": "2600556",
+         "proposicao_titulo": "RDF 1", "proposicao_siglaTipo": "RDF",
+         "proposicao_numero": "1", "proposicao_ano": ""},
+        {"idVotacao": "999-1", "data": "2026-02-02", "descricao": "x",
+         "proposicao_id": "0"},
+    ])
+    gravadas = []
+    monkeypatch.setattr(camara, "_csv", lambda url, **k: df)
+    monkeypatch.setattr(camara.armazem, "mesclar",
+                        lambda t, linhas, fonte: gravadas.extend(linhas))
+    monkeypatch.setattr(camara.controle, "gravar_marca", lambda *a, **k: None)
+
+    camara.coletar_votacoes_proposicoes(2026)
+
+    assert len(gravadas) == 2, "a linha com proposição 0 não vira ligação"
+    assert {g["id_proposicao"] for g in gravadas} == {"2592069", "2600556"}
+    # O título tem dois sublinhados num arquivo e um no outro.
+    assert gravadas[0]["titulo"] == "PAR 25/2025"
+    assert gravadas[1]["titulo"] == "RDF 1"

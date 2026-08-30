@@ -938,3 +938,44 @@ def test_tramitacao_sob_demanda_so_vale_para_a_camara(cliente):
     um caminho que termina em erro."""
     r = cliente.post("/api/proposicoes/senado/9/tramitacoes")
     assert r.status_code == 400
+
+
+def test_ficha_de_proposicao_acha_a_votacao_pela_relacao_da_camara(cliente):
+    """Das 21.128 votações do acervo, ZERO tinham `id_proposicao`: o coletor
+    procurava dois nomes de coluna que não existem em `votacoes-ANO.csv`. A
+    relação está num arquivo separado, `votacoesProposicoes`, que o projeto
+    nunca lia — e sem ela a promessa central do painel, "quem votou a favor e
+    contra deste projeto", não se cumpria para item nenhum."""
+    from src.nucleo import armazem  # noqa: PLC0415
+
+    for tabela in ("proposicao", "votacao", "votacao_proposicao", "voto"):
+        armazem.remover(tabela)
+
+    armazem.mesclar("proposicao", [{
+        "casa": "camara", "id_proposicao": "104333",
+        "identificador": "PL 11/2003", "sigla_tipo": "PL", "numero": "11",
+        "ano": 2003, "ementa": "Proíbe algo", "data_apresentacao": "2003-02-01",
+        "situacao": "Tramitação Finalizada"}], "teste")
+    # A votação NÃO carrega a proposição: é exatamente assim que ela vem.
+    armazem.mesclar("votacao", [{
+        "casa": "camara", "id_votacao": "104333-87",
+        "data_hora": "2026-05-13T15:00", "sigla_orgao": "PLEN",
+        "descricao": "Aprovado o Parecer.", "aprovada": "1",
+        "id_proposicao": None, "url": None, "ano": 2026}], "teste")
+    armazem.mesclar("votacao_proposicao", [{
+        "casa": "camara", "id_votacao": "104333-87",
+        "id_proposicao": "104333", "titulo": "PL 11/2003", "sigla_tipo": "PL",
+        "numero": "11", "ano_proposicao": 2003, "descricao": "Aprovado o Parecer.",
+        "data": "2026-05-13", "ano": 2026}], "teste")
+    armazem.mesclar("voto", [{
+        "casa": "camara", "id_votacao": "104333-87", "id_politico": "1",
+        "nome_politico": "Fulano", "sigla_partido": "XX", "sigla_uf": "SP",
+        "voto": "Sim", "data_hora": "2026-05-13T15:00", "ano": 2026, "mes": 5}],
+        "teste")
+    cliente.post("/api/recarregar")
+
+    ficha = cliente.get("/api/proposicoes/camara/104333").json()
+    assert len(ficha["votacoes"]) == 1, (
+        "a votação chega à proposição pela relação da Câmara, não pela coluna "
+        "que vem vazia")
+    assert ficha["votacoes"][0]["sim"] == 1

@@ -269,6 +269,20 @@ votacao = _registrar(Tabela(
     cadencia="diária",
 ))
 
+votacao_proposicao = _registrar(Tabela(
+    nome="votacao_proposicao",
+    camada="fato",
+    campos_pk=("casa", "id_votacao", "id_proposicao"),
+    particoes=("ano",),
+    data_referencia="data",
+    descricao="Que proposições foram votadas em cada votação. É N para N: uma "
+              "votação pode decidir sobre várias proposições, e a mesma "
+              "proposição volta em várias votações. Sem esta tabela, a ficha "
+              "de um projeto nunca mostra quem votou a favor e contra — que é "
+              "a promessa central do painel.",
+    cadencia="diária",
+))
+
 voto = _registrar(Tabela(
     nome="voto",
     camada="fato",
@@ -526,6 +540,13 @@ _COLUNAS: dict[str, tuple[tuple[str, str], ...]] = {
         ("casa", "VARCHAR"), ("id_votacao", "VARCHAR"), ("data_hora", "VARCHAR"),
         ("sigla_orgao", "VARCHAR"), ("descricao", "VARCHAR"),
         ("aprovada", "VARCHAR"), ("id_proposicao", "VARCHAR"), ("ano", "INTEGER"),
+    ),
+    "votacao_proposicao": (
+        ("casa", "VARCHAR"), ("id_votacao", "VARCHAR"),
+        ("id_proposicao", "VARCHAR"), ("titulo", "VARCHAR"),
+        ("sigla_tipo", "VARCHAR"), ("numero", "VARCHAR"),
+        ("ano_proposicao", "INTEGER"), ("descricao", "VARCHAR"),
+        ("data", "VARCHAR"), ("ano", "INTEGER"),
     ),
     "voto": (
         ("casa", "VARCHAR"), ("id_votacao", "VARCHAR"), ("id_politico", "VARCHAR"),

@@ -191,6 +191,16 @@ def coletar_tramitacoes(id_proposicao: str) -> int:
 
 
 # ------------------------------------------------------------------ votações
+def _proposicao_ou_nada(valor) -> str | None:
+    """`0` e vazio são a MESMA coisa neste arquivo: não há proposição ligada.
+
+    Guardar o literal "0" criaria uma proposição fantasma que nenhuma junção
+    encontra, e que ninguém veria como lacuna.
+    """
+    texto_id = texto(valor).strip()
+    return None if texto_id in ("", "0") else texto_id
+
+
 def coletar_votacoes(ano: int) -> int:
     df = _csv(f"{config.CAMARA_ARQUIVOS}/votacoes/csv/votacoes-{ano}.csv")
     if df.empty:
@@ -206,14 +216,67 @@ def coletar_votacoes(ano: int) -> int:
         "votos_sim": numero(v.get("votosSim")),
         "votos_nao": numero(v.get("votosNao")),
         "votos_outros": numero(v.get("votosOutros")),
-        "id_proposicao": opcional(v.get("ultimaAberturaVotacao_idProposicao"))
-                          or opcional(v.get("idProposicaoObjeto")),
-        "url": opcional(v.get("uriVotacao")),
+        # NOMES MEDIDOS no arquivo real (`scripts/medir_votacoes_camara.py`),
+        # não supostos: os dois nomes que estavam aqui —
+        # `ultimaAberturaVotacao_idProposicao` e `idProposicaoObjeto` — NÃO
+        # EXISTEM em `votacoes-ANO.csv`. O que existe é
+        # `ultimaApresentacaoProposicao_idProposicao`, parecido o bastante
+        # para ninguém desconfiar, e o resultado foram 21.128 votações com a
+        # proposição vazia: nenhuma ficha de projeto mostrava quem votou.
+        #
+        # E "0" ali significa ausência, não a proposição de id zero — votação
+        # de comissão vem assim.
+        "id_proposicao": _proposicao_ou_nada(
+            v.get("ultimaApresentacaoProposicao_idProposicao")),
+        # `uriVotacao` também não existe neste arquivo; o campo é `uri`. Por
+        # isso a coluna `url` saía inteira nula.
+        "url": opcional(v.get("uri")),
         "ano": int(ano),
     } for _, v in df.iterrows()]
 
     armazem.mesclar("votacao", linhas, f"{FONTE}_lote")
     controle.gravar_marca(FONTE, f"votacoes_{ano}", ano, len(linhas))
+    return len(linhas)
+
+
+def coletar_votacoes_proposicoes(ano: int) -> int:
+    """A ligação votação → proposição, que o arquivo de votações não tem.
+
+    A Câmara publica isto num arquivo separado, `votacoesProposicoes`, e ele é
+    a única fonte completa da relação: uma votação pode decidir sobre várias
+    proposições. O projeto lia os outros três arquivos de votação e nunca este
+    — por isso a ficha de um projeto nunca mostrou quem votou a favor e contra.
+    """
+    df = _csv(f"{config.CAMARA_ARQUIVOS}/votacoesProposicoes/csv/"
+              f"votacoesProposicoes-{ano}.csv")
+    if df.empty:
+        return 0
+
+    linhas = []
+    for _, v in df.iterrows():
+        id_proposicao = _proposicao_ou_nada(v.get("proposicao_id"))
+        id_votacao = texto(v.get("idVotacao"))
+        if not id_proposicao or not id_votacao:
+            continue
+        linhas.append({
+            "casa": CASA,
+            "id_votacao": id_votacao,
+            "id_proposicao": id_proposicao,
+            # `proposicao__titulo` tem DOIS sublinhados no arquivo de
+            # proposições e um só no de objetos. Ler os dois nomes custa uma
+            # linha e evita uma coluna vazia que ninguém percebe.
+            "titulo": primeiro(v, "proposicao__titulo", "proposicao_titulo"),
+            "sigla_tipo": opcional(v.get("proposicao_siglaTipo")),
+            "numero": opcional(v.get("proposicao_numero")),
+            "ano_proposicao": inteiro(v.get("proposicao_ano")),
+            "descricao": texto(v.get("descricao"), 2000),
+            "data": opcional(v.get("data")),
+            "ano": int(ano),
+        })
+
+    if linhas:
+        armazem.mesclar("votacao_proposicao", linhas, f"{FONTE}_lote")
+    controle.gravar_marca(FONTE, f"votacoes_proposicoes_{ano}", ano, len(linhas))
     return len(linhas)
 
 
@@ -476,6 +539,7 @@ def executar(anos: list[int] | None = None, com_despesas: bool = True) -> None:
         for nome, funcao in (
             ("proposições", coletar_proposicoes),
             ("votações", coletar_votacoes),
+            ("votação → proposição", coletar_votacoes_proposicoes),
             ("votos", coletar_votos),
             ("orientações", coletar_orientacoes),
             ("eventos", coletar_eventos),

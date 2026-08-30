@@ -976,15 +976,26 @@ def proposicao_detalhe(casa: str, id_proposicao: str):
          ORDER BY CAST(seq_tramitacao AS INTEGER)
     """, [casa, id_proposicao])
 
+    # A ligação vem das DUAS pontas. `votacao.id_proposicao` guarda uma
+    # proposição só (a da última apresentação) e vem vazia na maioria das
+    # linhas; `votacao_proposicao` é a relação N para N publicada pela Câmara
+    # em arquivo separado, e é ela que faz a ficha de um projeto mostrar quem
+    # votou. Consultar as duas mantém funcionando o acervo já coletado antes
+    # de a segunda existir.
     votacoes = _consultar("""
-        SELECT v.id_votacao, v.data_hora, v.sigla_orgao, v.descricao,
+        SELECT DISTINCT v.id_votacao, v.data_hora, v.sigla_orgao, v.descricao,
                v.aprovada, p.sim, p.nao, p.abstencao, p.outros, p.total
           FROM votacao v
           LEFT JOIN vw_placar_votacao p
             ON p.id_votacao = v.id_votacao AND p.casa = v.casa
-         WHERE v.casa = ? AND CAST(v.id_proposicao AS VARCHAR) = ?
+         WHERE v.casa = ?
+           AND (CAST(v.id_proposicao AS VARCHAR) = ?
+                OR EXISTS (SELECT 1 FROM votacao_proposicao vp
+                            WHERE vp.casa = v.casa
+                              AND vp.id_votacao = v.id_votacao
+                              AND CAST(vp.id_proposicao AS VARCHAR) = ?))
          ORDER BY v.data_hora
-    """, [casa, id_proposicao])
+    """, [casa, id_proposicao, id_proposicao])
 
     return {"proposicao": cabecalho[0], "tramitacoes": etapas,
             "votacoes": votacoes,

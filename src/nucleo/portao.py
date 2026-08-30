@@ -256,6 +256,20 @@ def conferir_preenchimento(
                             f"continua válido; o conteúdo, não. Suspeite de "
                             f"nome de campo trocado na origem."),
                     ))
+                # Coluna do contrato inteiramente vazia numa tabela cheia é,
+                # quase sempre, nome de campo errado na origem: foi assim que
+                # `votacao.id_proposicao` ficou 0% em 21.128 linhas e a ficha
+                # de nenhum projeto mostrou quem votou. Fica em aviso porque
+                # existe coluna legitimamente vazia (fonte que não publica).
+                if taxa == 0.0:
+                    achados.append(Achado(
+                        regra="preenchimento",
+                        alvo=f"{nome}.{coluna}",
+                        bloqueia=False,
+                        mensagem=(
+                            f"vazia em TODAS as {total} linhas. Se a fonte "
+                            f"publica esse campo, o nome lido está errado."),
+                    ))
                 novas_linhas.append({
                     "tabela": nome,
                     "coluna": coluna,
