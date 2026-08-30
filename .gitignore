@@ -20,7 +20,12 @@ Thumbs.db
 desktop.ini
 *.tmp
 
-# Resíduos de editor
-tempCodeRunnerFile*
-.vscode/
-.idea/
+# Pacotes de atualização entregues pela conversa. Não são fonte: são o
+# empacotamento dela, e versioná-los duplicaria o repositório inteiro dentro
+# do próprio repositório.
+*.zip
+
+# Rascunho e lixo de editor: nada aqui é fonte.
+_to_delete/
+tempCodeRunnerFile.bat
+.tmp/

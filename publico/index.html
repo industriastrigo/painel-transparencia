@@ -11,35 +11,71 @@
 <header>
   <h1>Painel da Transparência</h1>
   <p>Dados políticos, socioeconômicos e orçamentários do Brasil, a partir de fontes oficiais.</p>
-  <nav role="tablist">
-    <button data-aba="mapa" aria-selected="true">Mapa</button>
-    <button data-aba="politicos" aria-selected="false">Políticos</button>
-    <button data-aba="proposicoes" aria-selected="false">Projetos de lei</button>
-    <button data-aba="fontes" aria-selected="false">Fontes</button>
-    <button data-aba="custo" aria-selected="false">Custo do Estado</button>
-    <button data-aba="atualizar" aria-selected="false">Atualizar</button>
+  <!-- `role="tab"` de verdade, com `aria-controls` e painéis rotulados. Antes
+       havia `role="tablist"` e `aria-selected` em botões SEM `role="tab"` —
+       e `aria-selected` é inválido num botão comum, então o leitor de tela
+       ignorava e nunca anunciava qual aba estava aberta. Meio caminho é pior
+       que nenhum dos dois. O `tabindex` é gerido em painel.js (roving). -->
+  <nav role="tablist" aria-label="Seções do painel">
+    <button role="tab" id="aba-btn-mapa" data-aba="mapa"
+            aria-controls="aba-mapa" aria-selected="true" tabindex="0">Mapa</button>
+    <button role="tab" id="aba-btn-politicos" data-aba="politicos"
+            aria-controls="aba-politicos" aria-selected="false" tabindex="-1">Políticos</button>
+    <button role="tab" id="aba-btn-proposicoes" data-aba="proposicoes"
+            aria-controls="aba-proposicoes" aria-selected="false" tabindex="-1">Projetos de lei</button>
+    <button role="tab" id="aba-btn-fontes" data-aba="fontes"
+            aria-controls="aba-fontes" aria-selected="false" tabindex="-1">Fontes</button>
+    <button role="tab" id="aba-btn-custo" data-aba="custo"
+            aria-controls="aba-custo" aria-selected="false" tabindex="-1">Custo do Estado</button>
+    <button role="tab" id="aba-btn-atualizar" data-aba="atualizar"
+            aria-controls="aba-atualizar" aria-selected="false" tabindex="-1">Atualizar</button>
   </nav>
 </header>
 
 <main>
 
   <!-- ------------------------------------------------------------ mapa -->
-  <section id="aba-mapa">
+  <section id="aba-mapa" role="tabpanel" tabindex="-1"
+           aria-labelledby="aba-btn-mapa">
     <div class="barra">
       <div>
         <label for="ano">Ano</label>
         <select id="ano"></select>
       </div>
       <div>
+        <!-- Agrupada por PERGUNTA, não pela ordem em que as métricas foram
+             sendo acrescentadas. Catorze opções numa lista corrida obrigam a
+             ler tudo para achar uma; em cinco grupos, o olho vai direto.
+             O `<optgroup>` também resolve a largura: era o rótulo mais longo
+             que ditava o tamanho do seletor, e ele estourava 380px. -->
         <label for="metrica">Métrica</label>
         <select id="metrica">
-          <option value="despesa_per_capita">Despesa por habitante</option>
-          <option value="despesa_total">Despesa total</option>
-          <option value="receita_total">Arrecadação</option>
-          <option value="receita_per_capita">Arrecadação por habitante</option>
-          <option value="transferencia_recebida">Transferências recebidas</option>
-          <option value="dependencia_transferencia">Dependência de transferências (%)</option>
-          <option value="populacao">População</option>
+          <optgroup label="Quanto gasta">
+            <option value="despesa_per_capita">Despesa por habitante</option>
+            <option value="despesa_total">Despesa total</option>
+          </optgroup>
+          <optgroup label="Quanto arrecada">
+            <option value="receita_total">Arrecadação</option>
+            <option value="receita_per_capita">Arrecadação por habitante</option>
+          </optgroup>
+          <optgroup label="Quanto recebe da União">
+            <option value="transferencia_recebida">Transferências (declarado)</option>
+            <option value="transferencia_uniao">Transferências (pago pelo Tesouro)</option>
+            <option value="dependencia_transferencia">Dependência de transferências</option>
+          </optgroup>
+          <optgroup label="Em que gasta">
+            <option value="despesa_saude">Saúde — total</option>
+            <option value="saude_per_capita">Saúde por habitante</option>
+            <option value="despesa_educacao">Educação — total</option>
+            <option value="educacao_per_capita">Educação por habitante</option>
+          </optgroup>
+          <optgroup label="Saúde fiscal">
+            <option value="percentual_pessoal">Pessoal sobre a RCL (limite da LRF)</option>
+            <option value="divida_liquida">Dívida consolidada líquida</option>
+          </optgroup>
+          <optgroup label="Contexto">
+            <option value="populacao">População</option>
+          </optgroup>
         </select>
       </div>
       <div>
@@ -52,28 +88,50 @@
       </div>
     </div>
 
+    <!-- Por que os cartões deste ano estão vazios. Preenchido por
+         `avisarAnoParcial()`; some quando o ano está completo. -->
+    <div id="aviso-ano" hidden></div>
+
     <p class="migalha" id="migalha">Brasil</p>
 
     <div class="painel" id="painel-mapa">
-      <div class="cartao" id="cartao-mapa">
+      <div class="cartao" id="cartao-mapa" role="group" aria-label="Mapa">
+        <!-- Os botões saíram do <h2>: dentro dele, o nome acessível do
+             cabeçalho virava "Clique num estado… − + Enquadrar Ampliar". -->
         <h2>
-          Clique num estado para ver seus municípios · num município, para a ficha dele
-          <span class="ferramentas-mapa">
-            <button type="button" class="discreto" id="zoom-menos" title="Afastar" aria-label="Afastar">−</button>
-            <button type="button" class="discreto" id="zoom-mais" title="Aproximar" aria-label="Aproximar">+</button>
-            <button type="button" class="discreto" id="zoom-reset" title="Enquadrar de novo">Enquadrar</button>
+          <span>Mapa</span>
+          <span class="ferramentas-mapa" role="group" aria-label="Controles do mapa">
+            <button type="button" class="discreto" id="zoom-menos" aria-label="Afastar">−</button>
+            <button type="button" class="discreto" id="zoom-mais" aria-label="Aproximar">+</button>
+            <button type="button" class="discreto" id="zoom-reset">Enquadrar</button>
             <button type="button" class="discreto" id="tela-cheia" aria-pressed="false">Ampliar</button>
           </span>
         </h2>
         <div class="moldura-mapa" id="moldura-mapa">
-          <svg id="mapa" role="img" aria-label="Mapa do Brasil"></svg>
-          <div class="dica" id="dica-mapa" role="status" aria-live="polite" hidden></div>
+          <!-- Sem `role="img"`: ele tornaria presentacional TODO o conteúdo
+               interno, inclusive os <path> focáveis que o teclado alcança —
+               foco indo para nós que a árvore de acessibilidade não expõe.
+               O nome é reescrito por painel.js a cada troca de UF e métrica.
+               Setas movem o mapa quando há zoom; + e − ajustam; 0 enquadra. -->
+          <svg id="mapa" role="group" tabindex="-1"
+               aria-label="Mapa do Brasil" aria-describedby="ajuda-mapa"></svg>
+          <!-- A dica NÃO é `aria-live`: ela era reescrita a cada ente sob o
+               cursor, e atravessar o mapa com o mouse enfileirava uma leitura
+               por município. O leitor chega ao número pelo aria-label do ente. -->
+          <div class="dica" id="dica-mapa" hidden></div>
         </div>
+        <p id="ajuda-mapa" class="rodape-mapa">
+          <strong>Clique num estado</strong> para ver seus municípios; num
+          município, para abrir a ficha dele. Roda do mouse ou
+          <kbd>+</kbd>/<kbd>−</kbd> aproxima, setas movem, <kbd>0</kbd>
+          enquadra de novo.
+        </p>
         <div class="legenda">
           <span id="legenda-min">—</span>
-          <span class="faixa" id="legenda-faixa"></span>
+          <span class="faixa" id="legenda-faixa" role="img"
+                aria-label="Escala de cor, do menor ao maior valor"></span>
           <span id="legenda-max">—</span>
-          <span>· cinza = sem dado coletado</span>
+          <span><i class="sem-dado-amostra"></i>sem dado coletado</span>
         </div>
         <p class="rodape-mapa" id="rodape-mapa"></p>
       </div>
@@ -86,7 +144,8 @@
   </section>
 
   <!-- -------------------------------------------------------- políticos -->
-  <section id="aba-politicos" hidden>
+  <section id="aba-politicos" role="tabpanel" tabindex="-1"
+           aria-labelledby="aba-btn-politicos" hidden>
     <div class="aviso">
       <strong>Limite honesto de escopo</strong>
       Cadastro de eleitos existe do presidente ao vereador (TSE). Já a votação
@@ -112,16 +171,28 @@
         </select></div>
       <div><label for="filtro-nome">Nome</label>
         <input id="filtro-nome" placeholder="buscar"></div>
-      <div><label>&nbsp;</label><button id="buscar-politicos">Buscar</button></div>
+      <div><label for="filtro-partido">Partido</label>
+        <input id="filtro-partido" size="6" maxlength="12" placeholder="PT"></div>
+      <div class="acao"><button id="buscar-politicos" class="principal">Buscar</button></div>
     </div>
 
     <div class="painel">
       <div class="cartao">
         <h2>Resultados</h2>
-        <table id="tabela-politicos">
-          <thead><tr><th>Nome</th><th>Cargo</th><th>Partido</th><th>UF</th><th>Fonte</th></tr></thead>
-          <tbody></tbody>
-        </table>
+        <!-- SEM `style` inline aqui. Um `display:flex` no atributo `style`
+             VENCE o `[hidden] { display: none }` da folha do navegador, e a
+             div apareceria vazia sempre — inclusive antes da primeira busca.
+             É a mesma armadilha do `font-size` do rótulo do mapa: quem ganha
+             a cascata não é quem parece. O layout está em estilo.css. -->
+        <div id="destaque-executivo" hidden></div>
+        <div class="rolagem">
+          <table id="tabela-politicos">
+            <caption class="rodape-mapa" style="text-align:left;caption-side:bottom">
+              Cadastro do TSE, conciliado com o código IBGE.</caption>
+            <thead><tr><th>Nome</th><th>Cargo</th><th>Partido</th><th>UF</th><th>Fonte</th></tr></thead>
+            <tbody aria-live="polite" aria-busy="false"></tbody>
+          </table>
+        </div>
       </div>
       <div class="cartao">
         <h2>Quantos existem</h2>
@@ -131,7 +202,8 @@
   </section>
 
   <!-- ------------------------------------------------------ proposições -->
-  <section id="aba-proposicoes" hidden>
+  <section id="aba-proposicoes" role="tabpanel" tabindex="-1"
+           aria-labelledby="aba-btn-proposicoes" hidden>
     <div class="barra">
       <div><label for="filtro-proposicao">Texto</label>
         <input id="filtro-proposicao" placeholder="ementa ou PL 1234/2024"></div>
@@ -143,24 +215,26 @@
         <select id="filtro-tipo"><option value="">todos</option></select></div>
       <div><label for="filtro-de">De</label><input type="date" id="filtro-de"></div>
       <div><label for="filtro-ate">Até</label><input type="date" id="filtro-ate"></div>
-      <div><label>&nbsp;</label><button id="buscar-proposicoes">Buscar</button></div>
-      <div><label>&nbsp;</label>
-        <button id="limpar-proposicoes" class="discreto">Limpar</button></div>
+      <div class="acao"><button id="buscar-proposicoes" class="principal">Buscar</button></div>
+      <div class="acao"><button id="limpar-proposicoes" class="discreto">Limpar</button></div>
     </div>
 
     <div class="cartao">
       <h2>Clique numa linha para ver etapas e quem votou a favor e contra</h2>
-      <p class="rodape-mapa" id="resumo-proposicoes"></p>
-      <table id="tabela-proposicoes">
-        <thead><tr><th>Proposição</th><th>Ementa</th><th>Autor</th>
-          <th>Apresentada</th><th>Situação</th></tr></thead>
-        <tbody></tbody>
-      </table>
+      <p class="rodape-mapa" id="resumo-proposicoes" role="status"></p>
+      <div class="rolagem">
+        <table id="tabela-proposicoes">
+          <thead><tr><th>Proposição</th><th>Ementa</th><th>Autor</th>
+            <th>Apresentada</th><th>Situação</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
     </div>
   </section>
 
   <!-- ----------------------------------------------------------- fontes -->
-  <section id="aba-fontes" hidden>
+  <section id="aba-fontes" role="tabpanel" tabindex="-1"
+           aria-labelledby="aba-btn-fontes" hidden>
     <div class="cartao">
       <h2>Última coleta por fonte</h2>
       <div id="situacao-fontes"></div>
@@ -168,24 +242,36 @@
 
     <div class="cartao" style="margin-top:16px">
       <h2>De onde vem cada número</h2>
-      <table>
+      <div class="rolagem"><table>
         <thead><tr><th>Camada</th><th>Fonte</th><th>Cadência</th></tr></thead>
         <tbody>
           <tr><td>Geografia e malhas</td><td>IBGE — Localidades e Malhas v3</td><td>anual</td></tr>
           <tr><td>População e PIB</td><td>IBGE — Agregados/SIDRA v3</td><td>anual</td></tr>
           <tr><td>Finanças de estados e municípios</td><td>SICONFI — Tesouro Nacional</td><td>mensal/anual</td></tr>
+          <tr><td>Repasses da União</td><td>Tesouro — Transferências Constitucionais</td><td>mensal</td></tr>
+          <tr><td>Operações de crédito</td><td>Tesouro — SADIPEM</td><td>mensal</td></tr>
           <tr><td>Deputados, projetos, votos</td><td>Câmara — arquivos em lote</td><td>diária</td></tr>
           <tr><td>Senadores e votações</td><td>Senado — dados abertos</td><td>diária</td></tr>
           <tr><td>Eleitos, do presidente ao vereador</td><td>TSE — dados abertos</td><td>eleitoral</td></tr>
+          <tr><td>Despesa por função — saúde, educação</td><td>SICONFI — RREO Anexo 02</td><td>bimestral</td></tr>
+          <tr><td>Pessoal, dívida e limites da LRF</td><td>SICONFI — RGF</td><td>quadrimestral</td></tr>
+          <tr><td>Custo apurado do governo federal</td><td>Tesouro — API de Custos</td><td>mensal</td></tr>
           <tr><td>Emendas parlamentares</td><td>Portal da Transparência — CGU</td><td>mensal</td></tr>
         </tbody>
-      </table>
+      </table></div>
     </div>
   </section>
 
   <!-- ------------------------------------------------------------ custo -->
-  <section id="aba-custo" hidden>
+  <section id="aba-custo" role="tabpanel" tabindex="-1"
+           aria-labelledby="aba-btn-custo" hidden>
     <div class="tiras" id="topo-custo"></div>
+    <p class="rodape-mapa">Três medidas diferentes do mesmo Estado, lado a lado
+      de propósito: <strong>o que ele arrecada</strong>, <strong>o que ele
+      empenha</strong> e <strong>o que os subsídios custariam</strong>. A
+      terceira é conta nossa; as outras duas são medidas da fonte. As duas
+      primeiras somam <strong>estados e municípios</strong> — o orçamento da
+      União não entra, porque não está no SICONFI.</p>
     <div id="avisos-custo"></div>
 
     <div class="painel">
@@ -197,13 +283,15 @@
           não um valor medido: não inclui gabinete, auxílios, diárias nem
           encargos.
         </p>
-        <table id="tabela-custo">
-          <thead><tr>
-            <th>Cargo</th><th>Ocupantes</th><th>Subsídio mensal</th>
-            <th>Custo anual estimado</th><th>Norma</th>
-          </tr></thead>
-          <tbody></tbody>
-        </table>
+        <div class="rolagem">
+          <table id="tabela-custo">
+            <thead><tr>
+              <th>Cargo</th><th>Ocupantes</th><th>Subsídio mensal</th>
+              <th>Custo anual estimado</th><th>Norma</th>
+            </tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
       </div>
 
       <div class="cartao">
@@ -214,7 +302,8 @@
   </section>
 
   <!-- -------------------------------------------------------- atualizar -->
-  <section id="aba-atualizar" hidden>
+  <section id="aba-atualizar" role="tabpanel" tabindex="-1"
+           aria-labelledby="aba-btn-atualizar" hidden>
     <div class="painel">
       <div class="cartao">
         <h2>O que atualizar</h2>
@@ -230,7 +319,7 @@
             <label for="coleta-nivel">SICONFI — abrangência</label>
             <select id="coleta-nivel">
               <option value="estado">27 UFs (rápido)</option>
-              <option value="municipio">5.570 municípios (15–25 min)</option>
+              <option value="municipio">5.570 municípios (~3 h)</option>
               <option value="todos">UFs e municípios</option>
             </select>
           </div>
@@ -241,14 +330,16 @@
         </div>
 
         <p class="rodape-mapa">
-          Sem ano informado, cada fonte usa o seu: Câmara e Senado o ano
-          corrente, SICONFI e emendas o exercício fechado, TSE as duas últimas
-          eleições.
+          <strong>Deixe o ano em branco</strong> para cada fonte usar o padrão
+          dela — está descrito em "Recorte do ano", acima, fonte por fonte.
+          Preencher força o mesmo ano em todas de uma vez: útil para recompor
+          um exercício antigo, ruim para a coleta do dia a dia. As fontes
+          marcadas como "ignora o campo Ano" não mudam de comportamento.
         </p>
 
         <div class="barra" style="margin-top:6px">
           <button id="botao-atualizar" class="principal">Atualizar</button>
-          <span id="aviso-coleta" class="rodape-mapa"></span>
+          <span id="aviso-coleta" class="rodape-mapa" role="status"></span>
         </div>
       </div>
 
@@ -262,10 +353,10 @@
                    autocomplete="off" spellcheck="false"
                    placeholder="cole aqui — a chave ou o bloco de exemplo">
           </div>
-          <div><label>&nbsp;</label>
+          <div class="acao">
             <button id="salvar-chave" class="principal">Salvar</button></div>
         </div>
-        <p class="rodape-mapa" id="resposta-chave"></p>
+        <p class="rodape-mapa" id="resposta-chave" role="status"></p>
         <p class="rodape-mapa">
           Gratuita: cadastre seu e-mail em
           <a href="https://portaldatransparencia.gov.br/api-de-dados/cadastrar-email"
@@ -277,7 +368,7 @@
 
       <div class="cartao">
         <h2>Andamento</h2>
-        <div id="progresso-coleta">
+        <div id="progresso-coleta" aria-live="polite">
           <p class="vazio">Nenhuma atualização em andamento.</p>
         </div>
         <pre id="log-coleta" class="log" hidden></pre>
@@ -286,6 +377,11 @@
   </section>
 
 </main>
+
+<!-- Dica dos políticos. Fica no `body`, e não dentro do cartão, porque
+     `position: fixed` dentro de um contêiner com `overflow` seria recortada
+     pela borda da tabela — que é justamente onde o ponteiro está. -->
+<div class="dica dica-solta" id="dica-politico" hidden></div>
 
 <dialog id="detalhe">
   <button class="fechar" id="fechar-detalhe" aria-label="Fechar">×</button>

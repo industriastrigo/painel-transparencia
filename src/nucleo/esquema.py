@@ -146,6 +146,84 @@ financas_ente = _registrar(Tabela(
     cadencia="mensal (RREO/RGF) · anual (DCA)",
 ))
 
+# Transferências obrigatórias da União para estados e municípios.
+# Tabela SEPARADA de `financas_ente` de propósito: é outra medida da mesma
+# realidade — quem pagou declara aqui, quem recebeu declara lá, em regimes e
+# recortes diferentes. Juntar as duas na mesma tabela convidaria a somá-las.
+transferencia_uniao = _registrar(Tabela(
+    nome="transferencia_uniao",
+    camada="fato",
+    # `nivel` e `uf` ENTRAM na chave. Sem eles, um `cod_ibge` nulo faz as 27
+    # UFs colapsarem numa linha só por modalidade e mês — foi assim que 840
+    # linhas de 1997 viraram 53 no acervo, com aviso no log e ninguém vendo.
+    # Chave que não distingue o que a fonte distingue apaga dado no merge.
+    campos_pk=("cod_ibge", "nivel", "uf", "cod_transferencia", "ano", "mes"),
+    particoes=("ano",),
+    data_referencia="data_referencia",
+    descricao="FPM, FPE, FUNDEB, Lei Kandir, ITR, CIDE e royalties repassados "
+              "pela União, por ente e por mês. Fonte: Tesouro/SIAFI, regime "
+              "de caixa — não confundir com a transferência RECEBIDA que o "
+              "próprio ente declara no SICONFI.",
+    cadencia="mensal",
+))
+
+# Despesa por FUNÇÃO de governo — saúde, educação, segurança.
+# Tabela separada de `financas_ente` de propósito: aquela guarda o DCA anual
+# por NATUREZA (pessoal, juros, investimentos), esta guarda o RREO bimestral
+# por FUNÇÃO. São recortes diferentes do mesmo dinheiro, e somá-los contaria
+# tudo duas vezes — a mesma razão que separou as duas transferências.
+despesa_funcao = _registrar(Tabela(
+    nome="despesa_funcao",
+    camada="fato",
+    # `cod_conta` aqui é composto pelo coletor: bloco + função-mãe + conta.
+    # A fonte manda `RREO2TotalDespesas` em todas as linhas, e o nome da
+    # subfunção se repete sob várias funções — sem a função-mãe na identidade,
+    # 4.867 linhas por carga colidiam e o merge guardava só a última.
+    campos_pk=("cod_ibge", "ano", "periodo", "cod_conta"),
+    particoes=("ano", "esfera"),
+    data_referencia="data_referencia",
+    descricao="RREO Anexo 02: execução da despesa por função e subfunção. "
+              "Bimestral, então traz o exercício CORRENTE — o DCA só fecha o "
+              "anterior.",
+    cadencia="bimestral",
+))
+
+# Indicadores da Lei de Responsabilidade Fiscal.
+indicador_fiscal = _registrar(Tabela(
+    nome="indicador_fiscal",
+    camada="fato",
+    # `medida` ENTRA na chave: a mesma conta aparece em R$ e em % sobre a
+    # RCL, e sem ela as duas colidiriam — o merge guardaria a última que
+    # chegasse, que é como o percentual sumia do acervo.
+    # `anexo` e `secao` na chave: a mesma conta aparece nos dois anexos do
+    # RGF e se repete entre seções do mesmo anexo. Sem elas, 953 linhas por
+    # carga colidiam. `rotulo` (a descrição por extenso) fica FORA da chave:
+    # texto de apresentação muda de redação entre exercícios, e uma chave que
+    # depende de prosa transforma reedição em linha nova.
+    campos_pk=("cod_ibge", "ano", "periodo", "poder", "indicador", "medida",
+               "anexo", "secao"),
+    particoes=("ano",),
+    data_referencia="data_referencia",
+    descricao="RGF: despesa com pessoal sobre a receita corrente líquida (o "
+              "limite da LRF) e dívida consolidada líquida. Responde 'quanto "
+              "deve' com saldo, não com pedido como o SADIPEM.",
+    cadencia="quadrimestral",
+))
+
+# Pedidos de Verificação de Limites: o pedido que um ente faz ao Tesouro para
+# contrair dívida. NÃO é saldo devedor — ver a armadilha 2o.
+operacao_credito = _registrar(Tabela(
+    nome="operacao_credito",
+    camada="fato",
+    campos_pk=("id_pleito",),
+    particoes=("ano",),
+    data_referencia="data_referencia",
+    descricao="PVL do SADIPEM: quem pediu para tomar emprestado, de qual "
+              "credor, para qual finalidade, quanto, e qual foi o desfecho. "
+              "O valor é o do PLEITO, não o saldo devedor de hoje.",
+    cadencia="mensal",
+))
+
 mandato = _registrar(Tabela(
     nome="mandato",
     camada="fato",
@@ -199,6 +277,44 @@ voto = _registrar(Tabela(
     data_referencia="data_hora",
     descricao="Voto individual — o produto do painel. 513 deputados × ~1.500 "
               "votações/ano ≈ 770 mil linhas, ~4 MB em Parquet.",
+    cadencia="diária",
+))
+
+evento = _registrar(Tabela(
+    nome="evento",
+    camada="fato",
+    campos_pk=("casa", "id_evento"),
+    particoes=("ano",),
+    data_referencia="data_hora_inicio",
+    descricao="Sessão, audiência ou reunião. Existe para dar DENOMINADOR à "
+              "presença: sem saber quantas sessões deliberativas houve, "
+              "'compareceu a 120' não quer dizer nada.",
+    cadencia="diária",
+))
+
+presenca_evento = _registrar(Tabela(
+    nome="presenca_evento",
+    camada="fato",
+    campos_pk=("casa", "id_evento", "id_politico"),
+    particoes=("ano", "mes"),
+    data_referencia="data_hora_inicio",
+    descricao="Registro de presença de um deputado num evento já ocorrido. "
+              "ATENÇÃO: a fonte só publica quem ESTEVE. Ausência é inferida "
+              "pela ausência de linha, e por isso só pode ser calculada "
+              "dentro da janela em que o deputado estava em exercício — "
+              "quem tomou posse em março não faltou às sessões de fevereiro.",
+    cadencia="diária",
+))
+
+orientacao_bancada = _registrar(Tabela(
+    nome="orientacao_bancada",
+    camada="fato",
+    campos_pk=("casa", "id_votacao", "sigla_bancada"),
+    particoes=("ano",),
+    data_referencia=None,
+    descricao="O voto que a liderança recomendou à sua bancada. Cruzado com "
+              "`voto`, revela quem votou contra a orientação do próprio "
+              "partido — que é o dado que nenhum painel comum mostra.",
     cadencia="diária",
 ))
 
@@ -260,6 +376,16 @@ coleta_ente = Tabela(
 )
 TABELAS[coleta_ente.nome] = coleta_ente
 
+qualidade = Tabela(
+    nome="qualidade",
+    camada="_ctl",
+    campos_pk=("tabela", "coluna"),
+    descricao="Taxa de preenchimento por coluna, com a MELHOR taxa já vista. "
+              "É a linha de base do portão: coluna que já esteve 98% cheia e "
+              "voltar a 3% acusa, mesmo que a carga ruim tenha rodado antes.",
+)
+TABELAS[qualidade.nome] = qualidade
+
 
 # --------------------------------------------------------------- contratos
 # Só as colunas que as views e a API consultam. Coletor pode trazer mais.
@@ -305,7 +431,70 @@ _COLUNAS: dict[str, tuple[tuple[str, str], ...]] = {
     "financas_ente": (
         ("cod_ibge", "VARCHAR"), ("ano", "INTEGER"), ("periodo", "VARCHAR"),
         ("cod_conta", "VARCHAR"), ("cod_funcao", "VARCHAR"), ("funcao", "VARCHAR"),
+        # `rotulo_conta` e `uf` eram gravados pelo coletor e NÃO estavam no
+        # contrato. Enquanto a tabela tinha dado, ninguém notou — o Parquet
+        # trazia as colunas. Numa instalação nova, porém, a view nasce do
+        # contrato, e três views de despesa quebravam com
+        # `Binder Error: Referenced column "rotulo_conta" not found`.
+        # Coluna que o coletor grava PRECISA estar declarada aqui.
+        ("rotulo_conta", "VARCHAR"), ("uf", "VARCHAR"),
         ("estagio", "VARCHAR"), ("valor", "DOUBLE"), ("esfera", "VARCHAR"),
+        ("data_referencia", "VARCHAR"),
+    ),
+    "transferencia_uniao": (
+        ("cod_ibge", "VARCHAR"), ("nivel", "VARCHAR"), ("uf", "VARCHAR"),
+        ("nome_ente", "VARCHAR"), ("cod_transferencia", "VARCHAR"),
+        ("transferencia", "VARCHAR"), ("ano", "INTEGER"), ("mes", "INTEGER"),
+        ("valor", "DOUBLE"), ("cod_siafi", "VARCHAR"),
+        ("data_referencia", "VARCHAR"),
+    ),
+    "despesa_funcao": (
+        ("cod_ibge", "VARCHAR"), ("ano", "INTEGER"), ("periodo", "VARCHAR"),
+        ("cod_conta", "VARCHAR"), ("cod_funcao", "VARCHAR"),
+        ("funcao", "VARCHAR"),
+        # A função a que a subfunção pertence. Só existe na ORDEM do
+        # demonstrativo — a resposta não liga uma à outra.
+        ("cod_funcao_mae", "VARCHAR"), ("funcao_mae", "VARCHAR"),
+        ("rotulo_conta", "VARCHAR"),
+        # O bloco do demonstrativo: `exceto_intra` ou `intra`. São dois
+        # universos que se SOMAM para dar o total do ente — guardar o bloco é
+        # o que permite conferir isso em vez de torcer.
+        #
+        # Vem do sufixo `Intra` do `cod_conta` da fonte, não do campo
+        # `rotulo`: o rótulo descreve o mesmo bloco por extenso, mas falta em
+        # 15% das linhas, e onde faltava as duas despesas da mesma função
+        # colidiam na chave — uma apagava a outra, em silêncio.
+        ("bloco", "VARCHAR"),
+        # O rótulo por extenso, quando a fonte manda. É descrição, não chave.
+        ("descricao_bloco", "VARCHAR"),
+        ("estagio", "VARCHAR"), ("valor", "DOUBLE"), ("esfera", "VARCHAR"),
+        ("uf", "VARCHAR"), ("data_referencia", "VARCHAR"),
+    ),
+    "indicador_fiscal": (
+        ("cod_ibge", "VARCHAR"), ("ano", "INTEGER"), ("periodo", "VARCHAR"),
+        ("poder", "VARCHAR"),
+        # O `cod_conta` do RGF, VERBATIM — sem tradução para uma lista curta
+        # de apelidos nossos. Conta não prevista entra no acervo em vez de
+        # ser descartada, e vira consulta em vez de recoleta.
+        ("indicador", "VARCHAR"),
+        # O que o número é: valor em R$, percentual sobre a RCL, saldo do
+        # quadrimestre. No RGF isso vem da COLUNA, não da conta.
+        ("medida", "VARCHAR"),
+        ("rotulo", "VARCHAR"),
+        # Seção do demonstrativo (campo `rotulo` da fonte), não a descrição.
+        ("secao", "VARCHAR"), ("anexo", "VARCHAR"),
+        ("valor", "DOUBLE"), ("esfera", "VARCHAR"), ("uf", "VARCHAR"),
+        ("data_referencia", "VARCHAR"),
+    ),
+    "operacao_credito": (
+        ("id_pleito", "INTEGER"), ("cod_ibge", "VARCHAR"), ("uf", "VARCHAR"),
+        ("tipo_interessado", "VARCHAR"), ("interessado", "VARCHAR"),
+        ("num_pvl", "VARCHAR"), ("num_processo", "VARCHAR"),
+        ("status", "VARCHAR"), ("tipo_operacao", "VARCHAR"),
+        ("finalidade", "VARCHAR"), ("tipo_credor", "VARCHAR"),
+        ("credor", "VARCHAR"), ("moeda", "VARCHAR"), ("valor", "DOUBLE"),
+        ("contratado", "INTEGER"), ("data_protocolo", "VARCHAR"),
+        ("data_status", "VARCHAR"), ("ano", "INTEGER"),
         ("data_referencia", "VARCHAR"),
     ),
     "mandato": (
@@ -344,13 +533,38 @@ _COLUNAS: dict[str, tuple[tuple[str, str], ...]] = {
         ("sigla_uf", "VARCHAR"), ("voto", "VARCHAR"), ("data_hora", "VARCHAR"),
         ("ano", "INTEGER"), ("mes", "INTEGER"),
     ),
+    "evento": (
+        ("casa", "VARCHAR"), ("id_evento", "VARCHAR"),
+        ("data_hora_inicio", "VARCHAR"), ("data_hora_fim", "VARCHAR"),
+        ("descricao_tipo", "VARCHAR"), ("descricao", "VARCHAR"),
+        ("situacao", "VARCHAR"), ("local", "VARCHAR"),
+        ("deliberativo", "BOOLEAN"), ("ano", "INTEGER"),
+    ),
+    "presenca_evento": (
+        ("casa", "VARCHAR"), ("id_evento", "VARCHAR"),
+        ("id_politico", "VARCHAR"), ("data_hora_inicio", "VARCHAR"),
+        ("ano", "INTEGER"), ("mes", "INTEGER"),
+    ),
+    "orientacao_bancada": (
+        ("casa", "VARCHAR"), ("id_votacao", "VARCHAR"),
+        ("sigla_bancada", "VARCHAR"), ("orientacao", "VARCHAR"),
+        ("sigla_orgao", "VARCHAR"), ("ano", "INTEGER"),
+    ),
     "despesa_parlamentar": (
         ("casa", "VARCHAR"), ("id_documento", "VARCHAR"),
         ("num_parcela", "VARCHAR"), ("num_ressarcimento", "VARCHAR"),
         ("id_politico", "VARCHAR"),
         ("nome_politico", "VARCHAR"), ("sigla_partido", "VARCHAR"),
         ("sigla_uf", "VARCHAR"), ("tipo_despesa", "VARCHAR"),
-        ("fornecedor", "VARCHAR"), ("valor_liquido", "DOUBLE"),
+        ("fornecedor", "VARCHAR"),
+        # CNPJ e link do documento existiam no COLETOR e não no contrato: a
+        # view podia tê-los ou não conforme o que estivesse no disco, e numa
+        # instalação nova a consulta por fornecedor quebrava. São eles que
+        # tornam a nota auditável — sem CNPJ não dá para reconhecer o mesmo
+        # fornecedor em gabinetes diferentes.
+        ("cnpj_cpf_fornecedor", "VARCHAR"),
+        ("valor_documento", "DOUBLE"), ("url_documento", "VARCHAR"),
+        ("valor_liquido", "DOUBLE"),
         ("data_emissao", "VARCHAR"), ("ano", "INTEGER"), ("mes", "INTEGER"),
     ),
     "custo_orgao": (

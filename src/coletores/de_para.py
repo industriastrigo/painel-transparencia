@@ -52,6 +52,11 @@ EXCECOES: dict[tuple[str, str], str] = {
     ("TO", "SAO VALERIO DA NATIVIDADE"): "São Valério",
     ("TO", "FORTALEZA DO TABOCAO"): "Tabocão",
     ("BA", "SANTA TERESINHA"): "Santa Teresinha",
+    # Três pendências vistas na coleta de 25/08/2026. Duas são mudança de
+    # nome sancionada por lei; a terceira é grafia divergente entre TSE e IBGE.
+    ("BA", "CAMACA"): "Camacan",
+    ("RN", "BOA SAUDE"): "Januário Cicco",
+    ("RR", "SAO LUIZ"): "São Luiz",
     ("PB", "SAO DOMINGOS DE POMBAL"): "São Domingos",
     ("PB", "CAMPO DE SANTANA"): "Tacima",
     ("PB", "SERIDO"): "São Vicente do Seridó",

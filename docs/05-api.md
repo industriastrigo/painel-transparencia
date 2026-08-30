@@ -70,7 +70,24 @@ emendas o exercício fechado, TSE as duas últimas eleições.
 **`GET /api/mapa?ano=2024[&uf=SP][&metrica=despesa_per_capita]`**
 
 Sem `uf`, devolve as 27 UFs. Com `uf`, os municípios daquele estado.
-Métricas: `despesa_per_capita` (padrão), `despesa_total`, `populacao`.
+
+| Métrica | Fonte |
+|---|---|
+| `despesa_per_capita` (padrão) · `despesa_total` | SICONFI, DCA Anexo I-D |
+| `receita_total` · `receita_per_capita` | SICONFI, DCA Anexo I-C |
+| `transferencia_recebida` | SICONFI (declarado pelo ente) |
+| `transferencia_uniao` | Tesouro (pago pela União) — ver armadilha 2n |
+| `dependencia_transferencia` | derivada: transferência ÷ receita |
+| `despesa_saude` · `saude_per_capita` | SICONFI, RREO Anexo 02, função 10 |
+| `despesa_educacao` · `educacao_per_capita` | SICONFI, RREO Anexo 02, função 12 |
+| `percentual_pessoal` | SICONFI, RGF Anexo 01 |
+| `divida_liquida` | SICONFI, RGF Anexo 02 |
+| `populacao` | IBGE |
+
+Cada ente traz também `acima_do_limite`: `true`, `false`, ou **`null` quando o
+ente publicou o percentual mas não o limite aplicável**. Nulo aqui não quer
+dizer "está dentro" — o limite muda por esfera e por poder, e quem o afirma é
+o próprio demonstrativo.
 
 ```json
 {
@@ -92,7 +109,16 @@ de 27 UFs com dados" em vez de fingir cobertura completa.
 
 **`GET /api/ranking?ano=&metrica=&nivel=&uf=&ordem=&limite=`**
 
-**`GET /api/financas/{cod_ibge}?ano=`** — despesa por função do ente.
+**`GET /api/financas/{cod_ibge}?ano=`** — despesa por natureza do ente.
+
+**`GET /api/ente/{cod_ibge}?ano=`** — a ficha completa. Além de `resumo`,
+`governantes` e `financas` (natureza), traz:
+
+| Campo | Conteúdo |
+|---|---|
+| `funcoes` | despesa por função de governo, do RREO — **outro recorte do mesmo dinheiro que `financas`; não some os dois** |
+| `lrf` | uma linha por poder: pessoal, RCL, percentual, limite, dívida líquida |
+| `conferencia_despesa` | soma das categorias × total declarado pelo ente |
 
 ## Políticos
 

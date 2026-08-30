@@ -135,3 +135,27 @@ python -m src.scripts.coletar camara --anos 2023 2024 2026
 python -m src.scripts.coletar tse --anos 2022 2024
 python -m src.scripts.coletar --tudo
 ```
+
+## Ler arquivo: use `nucleo.tabela`
+
+Nenhum coletor deve chamar `pd.read_csv` direto. `nucleo.tabela` centraliza o
+que três coletores faziam cada um do seu jeito:
+
+```python
+from ..nucleo import tabela
+
+df = tabela.ler(conteudo, origem=url)              # CSV, JSON, XLSX ou ZIP
+df = tabela.de_zip(conteudo, origem=url,
+                   ignorar=("BRASIL",))            # vários CSVs num ZIP
+faltando = tabela.colunas_faltando(df, ("valor",), url)
+```
+
+O que ele resolve, e que se perdia quando cada um fazia o seu:
+
+- **UTF-8 antes de latin-1** — ver armadilha 2w, a mais silenciosa da lista
+- reconhece ZIP, XLSX, JSON e **HTML** (página de erro servida como sucesso)
+- quando falha, o erro traz tamanho, primeiros bytes e o que foi tentado
+- resposta de zero byte é erro, nunca tabela vazia
+
+Um leitor que não sabe dizer por que não leu transfere para uma pessoa o
+trabalho que o código tinha condição de fazer.

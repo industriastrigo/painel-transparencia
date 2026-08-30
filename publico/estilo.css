@@ -1,249 +1,901 @@
+/* Painel da Transparência — sistema visual.
+ *
+ * Tudo aqui é token. A regra: nenhuma cor, medida ou sombra literal no meio
+ * das regras. Um valor solto é um valor que não tem contraparte no tema
+ * escuro — e foi exatamente isso que deixou o botão principal com 2,18:1 de
+ * contraste no escuro (branco fixo sobre um verde que clareia) e os avisos
+ * amarelos com 3,03:1 no claro. Os dois passavam despercebidos porque não
+ * eram token.
+ *
+ * A escala tipográfica e a de espaçamento existem pelo mesmo motivo: número
+ * escolhido a olho, uma regra de cada vez, é como uma tela fica quase
+ * alinhada em toda parte e alinhada em nenhuma.
+ */
+
 :root {
   color-scheme: light dark;
-  --fundo: #f7f7f5;
+
+  /* ---------------------------------------------------------- superfície
+     Quatro degraus, não dois. O painel empilha cartão sobre fundo, e dentro
+     do cartão empilha tabela e log — sem um terceiro degrau, tudo isso
+     acontece na mesma cor e a profundidade some. */
+  --fundo: #f6f6f4;
   --superficie: #ffffff;
-  --borda: #e2e2dd;
-  --texto: #1c1c1a;
-  --texto-fraco: #6b6b65;
-  --realce: #2b6a5a;
-  --realce-fraco: #e6efec;
-  --sem-dado: #d9d9d4;
-  --contra: #a4443a;
-  --favor: #2b6a5a;
+  --superficie-2: #fbfbf9;
+  --superficie-3: #f1f1ee;
+
+  --borda: #e5e5e0;
+  --borda-forte: #d2d2cb;
+
+  /* ------------------------------------------------------------- texto
+     Três pesos de tinta. `--texto-sutil` é para rótulo de eixo e unidade —
+     nunca para conteúdo, porque não passa em AA a 12px. */
+  --texto: #171715;
+  --texto-fraco: #63635d;
+  --texto-sutil: #8a8a83;
+
+  /* -------------------------------------------------------------- marca */
+  --realce: #1f6152;
+  --realce-vivo: #2b8570;
+  --realce-fraco: #e8f0ed;
+  --realce-borda: #bcd8ce;
+  /* A tinta que vai SOBRE o realce. Existe como token justamente porque no
+     escuro ela não pode continuar branca. */
+  --sobre-realce: #ffffff;
+
+  /* ------------------------------------------------------------- estado
+     `--atencao` era o literal `#b8860b`, repetido em cinco regras e sem
+     contraparte no escuro. Como token, ele tem os dois valores e passa em AA
+     nos dois temas. */
+  --favor: #1f6152;
+  --contra: #9c3d33;
+  --contra-fraco: #fbeceb;
+  --atencao: #8a6100;
+  --atencao-fraco: #fdf3dd;
+  --sem-dado: #dcdcd6;
+
+  /* -------------------------------------------------------------- forma */
+  --raio-p: 6px;
   --raio: 10px;
-  --fonte: ui-sans-serif, system-ui, "Segoe UI", Roboto, Arial, sans-serif;
+  --raio-g: 14px;
+
+  /* Espaçamento em passos de 4. Toda margem e todo padding sai daqui. */
+  --e1: 4px;  --e2: 8px;   --e3: 12px; --e4: 16px;
+  --e5: 20px; --e6: 24px;  --e7: 32px; --e8: 44px;
+
+  /* Escala tipográfica, razão ~1,2. */
+  --t-micro: 11px; --t-mini: 12px; --t-p: 13px; --t-base: 14px;
+  --t-m: 16px; --t-g: 19px; --t-gg: 24px; --t-titulo: 30px;
+
+  /* Elevação. Duas camadas cada: uma sombra de contato curta e fechada, e
+     uma de ambiente longa e aberta. Uma sombra só sempre parece adesivo. */
+  --sombra-1: 0 1px 2px rgba(23, 23, 21, .05);
+  --sombra-2: 0 1px 2px rgba(23, 23, 21, .06), 0 4px 12px rgba(23, 23, 21, .06);
+  --sombra-3: 0 2px 4px rgba(23, 23, 21, .07), 0 16px 40px rgba(23, 23, 21, .14);
+
+  --anel: 0 0 0 2px var(--superficie), 0 0 0 4px var(--realce-vivo);
+  --transicao: 140ms cubic-bezier(.2, .6, .3, 1);
+
+  --fonte: "Montserrat Painel", Montserrat, ui-sans-serif, system-ui,
+           "Segoe UI", Roboto, Arial, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+/* Montserrat sem CDN. Um @import do Google Fonts quebraria a promessa de abrir
+   offline e avisaria o Google a cada abertura do painel — num projeto de
+   transparência, isso é o oposto do combinado.
+   Ordem: usa a fonte instalada no sistema; se não houver, procura o arquivo
+   em publico/fontes/. Sem nenhum dos dois, cai para a fonte do sistema e o
+   painel continua legível. */
+@font-face {
+  font-family: "Montserrat Painel";
+  src: local("Montserrat"), local("Montserrat Regular"),
+       url("fontes/montserrat.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Montserrat Painel";
+  src: local("Montserrat SemiBold"), local("Montserrat Medium"),
+       url("fontes/montserrat.woff2") format("woff2");
+  font-weight: 600;
+  font-display: swap;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --fundo: #16181a;
-    --superficie: #1e2124;
-    --borda: #2e3236;
-    --texto: #ecece8;
-    --texto-fraco: #9a9a94;
-    --realce: #6bbfa6;
-    --realce-fraco: #23342f;
-    --sem-dado: #33383c;
-    --contra: #d98078;
-    --favor: #6bbfa6;
+    --fundo: #101214;
+    --superficie: #191c1f;
+    --superficie-2: #1f2327;
+    --superficie-3: #14171a;
+
+    --borda: #2b3035;
+    --borda-forte: #3a4046;
+
+    --texto: #eeeee9;
+    --texto-fraco: #a2a29b;
+    --texto-sutil: #82827c;
+
+    --realce: #63c4a8;
+    --realce-vivo: #7ad4b9;
+    --realce-fraco: #17302a;
+    --realce-borda: #2c5348;
+    /* AQUI está o conserto: sobre um verde claro, a tinta é escura. Fixar
+       #fff dava 2,18:1 no botão principal — quase ilegível. */
+    --sobre-realce: #08211b;
+
+    --favor: #63c4a8;
+    --contra: #ef9a90;
+    --contra-fraco: #34211f;
+    --atencao: #e3b451;
+    --atencao-fraco: #2e2612;
+    --sem-dado: #2f353a;
+
+    --sombra-1: 0 1px 2px rgba(0, 0, 0, .4);
+    --sombra-2: 0 1px 2px rgba(0, 0, 0, .4), 0 4px 14px rgba(0, 0, 0, .34);
+    --sombra-3: 0 2px 6px rgba(0, 0, 0, .5), 0 18px 44px rgba(0, 0, 0, .55);
+    --anel: 0 0 0 2px var(--superficie), 0 0 0 4px var(--realce-vivo);
   }
 }
 
-* { box-sizing: border-box; }
+*, *::before, *::after { box-sizing: border-box; }
 
 body {
   margin: 0;
   font-family: var(--fonte);
+  font-size: var(--t-base);
   background: var(--fundo);
   color: var(--texto);
-  line-height: 1.5;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
+/* Todo número do painel é para ser comparado com o de cima e o de baixo. Sem
+   algarismo de largura fixa, a coluna "dança" e a comparação exige ler em vez
+   de bater o olho. */
+.valor, .numero-grande, td.valor, .placar span,
+ol.ranking .valor, ol.ranking .pos, .dica dd { font-variant-numeric: tabular-nums; }
+
+/* ------------------------------------------------------------------ foco
+   Um anel só, em todo lugar, com respiro. `outline` fino encostado no
+   elemento some sobre borda da mesma espessura. */
+:where(a, button, select, input, summary, [tabindex]):focus-visible {
+  outline: none;
+  box-shadow: var(--anel);
+  border-radius: var(--raio-p);
+}
+
+/* --------------------------------------------------------------- cabeçalho */
+/* O cabeçalho NÃO gruda. Eu o tornei `sticky` no redesenho e o custo só
+   apareceu numa janela real: 156px de altura, um quarto de uma tela de
+   638px ocupado o tempo todo, e a barra de filtros passando por baixo dele
+   assim que a página rolava um pouco — que é exatamente quando se quer
+   mexer no filtro.
+
+   Grudar a `nav` sozinha também não resolveria: `sticky` não escapa do
+   elemento pai, então ela sairia da tela junto com o cabeçalho.
+
+   Trocar de aba custa uma rolagem ao topo. Ver o filtro que se está usando
+   vale mais. */
 header {
-  padding: 20px 28px 0;
+  padding: var(--e5) var(--e7) 0;
   border-bottom: 1px solid var(--borda);
   background: var(--superficie);
 }
 
-h1 { font-size: 20px; margin: 0 0 2px; letter-spacing: -0.01em; }
-header p { margin: 0 0 14px; color: var(--texto-fraco); font-size: 13px; }
+/* Âncora e foco não podem parar embaixo da barra grudada. */
 
-nav { display: flex; gap: 4px; }
+
+h1 {
+  font-size: var(--t-g); margin: 0 0 2px;
+  letter-spacing: -0.02em; font-weight: 600;
+}
+header > p {
+  margin: 0 0 var(--e4); color: var(--texto-fraco);
+  font-size: var(--t-p); max-width: 62ch;
+}
+
+/* A barra de abas somava ~610px e o `<body>` ganhava rolagem horizontal
+   abaixo de 620px — as últimas abas ficavam fora da tela sem nenhum sinal.
+   Agora quem rola é a própria barra, e o degradê na borda diz que há mais. */
+nav {
+  display: flex; gap: 2px;
+  overflow-x: auto; scrollbar-width: none;
+  margin: 0 calc(var(--e7) * -1); padding: 0 var(--e7);
+  scroll-snap-type: x proximity;
+}
+nav::-webkit-scrollbar { display: none; }
 
 nav button {
   background: none; border: 0; border-bottom: 2px solid transparent;
-  padding: 9px 14px; font: inherit; font-size: 14px;
-  color: var(--texto-fraco); cursor: pointer;
+  padding: var(--e3) var(--e4); font: inherit; font-size: var(--t-base);
+  color: var(--texto-fraco); cursor: pointer; white-space: nowrap;
+  transition: color var(--transicao), border-color var(--transicao);
+  scroll-snap-align: start; border-radius: var(--raio-p) var(--raio-p) 0 0;
 }
-nav button[aria-selected="true"] { color: var(--texto); border-bottom-color: var(--realce); }
-nav button:focus-visible { outline: 2px solid var(--realce); outline-offset: -2px; }
+nav button:hover { color: var(--texto); }
+nav button[aria-selected="true"] {
+  color: var(--texto); border-bottom-color: var(--realce-vivo); font-weight: 600;
+}
+nav button:focus-visible { box-shadow: var(--anel); }
 
-main { padding: 20px 28px 40px; max-width: 1500px; }
+main { padding: var(--e6) var(--e7) var(--e8); max-width: 1560px; }
 section[hidden] { display: none; }
+section:focus { outline: none; }
 
+/* ------------------------------------------------------------------ barra */
 .barra {
-  display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
-  margin-bottom: 16px;
+  display: flex; flex-wrap: wrap; gap: var(--e3); align-items: flex-end;
+  margin-bottom: var(--e5);
 }
+.barra > div { min-width: 0; }
 
-label { font-size: 12px; color: var(--texto-fraco); display: block; margin-bottom: 3px; }
+label {
+  font-size: var(--t-mini); color: var(--texto-fraco); display: block;
+  margin-bottom: var(--e1); font-weight: 600; letter-spacing: .01em;
+}
 
 select, input {
-  font: inherit; font-size: 14px; padding: 6px 9px;
-  border: 1px solid var(--borda); border-radius: 7px;
+  font: inherit; font-size: var(--t-base);
+  padding: var(--e2) var(--e3);
+  border: 1px solid var(--borda-forte); border-radius: var(--raio-p);
   background: var(--superficie); color: var(--texto);
+  max-width: 100%;
+  transition: border-color var(--transicao), box-shadow var(--transicao);
 }
+select { max-width: 300px; }
+select:hover, input:hover { border-color: var(--texto-sutil); }
+select:disabled, input:disabled { opacity: .55; cursor: not-allowed; }
+input::placeholder { color: var(--texto-sutil); }
 
-.migalha { font-size: 13px; color: var(--texto-fraco); margin-bottom: 10px; }
+/* --------------------------------------------------------------- migalha */
+.migalha {
+  font-size: var(--t-p); color: var(--texto-fraco);
+  margin: 0 0 var(--e3); display: flex; align-items: center;
+  gap: var(--e2); flex-wrap: wrap;
+}
 .migalha button {
   background: none; border: 0; color: var(--realce); cursor: pointer;
-  font: inherit; padding: 0; text-decoration: underline;
+  font: inherit; font-weight: 600; padding: 2px var(--e1); border-radius: var(--raio-p);
 }
+.migalha button:hover { background: var(--realce-fraco); }
 
-.painel { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(280px, 1fr); gap: 20px; }
-@media (max-width: 900px) { .painel { grid-template-columns: 1fr; } }
+/* ---------------------------------------------------------------- painel */
+.painel {
+  display: grid; grid-template-columns: minmax(0, 1.75fr) minmax(300px, 1fr);
+  gap: var(--e5); align-items: start;
+}
+@media (max-width: 980px) { .painel { grid-template-columns: 1fr; } }
 
 .cartao {
   background: var(--superficie); border: 1px solid var(--borda);
-  border-radius: var(--raio); padding: 16px;
+  border-radius: var(--raio); padding: var(--e5);
+  box-shadow: var(--sombra-1);
 }
 
-.cartao h2 { font-size: 14px; margin: 0 0 12px; font-weight: 600; }
+.cartao h2 {
+  font-size: var(--t-p); margin: 0 0 var(--e4); font-weight: 600;
+  letter-spacing: .02em; text-transform: uppercase; color: var(--texto-fraco);
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--e3); flex-wrap: wrap;
+}
+/* Título de seção dentro do diálogo: é conteúdo, não rótulo de cartão. */
+#detalhe-conteudo h2 {
+  text-transform: none; letter-spacing: -0.01em; font-size: var(--t-m);
+  color: var(--texto); margin: var(--e6) 0 var(--e3); display: block;
+}
+#detalhe-conteudo h2:first-child { margin-top: 0; font-size: var(--t-gg); }
 
+/* ------------------------------------------------------------------ mapa */
 svg#mapa { width: 100%; height: auto; display: block; touch-action: none; }
-svg#mapa path { stroke: var(--superficie); stroke-width: 0.6; cursor: pointer; transition: opacity .12s; }
-svg#mapa path:hover { opacity: .78; }
-svg#mapa path:focus-visible { outline: 2px solid var(--texto); }
+/* `non-scaling-stroke`: a espessura fica em pixels de TELA e não é
+   multiplicada pelo zoom. Sem isso, aproximar 8× engrossava a divisa 8× e o
+   mapa virava uma grade preta com manchas de cor no meio. */
+svg#mapa path {
+  stroke: var(--superficie); stroke-width: 0.6px;
+  vector-effect: non-scaling-stroke;
+  cursor: pointer; transition: opacity var(--transicao);
+}
+svg#mapa path:hover { opacity: .82; }
 svg#mapa path.inerte { cursor: default; }
-svg#mapa path.realcada { stroke: var(--texto); stroke-width: 1.4; opacity: 1; }
+
+/* Realce e foco marcam o CONTORNO do ente. O `outline` do navegador desenha a
+   caixa delimitadora — num estado recortado como a Bahia, um retângulo que
+   não tem nada a ver com a forma. */
+svg#mapa path:focus-visible {
+  outline: none; box-shadow: none;
+  stroke: var(--texto); stroke-width: 2px; opacity: 1;
+}
+
+/* O realce é um contorno separado, desenhado por cima de todos os entes e
+   inerte ao ponteiro. Realçar movendo o próprio ente no DOM reiniciava a
+   sequência do clique e o mapa parava de abrir o estado. */
+svg#mapa path#realce-mapa {
+  fill: none; pointer-events: none;
+  stroke: var(--texto); stroke-width: 1.8px;
+  vector-effect: non-scaling-stroke;
+}
 
 /* Rótulo com halo: sem o contorno da cor do papel, "AM" sobre o verde escuro
-   do Amazonas fica ilegível justamente nos entes de valor mais alto. */
+   do Amazonas fica ilegível justamente nos entes de valor mais alto.
+
+   `font-size` e `stroke-width` NÃO aparecem aqui de propósito: quem os define
+   é o `style` inline, em painel.js, dividindo pela escala do zoom. Uma regra
+   de folha de estilo vence o ATRIBUTO de apresentação do SVG — foi assim que
+   os nomes cresceram junto com o mapa e taparam a Bahia inteira.
+
+   `--tinta-rotulo` e `--halo-rotulo` são definidos em painel.js conforme a
+   rampa: no tema escuro a rampa continua clara, então a tinta do rótulo tem
+   de ser escura mesmo com o resto da tela clara ao contrário. */
 svg#mapa text.rotulo {
-  font-family: var(--fonte); font-size: 11px; font-weight: 600;
-  fill: var(--texto); paint-order: stroke;
-  stroke: var(--superficie); stroke-width: 2.6px; stroke-linejoin: round;
+  font-family: var(--fonte); font-weight: 600;
+  fill: var(--tinta-rotulo, var(--texto)); paint-order: stroke;
+  stroke: var(--halo-rotulo, var(--superficie)); stroke-linejoin: round;
   text-anchor: middle; dominant-baseline: middle;
   pointer-events: none; user-select: none;
+  letter-spacing: .01em;
 }
-svg#mapa text.rotulo.municipio { font-size: 8.5px; font-weight: 500; }
 
-.ferramentas-mapa { float: right; display: flex; gap: 4px; margin-top: -3px; }
-.ferramentas-mapa button { padding: 3px 9px; font-size: 12px; line-height: 1.6; }
-.ferramentas-mapa button[aria-pressed="true"] { color: var(--texto); border-color: var(--realce); }
+.ferramentas-mapa { display: flex; gap: var(--e1); flex-shrink: 0; }
+.ferramentas-mapa button {
+  padding: var(--e1) var(--e2); font-size: var(--t-mini);
+  min-width: 30px; line-height: 1.7;
+}
+.ferramentas-mapa button[aria-pressed="true"] {
+  color: var(--realce); border-color: var(--realce-borda);
+  background: var(--realce-fraco);
+}
 
-.moldura-mapa { position: relative; }
+.moldura-mapa {
+  position: relative; border-radius: var(--raio-p); overflow: hidden;
+  background: var(--superficie-3);
+}
 
-/* Ampliado: o cartão do mapa ocupa a tela inteira. Não é a API de fullscreen
-   do navegador de propósito — ela esconde a barra de ano e métrica, que é
-   justamente o que se quer mexer enquanto se olha o mapa grande. */
+/* Ampliado: o cartão do mapa ocupa a tela inteira, MENOS a barra de filtros —
+   que continua acessível por cima. O comentário antigo dizia que a API de
+   fullscreen foi evitada justamente para não esconder ano e métrica, e a
+   regra escondia do mesmo jeito. Agora o topo é respeitado de verdade. */
 .cartao.ampliado {
-  position: fixed; inset: 12px; z-index: 40; margin: 0;
-  overflow: auto; box-shadow: 0 18px 50px rgba(0,0,0,.28);
+  position: fixed; inset: var(--e3); z-index: 60; margin: 0;
+  overflow: auto; box-shadow: var(--sombra-3);
+  display: flex; flex-direction: column;
 }
-.cartao.ampliado .moldura-mapa { height: calc(100vh - 190px); }
+.cartao.ampliado .moldura-mapa { flex: 1; min-height: 0; }
 .cartao.ampliado svg#mapa { height: 100%; }
+body.com-ampliacao { overflow: hidden; }
 
+/* ------------------------------------------------------------------ dica */
 .dica {
   position: absolute; z-index: 5; pointer-events: none;
   background: var(--superficie); color: var(--texto);
-  border: 1px solid var(--borda); border-radius: 8px;
-  padding: 9px 11px; font-size: 12px; line-height: 1.45;
-  box-shadow: 0 6px 22px rgba(0,0,0,.16); min-width: 190px; max-width: 280px;
+  border: 1px solid var(--borda-forte); border-radius: var(--raio-p);
+  padding: var(--e3); font-size: var(--t-mini); line-height: 1.5;
+  box-shadow: var(--sombra-2); min-width: 200px; max-width: 290px;
 }
 .dica[hidden] { display: none; }
-.dica h3 { margin: 0 0 6px; font-size: 13px; font-weight: 600; }
-.dica dl { margin: 0; display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; }
+.dica h3 {
+  margin: 0 0 var(--e2); font-size: var(--t-p); font-weight: 600;
+  display: flex; align-items: baseline; gap: var(--e2);
+  padding-bottom: var(--e2); border-bottom: 1px solid var(--borda);
+}
+.dica h3 .uf { color: var(--texto-sutil); font-size: var(--t-micro); font-weight: 600; }
+.dica dl { margin: 0; display: grid; grid-template-columns: 1fr auto; gap: 3px var(--e3); }
 .dica dt { color: var(--texto-fraco); }
-.dica dd { margin: 0; font-variant-numeric: tabular-nums; font-weight: 600; text-align: right; }
-.dica dd.ausente { font-weight: 400; color: var(--texto-fraco); }
-.dica .pe { margin: 7px 0 0; color: var(--texto-fraco); font-size: 11px; }
+.dica dd { margin: 0; font-weight: 600; text-align: right; }
+.dica dd.ausente { font-weight: 400; color: var(--texto-sutil); font-style: italic; }
+.dica .pe {
+  margin: var(--e2) 0 0; color: var(--texto-fraco); font-size: var(--t-micro);
+  padding-top: var(--e2); border-top: 1px solid var(--borda);
+}
+.dica .pe + .pe { border-top: 0; padding-top: 0; margin-top: var(--e1); }
 
-.legenda { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--texto-fraco); margin-top: 10px; flex-wrap: wrap; }
-.legenda .faixa { display: flex; }
-.legenda .faixa i { width: 26px; height: 11px; display: block; }
+/* --------------------------------------------------------------- legenda */
+.legenda {
+  display: flex; align-items: center; gap: var(--e2);
+  font-size: var(--t-mini); color: var(--texto-fraco);
+  margin-top: var(--e3); flex-wrap: wrap;
+}
+.legenda .faixa {
+  display: flex; border-radius: 3px; overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .08);
+}
+.legenda .faixa i { width: 28px; height: 10px; display: block; }
+/* "sem dado" na própria linha. Espremido no fim da faixa, o rótulo "p86"
+   caía colado ao quadradinho cinza e a legenda passava a dizer, para quem
+   bate o olho, que p86 É a cor de sem dado. */
+.legenda > span:last-child { flex-basis: 100%; }
+.legenda .sem-dado-amostra {
+  width: 10px; height: 10px; border-radius: 2px; display: inline-block;
+  background: var(--sem-dado); vertical-align: -1px; margin-right: var(--e1);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .08);
+}
 
-.rodape-mapa { font-size: 12px; color: var(--texto-fraco); margin-top: 6px; }
+.rodape-mapa {
+  font-size: var(--t-mini); color: var(--texto-fraco); margin-top: var(--e2);
+  line-height: 1.5;
+}
 
-ol.ranking { list-style: none; margin: 0; padding: 0; max-height: 560px; overflow-y: auto; }
-ol.ranking li { display: grid; grid-template-columns: 22px 1fr auto; gap: 8px; align-items: center; padding: 5px 0; font-size: 13px; border-bottom: 1px solid var(--borda); }
-ol.ranking li:last-child { border-bottom: 0; }
-ol.ranking .pos { color: var(--texto-fraco); font-variant-numeric: tabular-nums; font-size: 11px; }
-ol.ranking .valor { font-variant-numeric: tabular-nums; font-weight: 600; }
-ol.ranking button { background: none; border: 0; padding: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+/* --------------------------------------------------------------- ranking */
+ol.ranking {
+  list-style: none; margin: 0; padding: 0;
+  max-height: min(620px, 70vh); overflow-y: auto;
+  scrollbar-width: thin;
+}
+ol.ranking li {
+  display: grid; grid-template-columns: 26px minmax(0, 1fr) auto;
+  gap: var(--e2); align-items: center; padding: var(--e2) var(--e1) var(--e3);
+  font-size: var(--t-p); border-radius: var(--raio-p);
+  position: relative;
+}
+/* A régua de baixo é a mesma em toda linha; a barra por cima dela é o valor.
+   Assim a proporção não disputa com o separador — ela É o separador que
+   avança. Duas linhas paralelas de espessura igual disputavam a atenção e a
+   leitura ficava pior do que sem barra nenhuma. */
+ol.ranking li::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0;
+  height: 1px; background: var(--borda);
+}
+ol.ranking li:last-child::after { display: none; }
+ol.ranking li:hover { background: var(--superficie-2); }
+ol.ranking .pos { color: var(--texto-sutil); font-size: var(--t-micro); text-align: right; }
+ol.ranking .valor { font-weight: 600; }
+ol.ranking button {
+  background: none; border: 0; padding: 0; font: inherit; color: inherit;
+  text-align: left; cursor: pointer; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  border-radius: var(--raio-p);
+}
 ol.ranking button:hover { color: var(--realce); }
+/* Barrinha de proporção atrás do nome: o ranking já ordena, mas ordem não
+   mostra distância. Sem ela, o 1º e o 2º parecem vizinhos mesmo quando um
+   vale o triplo do outro. */
+ol.ranking .barra-proporcao {
+  position: absolute; left: 0; bottom: 0; height: 2px; z-index: 1;
+  background: var(--realce-vivo); opacity: .75; border-radius: 0 2px 2px 0;
+  pointer-events: none;
+}
 
-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-th { text-align: left; font-weight: 600; color: var(--texto-fraco); font-size: 11px;
-     text-transform: uppercase; letter-spacing: .04em; padding: 6px 8px; border-bottom: 1px solid var(--borda); }
-td { padding: 8px; border-bottom: 1px solid var(--borda); vertical-align: top; }
-tr.clicavel { cursor: pointer; }
+/* --------------------------------------------------------------- tabelas */
+/* Contêiner de rolagem: sem ele, uma tabela de 6 colunas empurra a PÁGINA
+   inteira para o lado no celular. Quem rola tem de ser a tabela. */
+.rolagem {
+  overflow-x: auto; margin: 0 calc(var(--e1) * -1);
+  padding: 0 var(--e1); scrollbar-width: thin;
+}
+
+table { width: 100%; border-collapse: collapse; font-size: var(--t-p); }
+th {
+  text-align: left; font-weight: 600; color: var(--texto-fraco);
+  font-size: var(--t-micro); text-transform: uppercase; letter-spacing: .05em;
+  padding: var(--e2) var(--e3); border-bottom: 1px solid var(--borda-forte);
+  white-space: nowrap; background: var(--superficie);
+  position: sticky; top: 0; z-index: 1;
+}
+td {
+  padding: var(--e3); border-bottom: 1px solid var(--borda);
+  vertical-align: top; overflow-wrap: anywhere;
+}
+tbody tr:last-child td { border-bottom: 0; }
+tbody tr:nth-child(even) { background: var(--superficie-2); }
+td.valor { text-align: right; white-space: nowrap; }
+tr.clicavel { cursor: pointer; transition: background var(--transicao); }
 tr.clicavel:hover td { background: var(--realce-fraco); }
+tr.clicavel:focus-visible { outline: none; box-shadow: var(--anel); }
 
-.etiqueta { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 20px;
-            background: var(--realce-fraco); color: var(--realce); font-weight: 600; }
+/* --------------------------------------------------------------- pastilhas */
+.etiqueta {
+  display: inline-block; font-size: var(--t-micro); padding: 2px var(--e2);
+  border-radius: 999px; background: var(--realce-fraco); color: var(--realce);
+  font-weight: 600; white-space: nowrap;
+  border: 1px solid var(--realce-borda);
+}
+.selo {
+  display: inline-flex; align-items: center; gap: var(--e1);
+  font-size: var(--t-micro); font-weight: 600; padding: 2px var(--e2);
+  border-radius: 999px; white-space: nowrap; border: 1px solid transparent;
+}
+.selo.risco { background: var(--contra-fraco); color: var(--contra); border-color: var(--contra); }
+.selo.atento { background: var(--atencao-fraco); color: var(--atencao); border-color: var(--atencao); }
+.selo.calmo { background: var(--realce-fraco); color: var(--realce); border-color: var(--realce-borda); }
+.selo.neutro { background: var(--superficie-3); color: var(--texto-fraco); border-color: var(--borda); }
 
-.placar { display: flex; gap: 14px; flex-wrap: wrap; margin: 10px 0; font-size: 13px; }
-.placar span { font-variant-numeric: tabular-nums; }
+.placar {
+  display: flex; gap: var(--e4); flex-wrap: wrap; margin: var(--e3) 0;
+  font-size: var(--t-p);
+}
 .placar .sim { color: var(--favor); font-weight: 600; }
 .placar .nao { color: var(--contra); font-weight: 600; }
 
+/* ---------------------------------------------------------------- botões */
 button.principal {
-  background: var(--realce); color: #fff; border: 0; border-radius: 7px;
-  padding: 9px 20px; font: inherit; font-size: 14px; font-weight: 600;
-  cursor: pointer;
+  background: var(--realce); color: var(--sobre-realce); border: 0;
+  border-radius: var(--raio-p); padding: var(--e3) var(--e5);
+  font: inherit; font-size: var(--t-base); font-weight: 600; cursor: pointer;
+  box-shadow: var(--sombra-1); transition: background var(--transicao),
+    transform var(--transicao), box-shadow var(--transicao);
 }
-button.principal:hover { filter: brightness(1.08); }
-button.principal:disabled { opacity: .5; cursor: progress; }
-button.principal:focus-visible { outline: 2px solid var(--texto); outline-offset: 2px; }
+button.principal:hover { background: var(--realce-vivo); box-shadow: var(--sombra-2); }
+button.principal:active { transform: translateY(1px); box-shadow: var(--sombra-1); }
+button.principal:disabled {
+  opacity: .55; cursor: progress; box-shadow: none; transform: none;
+  background: var(--realce);
+}
 
 button.discreto {
   background: var(--superficie); color: var(--texto-fraco);
-  border: 1px solid var(--borda); border-radius: 7px;
-  padding: 6px 12px; font: inherit; font-size: 14px; cursor: pointer;
+  border: 1px solid var(--borda-forte); border-radius: var(--raio-p);
+  padding: var(--e2) var(--e3); font: inherit; font-size: var(--t-base);
+  cursor: pointer; transition: all var(--transicao);
 }
-button.discreto:hover { color: var(--texto); }
+button.discreto:hover { color: var(--texto); border-color: var(--texto-sutil); background: var(--superficie-2); }
+button.discreto:disabled { opacity: .45; cursor: not-allowed; }
 
-select:disabled { opacity: .55; cursor: not-allowed; }
-
+/* --------------------------------------------------------------- avisos */
 .nao-conferido {
-  font-size: 11px; font-weight: 600; color: #b8860b;
+  font-size: var(--t-micro); font-weight: 600; color: var(--atencao);
+  background: var(--atencao-fraco); border: 1px solid var(--atencao);
+  border-radius: 999px; padding: 1px var(--e2);
   white-space: nowrap; cursor: help;
 }
 
+.aviso {
+  background: var(--realce-fraco); border: 1px solid var(--realce-borda);
+  border-radius: var(--raio); padding: var(--e4) var(--e5);
+  font-size: var(--t-p); margin-bottom: var(--e5);
+  border-left: 3px solid var(--realce);
+}
+.aviso > strong:first-child {
+  display: block; margin-bottom: var(--e1); font-size: var(--t-base);
+}
+/* Só o PRIMEIRO `strong` é o título do aviso. O seletor antigo pegava todos,
+   e cada item da lista quebrava em duas linhas com um `·` solto acima. */
+.aviso div strong, .aviso p strong { display: inline; }
+.aviso div { margin-top: var(--e1); }
+
+.aviso.problema { background: var(--contra-fraco); border-color: var(--contra); border-left-color: var(--contra); }
+.aviso.problema strong { color: var(--contra); }
+
+/* --------------------------------------------------------------- seleção */
 .lista-selecao { display: flex; flex-direction: column; gap: 2px; }
 .lista-selecao label.opcao {
-  display: grid; grid-template-columns: 20px 1fr auto; gap: 10px;
-  align-items: baseline; padding: 9px 8px; border-radius: 7px;
-  cursor: pointer; margin: 0; font-size: 14px; color: var(--texto);
+  display: grid; grid-template-columns: 20px minmax(0, 1fr) auto;
+  gap: var(--e3); align-items: baseline; padding: var(--e3);
+  border-radius: var(--raio-p); cursor: pointer; margin: 0;
+  font-size: var(--t-base); color: var(--texto); font-weight: 400;
+  text-transform: none; letter-spacing: 0;
+  transition: background var(--transicao);
 }
 .lista-selecao label.opcao:hover { background: var(--realce-fraco); }
-.lista-selecao input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--realce); }
-.lista-selecao .cadencia { font-size: 11px; color: var(--texto-fraco); }
+.lista-selecao label.opcao:focus-within { box-shadow: var(--anel); }
+.lista-selecao input[type="checkbox"] {
+  width: 16px; height: 16px; accent-color: var(--realce-vivo);
+  border: 0; padding: 0;
+}
+.lista-selecao .cadencia { font-size: var(--t-micro); color: var(--texto-fraco); }
 
-.etapas { list-style: none; margin: 0 0 12px; padding: 0; }
-.etapas li { display: grid; grid-template-columns: 22px 1fr auto; gap: 8px;
-             align-items: baseline; padding: 5px 0; font-size: 13px;
-             border-bottom: 1px solid var(--borda); }
-.etapas .sinal { font-weight: 700; }
-.etapas .aguardando .sinal { color: var(--texto-fraco); }
+/* O que cada fonte entende por "atualizar". Fica sempre visível, não atrás de
+   um clique: é justamente a informação que decide se vale marcar a caixa. */
+.lista-selecao .fonte { border-bottom: 1px solid var(--borda); padding-bottom: var(--e2); }
+.lista-selecao .fonte:last-child { border-bottom: 0; }
+.lista-selecao .fonte:has(input:checked) {
+  background: var(--realce-fraco); border-radius: var(--raio-p);
+}
+
+.sobre-fonte {
+  padding: 0 var(--e3) var(--e3) 44px; font-size: var(--t-mini);
+  color: var(--texto-fraco);
+}
+.sobre-fonte dl {
+  margin: 0; display: grid; grid-template-columns: max-content minmax(0, 1fr);
+  gap: 2px var(--e3);
+}
+/* Era `opacity:.8` sobre `--texto-fraco`: 3,53:1, reprovado em AA. */
+.sobre-fonte dt { color: var(--texto-sutil); }
+.sobre-fonte dd { margin: 0; color: var(--texto); }
+.sobre-fonte p { margin: var(--e2) 0 0; line-height: 1.5; }
+.sobre-fonte .exige { color: var(--atencao); font-weight: 600; }
+.sobre-fonte .sem-ano { color: var(--atencao); font-weight: 600; }
+
+/* --------------------------------------------------------------- etapas */
+.etapas { list-style: none; margin: 0 0 var(--e3); padding: 0; }
+.etapas li {
+  display: grid; grid-template-columns: 22px minmax(0, 1fr) auto;
+  gap: var(--e2); align-items: baseline; padding: var(--e2) 0;
+  font-size: var(--t-p); border-bottom: 1px solid var(--borda);
+}
+.etapas li:last-child { border-bottom: 0; }
+.etapas .sinal { font-weight: 700; text-align: center; }
+.etapas .aguardando .sinal { color: var(--texto-sutil); }
 .etapas .executando .sinal { color: var(--realce); }
 .etapas .ok        .sinal { color: var(--favor); }
-.etapas .parcial   .sinal { color: #b8860b; }
+.etapas .parcial   .sinal { color: var(--atencao); }
 .etapas .erro      .sinal { color: var(--contra); }
-.etapas .configuracao .sinal { color: #b8860b; }
-.etapas .detalhe { grid-column: 2 / -1; font-size: 12px; color: var(--texto-fraco); }
+.etapas .configuracao .sinal { color: var(--atencao); }
+.etapas .detalhe { grid-column: 2 / -1; font-size: var(--t-mini); color: var(--texto-fraco); }
+
+/* Barra de progresso da coleta. */
+.progresso-trilho {
+  height: 6px; background: var(--superficie-3); border-radius: 999px;
+  overflow: hidden; margin: var(--e2) 0 var(--e4);
+}
+.progresso-trilho i {
+  display: block; height: 100%; background: var(--realce-vivo);
+  border-radius: 999px; transition: width 400ms ease;
+}
 
 .log {
-  background: var(--fundo); border: 1px solid var(--borda); border-radius: 7px;
-  padding: 10px; max-height: 320px; overflow: auto; font-size: 12px;
-  line-height: 1.45; white-space: pre-wrap; word-break: break-word;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  margin: 0;
+  background: var(--superficie-3); border: 1px solid var(--borda);
+  border-radius: var(--raio-p); padding: var(--e3);
+  max-height: 340px; overflow: auto; font-size: var(--t-mini);
+  line-height: 1.55; white-space: pre-wrap; word-break: break-word;
+  font-family: var(--mono); margin: 0;
 }
-.log .WARNING { color: #b8860b; }
-.log .ERROR { color: var(--contra); }
-.log .hora { color: var(--texto-fraco); }
+.log .WARNING { color: var(--atencao); }
+.log .ERROR { color: var(--contra); font-weight: 600; }
+.log .hora { color: var(--texto-sutil); }
 
-.tiras { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-         gap: 10px; margin: 14px 0 22px; }
-.rotulo-numero { font-size: 11px; color: var(--texto-fraco); text-transform: uppercase;
-                 letter-spacing: .04em; margin-bottom: 3px; }
-.numero-grande { font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums;
-                 letter-spacing: -0.02em; }
+/* ----------------------------------------------------------------- tiras */
+.tiras {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--e3); margin: var(--e4) 0 var(--e6);
+}
+.tiras .cartao { padding: var(--e4); }
+.rotulo-numero {
+  font-size: var(--t-micro); color: var(--texto-fraco); text-transform: uppercase;
+  letter-spacing: .05em; margin-bottom: var(--e1); font-weight: 600;
+}
+.numero-grande {
+  font-size: var(--t-gg); font-weight: 600; letter-spacing: -0.025em;
+  line-height: 1.2;
+}
+.numero-grande.ausente { color: var(--texto-sutil); font-size: var(--t-m); font-weight: 400; }
+.nota-numero { font-size: var(--t-micro); color: var(--texto-fraco); margin-top: var(--e1); }
 
-.aviso { background: var(--realce-fraco); border: 1px solid var(--borda); border-radius: var(--raio);
-         padding: 12px 14px; font-size: 13px; margin-bottom: 16px; }
-.aviso strong { display: block; margin-bottom: 3px; }
+.vazio {
+  color: var(--texto-fraco); font-size: var(--t-p);
+  padding: var(--e7) var(--e4); text-align: center;
+}
+/* Falha de servidor não é "não há dados". A tela precisa distinguir as duas,
+   senão manda o usuário coletar um acervo que já está cheio. */
+.vazio.falhou { color: var(--contra); }
+.vazio.falhou::before { content: "⚠ "; }
 
-.vazio { color: var(--texto-fraco); font-size: 13px; padding: 20px 0; text-align: center; }
+/* Esqueleto de carregamento: mantém a altura da região e diz que algo está
+   vindo. Sem ele, a tabela antiga fica congelada e parece que o clique não
+   funcionou. */
+.esqueleto { padding: var(--e4) 0; }
+.esqueleto i {
+  display: block; height: 12px; border-radius: var(--raio-p);
+  background: linear-gradient(90deg, var(--superficie-3) 25%,
+    var(--borda) 37%, var(--superficie-3) 63%);
+  background-size: 400% 100%;
+  animation: brilho 1.4s ease infinite; margin-bottom: var(--e3);
+}
+.esqueleto i:nth-child(2) { width: 86%; }
+.esqueleto i:nth-child(3) { width: 64%; }
+.esqueleto i:nth-child(4) { width: 78%; }
+@keyframes brilho { from { background-position: 100% 0; } to { background-position: 0 0; } }
 
+/* --------------------------------------------------------------- diálogo */
 dialog {
-  border: 1px solid var(--borda); border-radius: var(--raio); background: var(--superficie);
-  color: var(--texto); max-width: 860px; width: 92vw; max-height: 86vh; padding: 22px;
+  border: 1px solid var(--borda); border-radius: var(--raio-g);
+  background: var(--superficie); color: var(--texto);
+  max-width: 900px; width: min(94vw, 900px); max-height: 88vh;
+  padding: 0; box-shadow: var(--sombra-3);
+  /* `flex` + `overflow` no filho: sem isto o conteúdo que passa de 88vh
+     transborda para fora da caixa e fica INALCANÇÁVEL — não havia como
+     rolar. A ficha de um ente tem cinco tabelas; passava sempre. */
+  flex-direction: column;
 }
-dialog::backdrop { background: rgba(0,0,0,.45); }
-dialog .fechar { position: sticky; top: 0; float: right; background: none; border: 0;
-                 font-size: 20px; cursor: pointer; color: var(--texto-fraco); }
+dialog[open] { display: flex; }
+dialog::backdrop { background: rgba(10, 10, 9, .55); backdrop-filter: blur(2px); }
 
-@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+dialog .fechar {
+  position: absolute; top: var(--e3); right: var(--e3); z-index: 2;
+  background: var(--superficie); border: 1px solid var(--borda);
+  width: 32px; height: 32px; border-radius: 50%;
+  font-size: var(--t-m); line-height: 1; cursor: pointer;
+  color: var(--texto-fraco); display: grid; place-items: center;
+  transition: all var(--transicao);
+}
+dialog .fechar:hover { color: var(--texto); border-color: var(--texto-sutil); background: var(--superficie-2); }
+
+#detalhe-conteudo {
+  overflow-y: auto; padding: var(--e6);
+  /* `flex: 1 1 auto`, NÃO `flex: 1`. O atalho `flex: 1` significa
+     `flex-basis: 0`, e num contêiner de altura automática o único filho parte
+     do zero e nunca cresce: o diálogo abria com a cortina escura na tela e
+     NADA dentro. Só se vê rodando. */
+  flex: 1 1 auto; min-height: 0;
+  overscroll-behavior: contain;
+}
+#detalhe-conteudo > p:first-of-type { margin-top: 0; }
+#detalhe-conteudo .cartao { box-shadow: none; background: var(--superficie-2); }
+
+/* Link para a fonte oficial. É a saída do painel para o documento primário —
+   num projeto de transparência, é o link mais importante da tela. */
+a.fonte-oficial {
+  color: var(--realce); font-weight: 600; text-decoration: none;
+  border-bottom: 1px solid var(--realce-borda);
+}
+a.fonte-oficial:hover { border-bottom-color: var(--realce); }
+a.fonte-oficial::after { content: " ↗"; font-size: .85em; }
+
+/* ------------------------------------------------------------ responsivo */
+/* Janela baixa (notebook, navegador com muitas barras): o subtítulo sai.
+   Ele explica o painel uma vez; depois disso é altura desperdiçada. */
+@media (max-height: 700px) {
+  header { padding-top: var(--e3); }
+  header > p { display: none; }
+  h1 { font-size: var(--t-m); }
+}
+
+@media (max-width: 720px) {
+  :root { --e7: 16px; }
+  header { padding: var(--e4) var(--e4) 0; }
+  nav { margin: 0 calc(var(--e4) * -1); padding: 0 var(--e4); }
+  main { padding: var(--e4) var(--e4) var(--e7); }
+  h1 { font-size: var(--t-m); }
+  header > p { font-size: var(--t-mini); margin-bottom: var(--e3); }
+  .cartao { padding: var(--e4); }
+  .cartao h2 { align-items: flex-start; }
+  .barra { gap: var(--e2); }
+  .barra > div { flex: 1 1 150px; }
+  select, input { width: 100%; max-width: none; }
+  ol.ranking { max-height: none; }
+  .tiras { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); }
+  .numero-grande { font-size: var(--t-g); }
+  #detalhe-conteudo { padding: var(--e4); }
+  .sobre-fonte { padding-left: var(--e3); }
+  th, td { padding: var(--e2); }
+}
+
+@media (max-width: 420px) {
+  .dica { min-width: 0; max-width: min(260px, 76vw); }
+  .tiras { grid-template-columns: 1fr 1fr; }
+}
+
+/* Impressão: o painel vira documento. Sem isto, o cinza de fundo come tinta
+   e os controles ocupam meia página. */
+@media print {
+  nav, .ferramentas-mapa, .barra, button { display: none !important; }
+  body { background: #fff; }
+  .cartao { break-inside: avoid; box-shadow: none; border-color: #ccc; }
+  .painel { grid-template-columns: 1fr; }
+  section[hidden] { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition: none !important; animation: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Contraste alto: o sistema pede bordas visíveis, não sutis. */
+@media (prefers-contrast: more) {
+  :root { --borda: var(--borda-forte); --texto-sutil: var(--texto-fraco); }
+  .cartao { border-width: 2px; }
+}
+
+/* Botão que fica no fim de uma barra de filtros: sem rótulo em cima, ele
+   precisa se alinhar pela base junto com os campos. Antes havia um
+   `<label>&nbsp;</label>` fazendo esse espaço — um rótulo órfão, sem `for` e
+   sem controle, que alguns leitores de tela anunciam como "espaço em branco". */
+.barra .acao { display: flex; align-items: flex-end; }
+
+kbd {
+  font-family: var(--mono); font-size: .9em;
+  background: var(--superficie-3); border: 1px solid var(--borda-forte);
+  border-bottom-width: 2px; border-radius: 4px; padding: 0 4px;
+  color: var(--texto);
+}
+
+/* Enquanto a resposta não chega, o mapa esmaece — sinal de que o clique
+   funcionou, sem tirar da tela o que já estava desenhado. */
+.moldura-mapa[aria-busy="true"] svg#mapa { opacity: .45; transition: opacity var(--transicao); }
+.moldura-mapa[aria-busy="true"]::after {
+  content: ""; position: absolute; inset: 0;
+  background: var(--superficie); opacity: .25; pointer-events: none;
+}
+
+/* Célula de voto: a cor vinha por `style` inline em cada linha. */
+td.sim { color: var(--favor); font-weight: 600; }
+td.nao { color: var(--contra); font-weight: 600; }
+
+caption { color: var(--texto-fraco); font-size: var(--t-mini); }
+
+/* Links herdam a marca do painel. O azul padrão do navegador é a única cor
+   da tela que não sai de token nenhum. */
+a { color: var(--realce); text-underline-offset: 2px; }
+a:hover { color: var(--realce-vivo); }
+
+/* Destaque do chefe do Executivo, no topo da aba Políticos. `[hidden]` tem de
+   continuar valendo: por isso o layout mora aqui e não num `style` inline, que
+   venceria a regra do navegador e deixaria a caixa visível e vazia. */
+#destaque-executivo {
+  display: flex; gap: var(--e4); align-items: center;
+  margin-bottom: var(--e6); padding: var(--e4);
+  background: var(--superficie-2); border-radius: var(--raio-p);
+  border: 1px solid var(--borda);
+}
+#destaque-executivo[hidden] { display: none; }
+#destaque-executivo img {
+  width: 60px; height: 60px; border-radius: 50%; object-fit: cover;
+  border: 2px solid var(--borda); flex-shrink: 0; background: var(--superficie-3);
+}
+/* Sem foto o círculo vira iniciais: um espaço vazio do tamanho de um retrato
+   parece imagem quebrada. O TSE não publica foto — só a Câmara. */
+#destaque-executivo .iniciais {
+  width: 60px; height: 60px; border-radius: 50%; flex-shrink: 0;
+  display: grid; place-items: center; font-weight: 600; font-size: var(--t-g);
+  background: var(--realce-fraco); color: var(--realce);
+  border: 2px solid var(--realce-borda);
+}
+#destaque-executivo .quem { min-width: 0; flex: 1; }
+#destaque-executivo .nome {
+  font-size: var(--t-m); font-weight: 600; letter-spacing: -0.01em;
+}
+#destaque-executivo .abaixo {
+  display: flex; gap: var(--e2); align-items: center;
+  flex-wrap: wrap; margin-top: var(--e1);
+}
+#destaque-executivo .salario { text-align: right; flex-shrink: 0; }
+@media (max-width: 560px) {
+  #destaque-executivo { flex-wrap: wrap; }
+  #destaque-executivo .salario { text-align: left; width: 100%; }
+}
+
+
+/* Dica que vive no `body` e segue o ponteiro em qualquer lugar da página.
+   `fixed` e não `absolute`: dentro de um cartão com `overflow`, a dica seria
+   recortada pela borda da tabela — exatamente onde o ponteiro está. */
+.dica.dica-solta { position: fixed; z-index: 50; }
+.dica .subsidio {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: var(--e3); margin-top: var(--e2); padding-top: var(--e2);
+  border-top: 1px solid var(--borda);
+}
+.dica .subsidio strong { font-variant-numeric: tabular-nums; }
+
+/* --------------------------------------------- abas dentro do diálogo */
+.abas-ficha {
+  display: flex; gap: 2px; margin: var(--e5) 0 var(--e4);
+  border-bottom: 1px solid var(--borda); overflow-x: auto;
+  scrollbar-width: none;
+}
+.abas-ficha::-webkit-scrollbar { display: none; }
+.abas-ficha button {
+  background: none; border: 0; border-bottom: 2px solid transparent;
+  padding: var(--e2) var(--e3); font: inherit; font-size: var(--t-p);
+  color: var(--texto-fraco); cursor: pointer; white-space: nowrap;
+  margin-bottom: -1px; border-radius: var(--raio-p) var(--raio-p) 0 0;
+}
+.abas-ficha button:hover { color: var(--texto); }
+.abas-ficha button[aria-selected="true"] {
+  color: var(--texto); border-bottom-color: var(--realce-vivo); font-weight: 600;
+}
+.painel-ficha[hidden] { display: none; }
+.painel-ficha > h2:first-child { margin-top: 0; }
+
+/* Barras mensais em CSS puro: o painel não carrega biblioteca de gráfico, e
+   doze barras não justificam a primeira. */
+.barras-mes {
+  display: grid; grid-template-columns: repeat(12, 1fr);
+  gap: var(--e1); align-items: end; height: 130px;
+  margin: var(--e3) 0 var(--e5);
+}
+.barras-mes .mes { display: flex; flex-direction: column; height: 100%; gap: var(--e1); }
+.barras-mes .haste {
+  flex: 1; display: flex; align-items: flex-end;
+  background: var(--superficie-3); border-radius: var(--raio-p);
+  overflow: hidden;
+}
+.barras-mes .haste i {
+  display: block; width: 100%; background: var(--realce-vivo);
+  border-radius: var(--raio-p) var(--raio-p) 0 0; min-height: 2px;
+}
+.barras-mes .rotulo-mes {
+  font-size: var(--t-micro); color: var(--texto-fraco); text-align: center;
+}

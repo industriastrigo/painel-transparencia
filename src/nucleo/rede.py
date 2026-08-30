@@ -21,7 +21,7 @@ from typing import Any, Iterator
 
 import requests
 
-from . import config
+from . import bruto, config
 from .registro import obter as obter_log
 
 log = obter_log("nucleo.rede")
@@ -86,11 +86,26 @@ def esquecer_sessoes() -> None:
 def definir_intervalo(fonte: str, segundos: float) -> None:
     """Ajusta o espaçamento de uma fonte em tempo de execução.
 
-    Usado pelos coletores em massa, que trocam latência por vazão sem passar
-    do que a fonte tolera.
+    O valor de `config.INTERVALO_REQUISICOES` é **piso**, não padrão: ninguém
+    consegue pedir menos que ele. Foi assim que a varredura municipal passou
+    meses rodando a ~6,7 requisições por segundo contra um SICONFI que
+    documenta o limite de **uma** — o padrão da função `varrer` (0,15 s) valia
+    mais que o limite declarado da fonte, e nenhum aviso aparecia.
+
+    Um limite publicado pela fonte não é sugestão de desempenho: é a condição
+    para continuar podendo coletar.
     """
+    pedido = max(0.0, float(segundos))
+    piso = config.INTERVALO_REQUISICOES.get(fonte, 0.0)
     with _trava:
-        _intervalos[fonte] = max(0.0, float(segundos))
+        if pedido < piso:
+            if _intervalos.get(fonte) != piso:
+                log.warning(
+                    "%s: intervalo de %.2fs pedido, mas a fonte declara um "
+                    "mínimo de %.2fs — usando o mínimo", fonte, pedido, piso)
+            _intervalos[fonte] = piso
+        else:
+            _intervalos[fonte] = pedido
 
 
 def intervalo_de(fonte: str) -> float:
@@ -169,9 +184,24 @@ def buscar(
     formato: str = "json",
     tentativas: int | None = None,
     silencioso: bool = False,
+    recurso: str | None = None,
 ) -> Any:
+    """Uma requisição, com freio, repetição e — se ligado — arquivo bruto.
+
+    Esta função é o único ponto por onde os dez coletores falam com a rede, e
+    é por isso que o arquivamento da resposta inteira mora aqui: guardar o
+    bruto passou a valer para todos eles sem tocar em nenhum. Mexer em dez
+    coletores na véspera de uma carga histórica é o tipo de coisa que quebra
+    a carga histórica.
+    """
     tentativas = tentativas or config.TENTATIVAS
     ultimo_erro: Exception | None = None
+
+    # Em replay, a fonte é o disco. Nem freio nem rede: reprocessar 400 mil
+    # respostas guardadas leva minutos, contra as horas que a coleta levou.
+    achou, guardado = bruto.buscar_do_arquivo(fonte, url, parametros, formato)
+    if achou:
+        return guardado
 
     for tentativa in range(1, tentativas + 1):
         _frear(fonte)
@@ -187,10 +217,15 @@ def buscar(
             resp.raise_for_status()
             _avisar_se_depreciado(fonte, url, resp)
             if formato == "json":
-                return resp.json()
-            if formato == "texto":
-                return resp.text
-            return resp.content
+                corpo = resp.json()
+            elif formato == "texto":
+                corpo = resp.text
+            else:
+                corpo = resp.content
+            # Depois de `raise_for_status`: só resposta boa entra no arquivo.
+            # Guardar 404 seria guardar a ausência como se fosse dado.
+            bruto.guardar(fonte, url, parametros, formato, corpo, recurso)
+            return corpo
         except ErroDefinitivo as erro:
             # Nada de quatro tentativas com espera exponencial num 404.
             if not silencioso:

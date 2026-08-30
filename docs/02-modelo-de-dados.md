@@ -71,6 +71,8 @@ pode re-rodar qualquer coletor sem medo e sem lembrar do que já rodou.
 | `dim_cargo` | `cod_cargo` | — | cargo |
 | `indicador_ente` | `cod_ibge` + `cod_metrica` + `ano` | ano | métrica-ano-ente |
 | `financas_ente` | `cod_ibge` + `ano` + `periodo` + `cod_conta` | ano, esfera | conta |
+| `despesa_funcao` | `cod_ibge` + `ano` + `periodo` + `cod_conta` | ano, esfera | conta de função |
+| `indicador_fiscal` | `cod_ibge` + `ano` + `periodo` + `poder` + `indicador` | ano | indicador da LRF |
 | `mandato` | `sk_politico` + `cod_cargo` + `cod_ue` + `ano_inicio` | ano_inicio | mandato |
 | `dim_de_para_ente` | `fonte_origem` + `id_origem` | — | ponte fonte→IBGE |
 | `proposicao` | `casa` + `id_proposicao` | ano | PL |
@@ -88,9 +90,28 @@ Duas exceções deliberadas ao princípio de só guardar o processado:
 favor e contra em todas as etapas". E é minúsculo: 513 deputados × ~1.500
 votações/ano ≈ 770 mil linhas/ano, cerca de 4 MB em Parquet.
 
-**`financas_ente` é agregado na ingestão.** Guarda despesa por função de
-governo, não conta contábil folha a folha. Cai de ~50 milhões para ~150 mil
-linhas por ano, sem responder uma pergunta a menos.
+**`financas_ente` é agregado na ingestão.** Guarda a conta do
+demonstrativo, não o lançamento folha a folha. Cai de ~50 milhões para ~150
+mil linhas por ano, sem responder uma pergunta a menos.
+
+## Por que `despesa_funcao` não é uma coluna de `financas_ente`
+
+São o **mesmo dinheiro** visto de dois ângulos: `financas_ente` traz a despesa
+por natureza (pessoal, custeio, investimento), vinda do DCA; `despesa_funcao`
+traz a despesa por função de governo (saúde, educação, segurança), vinda do
+RREO. Cada um soma o orçamento inteiro do ente por conta própria.
+
+Na mesma tabela, qualquer view que agregue por ente somaria os dois e
+devolveria o dobro do real — um número plausível, produzido por linhas todas
+corretas. Tabelas separadas tornam esse erro impossível de cometer sem querer.
+
+É o mesmo motivo que mantém `transferencia_recebida` (declarada pelo ente ao
+SICONFI) separada de `transferencia_uniao` (paga pelo Tesouro).
+
+`indicador_fiscal` é longa e não larga — uma linha por indicador, não uma
+coluna por indicador — porque o RGF publica conjuntos diferentes conforme a
+esfera e o poder, e uma tabela larga viraria um campo novo a cada anexo que
+aparecesse. `vw_fiscal_ente` faz o pivô na leitura.
 
 Estimativa do acervo completo com 10 anos: **2 a 5 GB**, dominado por
 `despesa_parlamentar`.

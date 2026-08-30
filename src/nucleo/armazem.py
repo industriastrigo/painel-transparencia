@@ -19,6 +19,7 @@ job terminou.
 from __future__ import annotations
 
 import os
+import time
 import shutil
 from datetime import datetime, timezone
 from pathlib import Path
@@ -35,6 +36,32 @@ from .registro import obter as obter_log
 log = obter_log("nucleo.armazem")
 
 _ARQUIVO_PARTICAO = "part-000.parquet"
+
+# Quantas linhas cada tabela perdeu por colisão de chave, no processo inteiro.
+#
+# O aviso por lote já existia e estava certo — dizia "a chave está descrevendo
+# um grão mais grosso que o dado". Só que ele saiu 239 vezes no meio de 1.476
+# linhas de log, e ninguém o viu. Um diagnóstico correto que só aparece onde
+# ninguém olha é um diagnóstico que não existe.
+#
+# Este contador é lido no RESUMO da carga, que é o que alguém lê de manhã.
+COLAPSOS: dict[str, int] = {}
+
+# Quantas linhas cada tabela RECEBEU e quantas de fato GRAVOU, no processo
+# inteiro. É o par que o portão de qualidade compara: a suíte de testes olha
+# a forma do dado, e forma não distingue "gravou 842 mil" de "gravou zero".
+#
+# Fica aqui, e não no portão, porque só o merge conhece os dois números sem
+# reler o disco: `recebidas` antes da deduplicação, `gravadas` depois do
+# rename atômico.
+MEDIDAS: dict[str, dict[str, int]] = {}
+
+
+def _medir(tabela: str, chave: str, quantas: int = 1) -> None:
+    linha = MEDIDAS.setdefault(tabela, {"tentativas": 0, "recebidas": 0,
+                                        "gravadas": 0, "colapsadas": 0,
+                                        "particao_nula": 0})
+    linha[chave] = linha.get(chave, 0) + quantas
 
 
 # ------------------------------------------------------------------ conexão
@@ -126,6 +153,7 @@ def preparar(
 ) -> pd.DataFrame:
     """Aplica a convenção do projeto: sk na frente, controle no fim."""
     df = registros if isinstance(registros, pd.DataFrame) else pd.DataFrame(list(registros))
+    _medir(tabela.nome, "recebidas", len(df))
     if df.empty:
         return df
 
@@ -149,6 +177,8 @@ def preparar(
 
     duplicadas = int(df["sk"].duplicated().sum())
     if duplicadas:
+        COLAPSOS[tabela.nome] = COLAPSOS.get(tabela.nome, 0) + duplicadas
+        _medir(tabela.nome, "colapsadas", duplicadas)
         log.warning("%s: %d linhas duplicadas no lote pela chave (%s) — "
                     "mantendo a última. Se não deveriam ser duplicatas, a "
                     "chave está descrevendo um grão mais grosso que o dado.",
@@ -156,6 +186,73 @@ def preparar(
         df = df.drop_duplicates(subset="sk", keep="last")
 
     return tipar(tabela, df)
+
+
+def _sem_particao_nula(tabela: Tabela, df: pd.DataFrame) -> pd.DataFrame:
+    """Separa as linhas cujo valor de partição é nulo, antes de tocar no disco.
+
+    Sem isto, um valor nulo vira o texto `<NA>` e o caminho da partição fica
+    `ano=<NA>`. No Linux isso cria uma pasta com nome ruim; no **Windows**
+    `<` e `>` são caracteres proibidos e o erro que chega é:
+
+        [WinError 123] A sintaxe do nome do arquivo ... está incorreta
+
+    que não menciona tabela, coluna nem partição — foi o que derrubou o
+    coletor do SADIPEM inteiro quando a data de protocolo deixou de ser
+    reconhecida.
+
+    A linha nula é DESCARTADA com erro registrado, não gravada num balde
+    genérico: partição é o eixo de leitura do painel, e dado que cai fora de
+    todo recorte de tempo é dado que ninguém vai encontrar de novo.
+    """
+    mascara = pd.Series(False, index=df.index)
+    for coluna in tabela.particoes:
+        mascara |= df[coluna].isna()
+
+    nulas = int(mascara.sum())
+    if not nulas:
+        return df
+
+    _medir(tabela.nome, "particao_nula", nulas)
+    colunas_afetadas = [c for c in tabela.particoes if df[c].isna().any()]
+    exemplo = df.loc[mascara].head(1).to_dict("records")
+    log.error(
+        "%s: %d de %d linha(s) com valor de partição nulo em %s — "
+        "DESCARTADAS. Partição nula não tem onde ser gravada, e a linha "
+        "sumiria de todo filtro por período. Exemplo: %s",
+        tabela.nome, nulas, len(df), ", ".join(colunas_afetadas),
+        {k: v for k, v in exemplo[0].items()
+         if k in (*tabela.campos_pk, *tabela.particoes)} if exemplo else {})
+    return df.loc[~mascara]
+
+
+def _renomear(temporario: Path, destino: Path) -> None:
+    """`os.replace` com repetição — atômico, mas não imune a trava de arquivo.
+
+    No Windows o rename falha com `[WinError 5] Acesso negado` quando alguém
+    tem o arquivo de destino aberto. Três suspeitos, nesta ordem: a pasta
+    `dados/` dentro do OneDrive (que sincroniza arquivo a arquivo), o
+    antivírus varrendo o Parquet recém-escrito, e o próprio painel — o DuckDB
+    da API mantém os Parquet abertos enquanto alguém navega.
+
+    Quase sempre é trava passageira, então tentar de novo resolve. Se não
+    resolver, a mensagem precisa dizer o que fazer.
+    """
+    for tentativa in range(5):
+        try:
+            os.replace(temporario, destino)
+            return
+        except PermissionError:
+            if tentativa == 4:
+                raise PermissionError(
+                    f"não consegui substituir {destino.name}: o arquivo está "
+                    f"travado por outro programa. Verifique, nesta ordem: a "
+                    f"pasta dados/ está dentro do OneDrive ou Dropbox? o "
+                    f"painel está aberto lendo esta tabela? o antivírus está "
+                    f"varrendo a pasta? Para mover o acervo para fora da "
+                    f"nuvem, defina PAINEL_DADOS no .env."
+                ) from None
+            time.sleep(0.3 * (tentativa + 1))
 
 
 # ------------------------------------------------------------------ merge
@@ -220,7 +317,7 @@ def _mesclar_particao(
            COMPRESSION_LEVEL {config.NIVEL_COMPRESSAO},
            ROW_GROUP_SIZE {config.TAMANHO_ROW_GROUP})
     """)
-    os.replace(temporario, destino)  # atômico no mesmo volume
+    _renomear(temporario, destino)  # atômico no mesmo volume
 
     con.execute("DROP TABLE IF EXISTS final")
     con.unregister("novo")
@@ -235,6 +332,7 @@ def mesclar(
 ) -> dict[str, int]:
     """Grava um lote na tabela, sem duplicar e sem perder histórico."""
     tabela = obter(nome_tabela)
+    _medir(nome_tabela, "tentativas")
     df = preparar(tabela, registros, fonte)
     if df.empty:
         log.info("%s: lote vazio, nada a fazer", nome_tabela)
@@ -251,6 +349,9 @@ def mesclar(
             faltando = [c for c in tabela.particoes if c not in df.columns]
             if faltando:
                 raise KeyError(f"{nome_tabela}: colunas de partição ausentes {faltando}")
+            df = _sem_particao_nula(tabela, df)
+            if df.empty:
+                return total
             for chave, grupo in df.groupby(list(tabela.particoes), dropna=False):
                 chave = chave if isinstance(chave, tuple) else (chave,)
                 valores = dict(zip(tabela.particoes, chave))
@@ -262,6 +363,7 @@ def mesclar(
         if proprio:
             con.close()
 
+    _medir(nome_tabela, "gravadas", sum(total.values()))
     log.info("%s ← %s: %d novos, %d alterados, %d inalterados",
              nome_tabela, fonte, total["inseridos"], total["alterados"],
              total["inalterados"])
@@ -325,7 +427,7 @@ def reescrever(nome_tabela: str, df: pd.DataFrame) -> int:
               (FORMAT PARQUET, COMPRESSION {config.COMPRESSAO},
                COMPRESSION_LEVEL {config.NIVEL_COMPRESSAO})
         """)
-        os.replace(temporario, destino)
+        _renomear(temporario, destino)
     finally:
         con.close()
     return len(df)

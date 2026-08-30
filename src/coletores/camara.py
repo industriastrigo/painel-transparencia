@@ -18,7 +18,7 @@ from datetime import date
 
 import pandas as pd
 
-from ..nucleo import armazem, config, controle, rede
+from ..nucleo import armazem, config, controle, rede, tabela
 from ..nucleo.valores import inteiro, numero, opcional, texto
 from ..nucleo.registro import obter as obter_log
 
@@ -42,10 +42,8 @@ def _sem_nan(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def _csv(url: str, **kwargs) -> pd.DataFrame:
-    corpo = rede.buscar(FONTE, url, formato="texto")
-    df = pd.read_csv(io.StringIO(corpo), sep=";", dtype=str,
-                     keep_default_na=False, na_values=[""], **kwargs)
-    return _sem_nan(df)
+    conteudo = rede.buscar(FONTE, url, formato="binario")
+    return tabela.ler(conteudo, origem=url)
 
 
 def _ano_de(serie: pd.Series) -> pd.Series:
@@ -251,6 +249,109 @@ def coletar_votos(ano: int) -> int:
     return len(linhas)
 
 
+def coletar_orientacoes(ano: int) -> int:
+    """Orientação de bancada — o que a liderança recomendou.
+
+    Mesma armadilha dos votos, conferida em 2026-08-28: a rota
+    `/votacoes/{id}/orientacoes` devolve `dados: []` para as votações que
+    testei, enquanto o arquivo em lote do mesmo ano vem cheio. Portanto o
+    lote é a fonte, não o plano B.
+    """
+    df = _csv(f"{config.CAMARA_ARQUIVOS}/votacoesOrientacoes/csv/"
+              f"votacoesOrientacoes-{ano}.csv")
+    if df.empty:
+        return 0
+
+    linhas = [{
+        "casa": CASA,
+        "id_votacao": texto(v["idVotacao"]),
+        # A bancada é parte da chave: numa mesma votação orientam o partido,
+        # o bloco, o Governo, a Minoria e a Oposição — são linhas diferentes
+        # e legítimas, não duplicatas.
+        "sigla_bancada": texto(v.get("siglaBancada")),
+        "orientacao": opcional(v.get("orientacao")),
+        "sigla_orgao": opcional(v.get("siglaOrgao")),
+        "ano": int(ano),
+    } for _, v in df.iterrows()]
+
+    armazem.mesclar("orientacao_bancada", linhas, f"{FONTE}_lote")
+    controle.gravar_marca(FONTE, f"orientacoes_{ano}", ano, len(linhas))
+    return len(linhas)
+
+
+# Um evento só conta como "sessão que dava para comparecer" se for
+# deliberativo. Audiência pública e seminário são trabalho parlamentar, mas
+# não são obrigação de comparecimento — misturar os dois infla o
+# denominador e transforma quem só falta a seminário em faltoso.
+TIPOS_DELIBERATIVOS = (
+    "sessão deliberativa",
+    "reunião deliberativa",
+)
+
+
+def coletar_eventos(ano: int) -> int:
+    """Eventos da Câmara. Existe para dar denominador à presença."""
+    df = _csv(f"{config.CAMARA_ARQUIVOS}/eventos/csv/eventos-{ano}.csv")
+    if df.empty:
+        return 0
+
+    linhas = []
+    for _, v in df.iterrows():
+        tipo = texto(v.get("descricaoTipo")) or ""
+        linhas.append({
+            "casa": CASA,
+            "id_evento": texto(v["id"]),
+            "data_hora_inicio": opcional(v.get("dataHoraInicio")),
+            "data_hora_fim": opcional(v.get("dataHoraFim")),
+            "descricao_tipo": tipo or None,
+            "descricao": texto(v.get("descricao"), 2000),
+            "situacao": opcional(v.get("situacao")),
+            "local": primeiro(v, "localCamara_nome", "localExterno",
+                              limite=300),
+            "deliberativo": any(marca in tipo.lower()
+                                for marca in TIPOS_DELIBERATIVOS),
+            "ano": int(ano),
+        })
+
+    armazem.mesclar("evento", linhas, f"{FONTE}_lote")
+    controle.gravar_marca(FONTE, f"eventos_{ano}", ano, len(linhas))
+    return len(linhas)
+
+
+def coletar_presenca(ano: int) -> int:
+    """Presença registrada em eventos já ocorridos.
+
+    A fonte publica SÓ quem esteve — não existe registro de falta. Guardamos
+    o que a fonte diz (presença) e deixamos a ausência para a view, que sabe
+    a janela de exercício de cada deputado. Gravar "falta" aqui seria
+    inventar um fato que a Câmara não publicou.
+    """
+    df = _csv(f"{config.CAMARA_ARQUIVOS}/eventosPresencaDeputados/csv/"
+              f"eventosPresencaDeputados-{ano}.csv")
+    if df.empty:
+        return 0
+
+    inicio = pd.to_datetime(df.get("dataHoraInicio"), errors="coerce",
+                            format="mixed")
+    df = df.assign(
+        _ano=inicio.dt.year.fillna(ano).astype(int),
+        _mes=inicio.dt.month.fillna(1).astype(int),
+    )
+
+    linhas = [{
+        "casa": CASA,
+        "id_evento": texto(v["idEvento"]),
+        "id_politico": texto(v["idDeputado"]),
+        "data_hora_inicio": opcional(v.get("dataHoraInicio")),
+        "ano": int(v["_ano"]),
+        "mes": int(v["_mes"]),
+    } for _, v in df.iterrows()]
+
+    armazem.mesclar("presenca_evento", linhas, f"{FONTE}_lote")
+    controle.gravar_marca(FONTE, f"presenca_{ano}", ano, len(linhas))
+    return len(linhas)
+
+
 def votos_por_api(id_votacao: str) -> list[dict]:
     """Plano B. Valide o retorno: para votações recentes costuma vir vazio."""
     dados = rede.buscar(
@@ -283,12 +384,7 @@ def _csv_da_cota(ano: int) -> pd.DataFrame:
             if tipo == "csv":
                 return _csv(url)
             conteudo = rede.buscar(FONTE, url, formato="binario")
-            with zipfile.ZipFile(io.BytesIO(conteudo)) as z:
-                nome = next(n for n in z.namelist() if n.lower().endswith(".csv"))
-                with z.open(nome) as f:
-                    return _sem_nan(pd.read_csv(
-                        f, sep=";", dtype=str, keep_default_na=False,
-                        na_values=[""], low_memory=False))
+            return tabela.de_zip(conteudo, origem=url)
         except Exception as erro:  # noqa: BLE001
             erros.append(f"{url}: {erro}")
             continue
@@ -296,6 +392,24 @@ def _csv_da_cota(ano: int) -> pd.DataFrame:
     raise RuntimeError(
         f"cota parlamentar de {ano} indisponível em todas as URLs conhecidas. "
         + " | ".join(erros))
+
+
+
+def _chave_parcela(valor) -> str:
+    """Tudo o que significa "sem parcela" vira o MESMO "0".
+
+    Nulo, string vazia, só espaços, `"0"`, `"00"` e o `nan` que o pandas
+    produz para célula vazia são a mesma coisa para a fonte — e eram seis
+    chaves diferentes para o merge. Uma chave que muda de forma sem o dado
+    mudar transforma a mesma nota em duas linhas, e o total em dobro.
+    """
+    texto_bruto = "" if valor is None else str(valor).strip()
+    if texto_bruto.lower() in ("", "nan", "none", "null"):
+        return "0"
+    try:
+        return str(int(float(texto_bruto)))   # "00" e "0.0" viram "0"
+    except (TypeError, ValueError):
+        return texto_bruto
 
 
 def coletar_despesas(ano: int) -> int:
@@ -326,8 +440,14 @@ def coletar_despesas(ano: int) -> int:
         # `ideDocumento` sozinho NÃO é único: reembolso parcelado repete o
         # mesmo documento em várias linhas. Sem estes dois campos na chave,
         # 1.307 notas eram silenciosamente descartadas como "duplicadas".
-        "num_parcela": texto(d.get("numParcela"), padrao="0"),
-        "num_ressarcimento": texto(d.get("numRessarcimento"), padrao="0"),
+        #
+        # E o AVESSO também mordeu: uma versão anterior deixava estes campos
+        # NULOS quando a fonte mandava vazio. Nulo e "0" são chaves
+        # diferentes, então a mesma nota coletada nas duas épocas virou duas
+        # linhas — 96.407 documentos, e a cota de 2026 dobrou. `_chave_parcela`
+        # normaliza tudo o que significa "sem parcela" para o mesmo "0".
+        "num_parcela": _chave_parcela(d.get("numParcela")),
+        "num_ressarcimento": _chave_parcela(d.get("numRessarcimento")),
         "id_politico": texto(d.get("numDeputadoId")) or texto(d.get("ideCadastro")),
         "nome_politico": opcional(d.get("txNomeParlamentar")),
         "sigla_partido": opcional(d.get("sgPartido")),
@@ -357,6 +477,9 @@ def executar(anos: list[int] | None = None, com_despesas: bool = True) -> None:
             ("proposições", coletar_proposicoes),
             ("votações", coletar_votacoes),
             ("votos", coletar_votos),
+            ("orientações", coletar_orientacoes),
+            ("eventos", coletar_eventos),
+            ("presença", coletar_presenca),
         ):
             try:
                 funcao(ano)

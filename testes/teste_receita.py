@@ -193,3 +193,110 @@ def test_metricas_novas_sao_aceitas_pela_rota():
                                params={"ano": 2024, "metrica": metrica})
         assert resposta.status_code == 200, f"{metrica} recusada"
         assert resposta.json()["metrica"] == metrica
+
+
+# ============ o prefixo do código da conta (descoberto numa coleta real)
+def _receita_com_prefixo():
+    """Como o SICONFI devolve DE VERDADE: `RO1.0.0.0.00.0.0`.
+
+    O Swagger não diz isso e eu supus que o código era só o número. Com o
+    prefixo, o cálculo de nível dava 0 e o filtro `LIKE '1%'` nunca casava:
+    373 mil linhas coletadas em uma hora não apareciam no painel, e a tela
+    dizia "não coletado" — sem um erro sequer.
+    """
+    armazem.remover("financas_ente")
+    linhas = []
+    for conta, rotulo, valor in [
+        ("RO1.0.0.0.00.0.0", "1.0.0.0.00.0.0 - Receitas Correntes", 1000.0),
+        ("RO1.1.0.0.00.0.0", "1.1.0.0.00.0.0 - Impostos", 300.0),
+        ("RO1.7.0.0.00.0.0", "1.7.0.0.00.0.0 - Transferências Correntes", 700.0),
+        ("RO1.7.1.8.00.0.0", "1.7.1.8.00.0.0 - Transferências da União", 500.0),
+        ("RO2.0.0.0.00.0.0", "2.0.0.0.00.0.0 - Receitas de Capital", 200.0),
+        ("RO2.4.0.0.00.0.0", "2.4.0.0.00.0.0 - Transferências de Capital", 50.0),
+    ]:
+        linhas.append({
+            "cod_ibge": "35", "ano": 2024, "periodo": "anual",
+            "cod_conta": conta, "cod_funcao": None, "funcao": None,
+            "rotulo_conta": rotulo, "estagio": "Receitas Brutas Realizadas",
+            "valor": valor, "esfera": "estado", "uf": "SP",
+            "data_referencia": "2024-12-31",
+        })
+    armazem.mesclar("financas_ente", linhas, "teste")
+
+
+def test_prefixo_de_letras_no_codigo_nao_quebra_o_nivel():
+    _receita_com_prefixo()
+    con = vistas.conexao_leitura()
+    niveis = dict(con.execute(
+        "SELECT cod_conta, nivel_receita FROM vw_receita_conta").fetchall())
+    assert niveis["RO1.0.0.0.00.0.0"] == 1
+    assert niveis["RO1.7.0.0.00.0.0"] == 2
+    assert niveis["RO1.7.1.8.00.0.0"] == 4
+
+
+def test_arrecadacao_aparece_mesmo_com_prefixo():
+    _receita_com_prefixo()
+    con = vistas.conexao_leitura()
+    total = con.execute(
+        "SELECT receita_total FROM vw_receita_total WHERE cod_ibge = '35'"
+    ).fetchone()
+    assert total is not None, "com o prefixo, a view devolvia VAZIO"
+    assert total[0] == 1200.0
+
+
+def test_transferencias_aparecem_mesmo_com_prefixo():
+    _receita_com_prefixo()
+    con = vistas.conexao_leitura()
+    valor = con.execute(
+        "SELECT transferencia_recebida FROM vw_transferencia_recebida "
+        " WHERE cod_ibge = '35'").fetchone()
+    assert valor is not None and valor[0] == 750.0
+
+
+# ============ despesa: conta textual convivendo com contas de função
+def _despesa_com_total_textual(com_funcoes: bool):
+    armazem.remover("financas_ente")
+    linhas = [{
+        "cod_ibge": "29", "ano": 2025, "periodo": "anual",
+        "cod_conta": "TotalGeralDaDespesa", "cod_funcao": None,
+        "funcao": "Total Geral da Despesa",
+        "rotulo_conta": "Total Geral da Despesa",
+        "estagio": "Despesas Empenhadas", "valor": 1800.0,
+        "esfera": "estado", "uf": "BA", "data_referencia": "2025-12-31",
+    }]
+    if com_funcoes:
+        for conta, funcao, valor in [("RD10", "Saúde", 1000.0),
+                                     ("RD12", "Educação", 800.0),
+                                     ("RD10.301", "Atenção Básica", 600.0)]:
+            linhas.append({
+                "cod_ibge": "29", "ano": 2025, "periodo": "anual",
+                "cod_conta": conta, "cod_funcao": conta[-2:],
+                "funcao": funcao, "rotulo_conta": funcao,
+                "estagio": "Despesas Empenhadas", "valor": valor,
+                "esfera": "estado", "uf": "BA",
+                "data_referencia": "2025-12-31",
+            })
+    armazem.mesclar("financas_ente", linhas, "teste")
+
+
+def test_total_textual_sai_quando_ha_funcoes():
+    """Somar "Total Geral da Despesa" junto com as funções conta o mesmo
+    gasto duas vezes — o total viraria 3.600 em vez de 1.800."""
+    _despesa_com_total_textual(com_funcoes=True)
+    con = vistas.conexao_leitura()
+    total = con.execute(
+        "SELECT despesa_total FROM vw_despesa_total WHERE cod_ibge = '29'"
+    ).fetchone()[0]
+    assert total == 1800.0, f"somou {total} — a linha de total entrou junto"
+
+
+def test_total_textual_fica_quando_e_tudo_que_existe():
+    """Descartar sempre a linha textual deixaria sem despesa nenhuma o ente
+    que só entregou o total. A regra decide pelo dado, não por suposição."""
+    _despesa_com_total_textual(com_funcoes=False)
+    con = vistas.conexao_leitura()
+    total = con.execute(
+        "SELECT despesa_total FROM vw_despesa_total WHERE cod_ibge = '29'"
+    ).fetchone()
+    assert total is not None, "o ente ficaria sem despesa nenhuma"
+    assert total[0] == 1800.0

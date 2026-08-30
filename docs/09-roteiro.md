@@ -5,11 +5,12 @@
 Pipeline, armazém, API e painel funcionam ponta a ponta. O que existe:
 
 - Núcleo idempotente com merge por partição e rename atômico — testado
-- Seis coletores escritos: IBGE, SICONFI, Câmara, Senado, TSE, CGU
+- Dez coletores escritos: IBGE, SICONFI (DCA, RREO e RGF), Transferências
+  Constitucionais, SADIPEM, Custos, Câmara, Senado, TSE, CGU, referências
 - API com mapa, ranking, políticos, proposições, tramitações e voto nominal
 - Painel com drill-down país → estado → município e ficha do ente
 - De-para TSE → IBGE ligando "quem governa" a "quanto gasta"
-- 230 testes (216 Python, 14 JavaScript)
+- 398 testes (360 Python, 38 JavaScript)
 
 O que **não** existe ainda está abaixo, em ordem de valor.
 
@@ -87,7 +88,7 @@ O que **não** existe ainda está abaixo, em ordem de valor.
   se apresentando como mínimo e máximo; máscara da chave expondo início e fim.
 
 - **Publicação no GitHub** — README com o propósito do projeto, licença MIT,
-  CI rodando os 230 testes a cada push (e um job que recusa segredo
+  CI rodando os 310 testes a cada push (e um job que recusa segredo
   versionado), `.bat` de um clique para publicar e para enviar alterações, e
   trava local que aborta o commit se `.env` ou `dados/` entrarem.
 
@@ -101,7 +102,79 @@ O que **não** existe ainda está abaixo, em ordem de valor.
   a tela inteira e dica ao passar o mouse com população, arrecadação, despesa
   e transferências. Campo sem dado diz "não coletado", nunca R$ 0.
 
-## Próximo passo — tramitação em massa
+- **Transferências da União** — coletor da API Aria do Tesouro: FPM, FPE,
+  FUNDEB, Lei Kandir, ITR, CIDE e royalties, mensais, por ente, com o
+  `co_ibge` casando direto com `dim_ente`. Fecha a pergunta que estava
+  marcada como "não existe": existe, só não era transferência ENTRE estados —
+  é da União para eles. Fica em tabela separada da transferência que o ente
+  declara ao SICONFI, porque somar as duas contaria o FPM duas vezes.
+
+- **Operações de crédito (SADIPEM)** — quanto cada ente pediu para tomar
+  emprestado, de qual credor e para quê, com o desfecho de cada pedido. Três
+  medidas separadas de propósito — pleiteado, deferido e contratado — porque
+  somar tudo e chamar de "dívida" produziria um número plausível e errado.
+
+- **Seis defeitos da primeira coleta com dez fontes** (25/08): o `cod_conta`
+  do SICONFI vem com prefixo de letras e deixava a arrecadação inteira
+  invisível — 373 mil linhas no disco e "não coletado" na tela; data ISO não
+  reconhecida no SADIPEM virava partição `ano=<NA>` e `WinError 123`; rename
+  travado por OneDrive derrubava a cota parlamentar; o envelope da API Aria é
+  `registros`, não `items`; o Tesouro falhava a leitura sem dizer por quê; e
+  três cidades sem casar por mudança de nome.
+
+- **Custos do Governo Federal por API** — o coletor do Tesouro deixou de
+  raspar CSV do CKAN e passou a usar a API de Custos: os mesmos seis recortes,
+  com filtro por ano e mês, sem download e sem detecção de separador. Conserta
+  as três falhas de "não consegui ler como tabela" e reduz o coletor à metade
+  do tamanho.
+
+- **Verificação das fontes** (`VERIFICAR FONTES.bat`) — dez requisições, nada
+  gravado, e a resposta real de cada API na tela. Achou de primeira: os seis
+  nomes de campo do coletor de Custos estavam todos errados; o SADIPEM escreve
+  `pvl_contradado_credor` com erro de digitação da própria fonte; e
+  `pessoal_ativo` estourava o teto de páginas num mês só. Confirmou também o
+  que estava certo: **0 divergências em 5.503 ente-ano** entre a soma das
+  categorias e o total declarado.
+
+- **Carga histórica retomável** (`CARGA HISTORICA.bat`) — a série inteira de
+  cada fonte, feita para rodar de madrugada. Marca por recorte em
+  `_ctl/ingestao`, com só `ok` como estado terminal; resultado parcial fica
+  marcado como parcial e é retentado; e o processo pede ao Windows para não
+  suspender a máquina no meio — um coletor a 1 req/s parece ocioso para o
+  sistema operacional, e dormiria sem erro nenhum no log.
+
+- **RREO Anexo 02 — despesa por função** (`despesa_funcao`). Fecha a promessa
+  que o README fazia desde o primeiro dia: *quanto o seu município gasta em
+  saúde*. Tabela separada de `financas_ente` porque são dois recortes do mesmo
+  dinheiro; view por `MAX(periodo)` porque o RREO é acumulado no exercício.
+  Saúde e educação viraram métrica do mapa, cartão na ficha e linha na dica.
+- **RGF — pessoal, dívida e limites da LRF** (`indicador_fiscal`). Duas
+  perguntas fortes de uma vez: quanto o ente deve, e se a folha cabe no
+  limite. O percentual **e o limite** vêm do demonstrativo — o painel não crava
+  60% no código, porque o limite muda por esfera e por poder. Sem limite
+  publicado, `acima_do_limite` é nulo, e nulo não é "está dentro".
+- **`/extrato_entregas`** — `coletar --explicar-cinza ANO` separa três coisas
+  que o mapa cinza confundia numa só: o ente não entregou, entregou e não
+  coletamos, ou o prazo ainda não venceu. Fica no CLI porque nenhuma rota do
+  painel chama fonte externa em tempo de renderização.
+- **Período publicado calculado** — pedir o 6º bimestre de um ano em curso
+  devolveria vazio, e vazio viraria "5.570 municípios não entregaram".
+
+## Próximo passo — teto de gastos
+
+A API do teto (`teto_gastos/cesef/baseclassificada`) responde "o governo ficou
+dentro do limite que ele mesmo se impôs?". Antes de modelar, uma chamada
+exploratória para ver as colunas — supor o formato foi o que custou as últimas
+rodadas com o SADIPEM e com o prefixo `RO`.
+
+## Depois — CEIS e CNEP
+
+Empresas inidôneas e punidas, do Portal da Transparência. Cruzadas com os
+credores do SADIPEM e com os fornecedores das emendas, respondem uma pergunta
+que nenhuma outra fonte do painel responde: **quem está do outro lado do
+balcão, e ele já foi punido antes?**
+
+## Depois — tramitação em massa
 
 `coletar_tramitacoes()` hoje busca uma proposição por vez pela API. Para o
 painel mostrar etapas de milhares de PLs, precisa de:
@@ -128,8 +201,7 @@ O painel hoje responde "quem gasta mais por habitante", não "quem é mais
 desenvolvido" — que era a pergunta original. Faltam:
 
 - IDHM (Atlas Brasil), PIB per capita já coletado mas não exposto no mapa
-- proporção da despesa em saúde e educação, que `vw_financas_funcao` já
-  calcula
+- ~~proporção da despesa em saúde e educação~~ — feito, via RREO Anexo 02
 - deflacionar por IPCA antes de comparar anos: em reais correntes, uma série
   de 10 anos mostra inflação, não decisão política
 

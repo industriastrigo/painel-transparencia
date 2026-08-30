@@ -273,6 +273,14 @@ def resumo_de_custo(ano: int | None = None):
     cargos = _consultar("""
         SELECT poder, SUM(custo_anual_estimado) AS custo_estimado,
                SUM(ocupantes) AS ocupantes,
+               -- Quantos ocupantes REALMENTE entram na soma. Sem esta coluna
+               -- a tela dizia "64.323 ocupantes × subsídio × 13,33" ao lado de
+               -- R$ 329,79 mi, e a divisão dava R$ 385/mês por ocupante: só
+               -- 594 dos 64.323 têm subsídio cadastrado. Número certo com
+               -- rótulo errado é indefensável — e é a conta que qualquer
+               -- crítico refaz em dez segundos.
+               SUM(ocupantes) FILTER (WHERE valor_mensal IS NOT NULL)
+                                                 AS ocupantes_com_subsidio,
                COUNT(*) FILTER (WHERE valor_mensal IS NOT NULL
                                   AND NOT conferido) AS nao_conferidos
           FROM vw_custo_cargo
@@ -280,21 +288,94 @@ def resumo_de_custo(ano: int | None = None):
          GROUP BY poder ORDER BY custo_estimado DESC NULLS LAST
     """)
 
-    if ano is None:
-        anos = _consultar("SELECT MAX(ano) AS ano FROM vw_despesa_poder")
-        ano = int(anos[0]["ano"]) if anos and anos[0].get("ano") else None
+    def _ultimo_ano(vista: str, coluna: str = "ano") -> int | None:
+        """O ano mais recente em que ESTA vista tem dado."""
+        linhas = _consultar(f"SELECT MAX({coluna}) AS ano FROM {vista}")
+        return (int(linhas[0]["ano"])
+                if linhas and linhas[0].get("ano") is not None else None)
+
+    # CADA BLOCO NO ANO EM QUE ELE EXISTE.
+    #
+    # Duas correções erradas em cima do mesmo lugar, em direções opostas:
+    #
+    # 1. Antes o ano saía de `vw_despesa_poder` sozinha. Com a despesa por
+    #    função vazia e a receita cheia, o exercício vinha nulo e os totais
+    #    agregados sumiam da tela — estando no disco.
+    # 2. A correção foi tirar o ano de `vw_anos`, que reúne TUDO. Aí bastou a
+    #    despesa por função ter 2026 (o RREO é bimestral) para o ano virar
+    #    2026 — e a arrecadação, que é do DCA e só existe até 2025, sumir da
+    #    tela. Estando no disco. De novo.
+    #
+    # O erro comum às duas é supor que existe UM ano certo para a tela
+    # inteira. Não existe: as fontes têm calendários diferentes. A saída é
+    # cada bloco usar o ano mais recente em que ele tem dado, e a tela dizer
+    # de que ano é cada número — mostrar a arrecadação de 2025 rotulada como
+    # 2025 é melhor que esconder um número que existe.
+    ano_pedido = ano
+    ano_funcao = ano_pedido or _ultimo_ano("vw_despesa_poder")
+    ano_medido = ano_pedido or _ultimo_ano("custo_orgao")
+    ano_receita = ano_pedido or _ultimo_ano("vw_receita_total")
+    ano_despesa = ano_pedido or _ultimo_ano("vw_despesa_total")
+    # `ano` continua sendo o rótulo geral da aba: o mais recente que existe.
+    ano = ano_pedido or max(
+        [a for a in (ano_funcao, ano_medido, ano_receita, ano_despesa)
+         if a is not None], default=None)
 
     despesa = _consultar("""
         SELECT funcao, esfera, SUM(valor) AS valor
           FROM vw_despesa_poder WHERE ano = ?
          GROUP BY ALL ORDER BY valor DESC
-    """, [ano]) if ano else []
+    """, [ano_funcao]) if ano_funcao else []
 
+    # A soma vem com a MARCA DA COLETA colada nela. Sem isto, um recorte cujo
+    # `_ctl/ingestao` diz `parcial — paginação interrompida` chega à tela como
+    # valor apurado: `pessoal_ativo` de 2025 publicava R$ 9,04 bi apoiado em 24
+    # linhas, quando a própria documentação do coletor fala em mais de 100 mil
+    # linhas por mês. O acervo sabia que estava truncado; a tela é que não
+    # dizia. Número parcial não é errado — é PISO — e a diferença entre as duas
+    # leituras é o rótulo, não o dado.
     medido = _consultar("""
-        SELECT conjunto, SUM(valor) AS valor
+        SELECT conjunto, SUM(valor) AS valor, COUNT(*) AS linhas
           FROM custo_orgao WHERE ano = ?
          GROUP BY conjunto ORDER BY valor DESC
-    """, [ano]) if ano else []
+    """, [ano_medido]) if ano_medido else []
+
+    if medido:
+        marcas = controle.situacao()
+        por_recurso = ({str(l["recurso"]): str(l.get("situacao") or "")
+                        for _, l in marcas.iterrows()}
+                       if not marcas.empty else {})
+        for linha in medido:
+            situacao_coleta = por_recurso.get(
+                f'{linha["conjunto"]}_{ano_medido}', "desconhecida")
+            linha["situacao_coleta"] = situacao_coleta
+            linha["completo"] = situacao_coleta == "ok"
+    incompletos = [l["conjunto"] for l in medido if not l["completo"]]
+
+    # Os dois totais agregados. `COUNT(*)` junto NÃO é enfeite: a soma vale o
+    # que a cobertura vale. Com 27 UFs coletadas e nenhum município, o número
+    # sai bem formado e pequeno demais — e ninguém vê a diferença olhando só
+    # para ele. O painel mostra a soma E de quantos entes ela veio.
+    receita = _consultar("""
+        SELECT SUM(receita_total) AS total, COUNT(*) AS entes
+          FROM vw_receita_total WHERE ano = ?
+    """, [ano_receita]) if ano_receita else []
+
+    despesa_agregada = _consultar("""
+        SELECT SUM(despesa_total) AS total, COUNT(*) AS entes
+          FROM vw_despesa_total WHERE ano = ?
+    """, [ano_despesa]) if ano_despesa else []
+
+    def _total(linhas: list[dict]) -> tuple[float | None, int]:
+        """(valor, entes) — nunca 0 no lugar de "não sei"."""
+        if not linhas:
+            return None, 0
+        bruto = linhas[0].get("total")
+        return (float(bruto) if bruto is not None else None,
+                int(linhas[0].get("entes") or 0))
+
+    valor_receita, entes_receita = _total(receita)
+    valor_despesa_agregada, entes_despesa = _total(despesa_agregada)
 
     nao_conferidos = sum(int(c["nao_conferidos"] or 0) for c in cargos)
 
@@ -303,7 +384,19 @@ def resumo_de_custo(ano: int | None = None):
         "estimado_por_poder": cargos,
         "despesa_por_funcao": despesa,
         "custo_medido_federal": medido,
-        "arrecadacao": None,   # ainda não coletada — ver roteiro
+        "arrecadacao": valor_receita,
+        "arrecadacao_entes": entes_receita,
+        # De que ano é cada número. Sem isto a tela juntaria exercícios
+        # diferentes sem dizer — que é pior do que mostrar um só.
+        "ano_arrecadacao": ano_receita,
+        "ano_despesa_subnacional": ano_despesa,
+        "ano_despesa_funcao": ano_funcao,
+        "ano_custo_medido": ano_medido,
+        # NÃO é "nacional": é a soma dos entes SUBNACIONAIS que o acervo tem.
+        # O orçamento da União não está no SICONFI e portanto não está aqui.
+        # Chamar de nacional seria afirmar uma cobertura que o número não tem.
+        "despesa_subnacional": valor_despesa_agregada,
+        "despesa_entes": entes_despesa,
         "avisos": [
             aviso for aviso in [
                 f"{nao_conferidos} valor(es) de subsídio ainda não conferidos "
@@ -314,7 +407,29 @@ def resumo_de_custo(ano: int | None = None):
                 "Despesa por função é o valor que de fato saiu dos cofres "
                 "(SICONFI) — não confundir com a estimativa de subsídios."
                 if despesa else None,
-                "Arrecadação ainda não coletada." if True else None,
+                # O aviso nomeia os recortes: "alguns dados podem estar
+                # incompletos" é a frase que ninguém age em cima.
+                (f"Custo medido federal de {ano_medido}: "
+                 f"{', '.join(incompletos)} com coleta incompleta "
+                 f"(paginação interrompida). Os valores desses recortes são "
+                 f"PISO, não total apurado.")
+                if incompletos else None,
+                f"Arrecadação e despesa somam {entes_despesa} ente(s) do "
+                f"acervo — estados e municípios já coletados. O orçamento da "
+                f"União não entra: ele não está no SICONFI."
+                if entes_despesa else None,
+                # O aviso antigo dizia "nenhum ente com dado neste exercício"
+                # e parecia acervo perdido. Quando o pedido é por um ano
+                # específico e ele não tem DCA, a causa é o calendário da
+                # fonte — e é isso que a frase precisa dizer.
+                (f"Arrecadação e despesa agregadas não existem para "
+                 f"{ano_pedido}: elas vêm do DCA, que é anual e só é "
+                 f"publicado no exercício seguinte. O último disponível é "
+                 f"{ano_receita or ano_despesa or 'nenhum'}.")
+                if ano_pedido and not entes_despesa else None,
+                ("Arrecadação e despesa agregadas indisponíveis: nenhum ente "
+                 "com dado no acervo.")
+                if not ano_pedido and not entes_despesa else None,
             ] if aviso
         ],
     }
@@ -328,9 +443,47 @@ def metricas():
 
 @app.get("/api/anos")
 def anos():
-    linhas = _consultar(
-        "SELECT ano FROM vw_anos WHERE ano IS NOT NULL ORDER BY ano DESC")
-    return [int(l["ano"]) for l in linhas]
+    """Os anos do acervo, com quanto de cada um o painel consegue mostrar.
+
+    Devolve objeto, não número, por um motivo concreto: as fontes têm
+    calendários diferentes. O RREO é bimestral e já publica o exercício
+    corrente; o DCA é ANUAL e só sai no seguinte. Existe portanto sempre um
+    ano com despesa por função e sem arrecadação.
+
+    O painel abria nesse ano — escolhia o mais recente que QUALQUER tabela
+    tivesse — e metade dos cartões dizia "não coletado". Parecia acervo
+    perdido; era ano ainda incompleto. `padrao` marca o ano mais recente
+    COMPLETO, e é nele que a tela abre; os parciais continuam na lista, com
+    o que falta dito por extenso.
+    """
+    linhas = _consultar("""
+        SELECT a.ano,
+               COALESCE(c.blocos_com_dado, 0) AS blocos_com_dado,
+               COALESCE(c.blocos_no_total, 5) AS blocos_no_total,
+               COALESCE(c.completo, FALSE)    AS completo,
+               c.blocos
+          FROM vw_anos a
+          LEFT JOIN vw_cobertura_ano c USING (ano)
+         WHERE a.ano IS NOT NULL
+         ORDER BY a.ano DESC
+    """)
+
+    completos = [l for l in linhas if l.get("completo")]
+    # Sem nenhum ano completo, o mais recente é o melhor que há — abrir numa
+    # tela vazia por preciosismo seria pior que abrir numa tela parcial.
+    padrao = int((completos or linhas)[0]["ano"]) if linhas else None
+
+    return {
+        "anos": [{
+            "ano": int(l["ano"]),
+            "completo": bool(l.get("completo")),
+            "blocos_com_dado": int(l.get("blocos_com_dado") or 0),
+            "blocos_no_total": int(l.get("blocos_no_total") or 5),
+            "blocos": str(l.get("blocos") or "").split(",") if l.get("blocos")
+                      else [],
+        } for l in linhas],
+        "padrao": padrao,
+    }
 
 
 @app.post("/api/recarregar")
@@ -347,7 +500,9 @@ def mapa(
         "despesa_per_capita",
         pattern="^(despesa_per_capita|despesa_total|populacao"
                 "|receita_total|receita_per_capita|transferencia_recebida"
-                "|dependencia_transferencia)$"),
+                "|transferencia_uniao|dependencia_transferencia"
+                "|despesa_saude|saude_per_capita|despesa_educacao"
+                "|educacao_per_capita|percentual_pessoal|divida_liquida)$"),
 ):
     """País → estado → município. Sem UF devolve as 27 UFs; com UF, os municípios."""
     # As mesmas colunas nos dois recortes: o tooltip do painel lê uma estrutura
@@ -356,7 +511,10 @@ def mapa(
     COLUNAS = """
         cod_ibge, nome, sigla_uf, ano, despesa_total, populacao,
         despesa_per_capita, receita_total, receita_per_capita,
-        transferencia_recebida, dependencia_transferencia
+        transferencia_recebida, transferencia_uniao,
+        dependencia_transferencia, despesa_saude, despesa_educacao,
+        saude_per_capita, educacao_per_capita,
+        percentual_pessoal, acima_do_limite, divida_liquida
     """
     if uf:
         linhas = _consultar(
@@ -405,6 +563,53 @@ def malha(escopo: str):
 
 
 # ------------------------------------------------------------------ políticos
+@app.get("/api/politicos/executivo")
+def executivo_em_destaque(uf: str | None = None):
+    """Quem chefia o Executivo do recorte em que o usuário está.
+
+    Sem UF é o presidente; com UF, o governador daquele estado. É a pergunta
+    que a aba Políticos não respondia: ela listava 69 mil nomes em ordem
+    alfabética, e o primeiro da lista era um vereador qualquer.
+
+    **O join com o cargo é por `cod_cargo`, não por `cargo`.** As duas colunas
+    existem nas duas tabelas e parecem intercambiáveis, mas guardam coisas
+    diferentes: `mandato.cargo` é o apelido (`presidente`) e
+    `dim_cargo_publico.cargo` é o nome por extenso ("Presidente da
+    República"). Casar por texto não encontra nada — e o salário viria nulo
+    para todo mundo, sem erro nenhum no log.
+    """
+    if uf:
+        onde = "m.cargo = 'governador' AND m.sigla_uf = ?"
+        parametros: list[Any] = [uf.strip().upper()]
+    else:
+        onde = "m.cargo = 'presidente'"
+        parametros = []
+
+    return _consultar(f"""
+        SELECT m.cargo, m.nome, m.sigla_partido, m.sigla_uf,
+               m.ano_inicio, m.ano_fim,
+               p.url_foto,
+               s.valor_mensal AS salario,
+               s.norma        AS norma_salario,
+               s.url_norma    AS url_norma_salario,
+               -- Vem junto de propósito: os subsídios do acervo estão
+               -- marcados `conferido = false` ("valor de rascunho"), e o
+               -- painel tem de dizer isso ao lado do número em vez de
+               -- apresentá-lo como fato apurado.
+               s.conferido    AS salario_conferido
+          FROM vw_mandato m
+          LEFT JOIN dim_politico p
+                 ON p.id_origem = m.sk_politico
+          LEFT JOIN dim_cargo_publico c
+                 ON c.cod_cargo = m.cod_cargo
+          LEFT JOIN vw_subsidio_vigente s
+                 ON s.cod_cargo = c.cod_cargo
+         WHERE {onde}
+         ORDER BY m.ano_inicio DESC
+         LIMIT 1
+    """, parametros)
+
+
 @app.get("/api/politicos/resumo")
 def politicos_resumo(uf: str | None = None):
     filtro = "WHERE sigla_uf = ?" if uf else ""
@@ -432,12 +637,174 @@ def politicos(uf: str | None = None, cargo: str | None = None,
         condicoes.append("nome ILIKE ?"); parametros.append(f"%{busca}%")
     onde = f"WHERE {' AND '.join(condicoes)}" if condicoes else ""
 
+    # O subsídio vem junto para a dica ao passar o mouse não precisar de uma
+    # requisição por linha. São 300 linhas por consulta: uma chamada por
+    # `mouseenter` seria 300 requisições e uma corrida a cada movimento do
+    # ponteiro. O join é por CARGO, que é o grão em que o subsídio existe —
+    # o acervo não tem remuneração individual, e fingir que tem seria pior
+    # que não mostrar nada.
     return _consultar(f"""
-        SELECT sk, id_origem, nome, nome_eleitoral, cargo, sigla_partido,
-               sigla_uf, casa, url_foto, fonte_origem
-          FROM dim_politico {onde}
-         ORDER BY nome LIMIT {int(limite)}
+        SELECT p.sk, p.id_origem, p.nome, p.nome_eleitoral, p.cargo,
+               p.sigla_partido, p.sigla_uf, p.casa, p.url_foto,
+               p.fonte_origem,
+               c.cargo        AS cargo_extenso,
+               c.poder, c.esfera,
+               s.valor_mensal AS subsidio_cargo,
+               s.norma        AS norma_subsidio,
+               s.conferido    AS subsidio_conferido
+          FROM dim_politico p
+          LEFT JOIN dim_cargo_publico c ON c.cod_cargo = p.cargo
+          LEFT JOIN vw_subsidio_vigente s ON s.cod_cargo = c.cod_cargo
+        {onde.replace("sigla_uf", "p.sigla_uf").replace("cargo = ?", "p.cargo = ?")
+             .replace("sigla_partido", "p.sigla_partido")
+             .replace("nome ILIKE", "p.nome ILIKE")}
+         ORDER BY p.nome LIMIT {int(limite)}
     """, parametros)
+
+
+@app.get("/api/politicos/{sk}/ficha")
+def ficha_do_politico(sk: str, ano: int | None = None):
+    """Tudo o que o acervo sabe sobre um parlamentar, numa chamada.
+
+    **O que existe e o que não existe** — a distinção importa mais aqui do
+    que em qualquer outra tela do painel, porque a página oficial da Câmara
+    mostra coisas que a API de dados abertos **não publica**:
+
+    | O quê | Onde está |
+    |---|---|
+    | Cota parlamentar, nota a nota | arquivos em lote da Câmara — **temos** |
+    | Subsídio do cargo | norma, em `referencias/` — **temos** |
+    | Presença em sessão deliberativa | arquivo `eventosPresencaDeputados` — **temos** |
+    | Fidelidade à orientação da bancada | arquivo `votacoesOrientacoes` — **temos** |
+    | Verba de gabinete | só na página HTML — **não temos** |
+    | Pessoal de gabinete | só na página HTML — **não temos** |
+    | Justificativa de falta | só na página HTML — **não temos** |
+
+    Sobre presença, uma correção registrada: por um tempo este projeto
+    afirmou que frequência não existia em dado aberto, porque a rota
+    `/deputados/{id}` não a expõe. Existe — em outro lugar, o arquivo em
+    lote `eventosPresencaDeputados`, um registro por (evento, deputado).
+    A lição não é sobre a Câmara, é sobre o método: "consultei o endpoint
+    óbvio e não achei" não é o mesmo que "não existe".
+
+    O que continua não existindo é a JUSTIFICATIVA da falta. A fonte publica
+    quem esteve e nunca quem faltou; a ausência é subtração nossa, e uma
+    falta abonada por missão oficial fica igual a uma falta seca. A tela diz
+    isso ao lado do número.
+
+    Para o que não temos, a resposta traz o ENDEREÇO da página oficial: o
+    painel manda o cidadão à fonte em vez de raspar HTML — raspagem quebra
+    em silêncio quando a página muda, que é o oposto do que este projeto
+    promete.
+    """
+    politico = _consultar("""
+        SELECT p.sk, p.id_origem, p.nome, p.nome_eleitoral, p.cargo,
+               p.sigla_partido, p.sigla_uf, p.casa, p.url_foto,
+               p.fonte_origem,
+               c.cargo AS cargo_extenso, c.poder, c.esfera,
+               s.valor_mensal AS subsidio_cargo, s.norma AS norma_subsidio,
+               s.url_norma AS url_norma_subsidio,
+               s.conferido AS subsidio_conferido
+          FROM dim_politico p
+          LEFT JOIN dim_cargo_publico c ON c.cod_cargo = p.cargo
+          LEFT JOIN vw_subsidio_vigente s ON s.cod_cargo = c.cod_cargo
+         WHERE p.sk = ?
+    """, [sk])
+    if not politico:
+        raise HTTPException(404, "político não encontrado")
+    politico = politico[0]
+
+    # A cota é indexada pelo id da Câmara, não pelo `sk` do painel.
+    id_camara = politico.get("id_origem")
+    da_camara = politico.get("fonte_origem") == "camara"
+
+    por_ano = _consultar("""
+        SELECT ano, valor, notas FROM vw_cota_por_ano
+         WHERE id_politico = ? ORDER BY ano DESC
+    """, [str(id_camara)]) if id_camara else []
+
+    if ano is None and por_ano:
+        ano = int(por_ano[0]["ano"])
+
+    por_mes = _consultar("""
+        SELECT mes, SUM(valor_liquido) AS valor, COUNT(*) AS notas
+          FROM vw_cota_parlamentar
+         WHERE CAST(id_politico AS VARCHAR) = ? AND ano = ?
+         GROUP BY mes ORDER BY mes
+    """, [str(id_camara), ano]) if id_camara and ano else []
+
+    por_tipo = _consultar("""
+        SELECT tipo_despesa, valor, notas FROM vw_cota_por_tipo
+         WHERE id_politico = ? AND ano = ?
+         ORDER BY valor DESC
+    """, [str(id_camara), ano]) if id_camara and ano else []
+
+    fornecedores = _consultar("""
+        SELECT fornecedor, cnpj_cpf_fornecedor, valor, notas
+          FROM vw_cota_por_fornecedor
+         WHERE id_politico = ? AND ano = ?
+         ORDER BY valor DESC LIMIT 20
+    """, [str(id_camara), ano]) if id_camara and ano else []
+
+    notas = _consultar("""
+        SELECT data_emissao, tipo_despesa, fornecedor, cnpj_cpf_fornecedor,
+               valor_liquido, url_documento
+          FROM vw_cota_parlamentar
+         WHERE CAST(id_politico AS VARCHAR) = ? AND ano = ?
+         ORDER BY valor_liquido DESC LIMIT 50
+    """, [str(id_camara), ano]) if id_camara and ano else []
+
+    presenca = _consultar("""
+        SELECT ano, presencas, sessoes_possiveis, ausencias, taxa_presenca,
+               sessoes_no_ano, primeiro_dia, ultimo_dia, janela_aproximada
+          FROM vw_presenca_deputado
+         WHERE id_politico = ? ORDER BY ano DESC
+    """, [str(id_camara)]) if id_camara else []
+
+    fidelidade = _consultar("""
+        SELECT ano, votos_com_orientacao, votos_divergentes, taxa_divergencia
+          FROM vw_fidelidade_partidaria
+         WHERE id_politico = ? ORDER BY ano DESC
+    """, [str(id_camara)]) if id_camara else []
+
+    # As votações em que ele votou contra a própria bancada, com a descrição
+    # da matéria: sem ela o número é uma acusação sem objeto.
+    divergencias = _consultar("""
+        SELECT d.id_votacao, d.voto, d.orientacao, d.sigla_bancada,
+               v.data_hora, v.descricao, v.sigla_orgao
+          FROM vw_voto_contra_orientacao d
+          LEFT JOIN votacao v
+                 ON v.casa = d.casa AND v.id_votacao = d.id_votacao
+         WHERE d.id_politico = ? AND d.ano = ? AND d.divergiu
+         ORDER BY v.data_hora DESC LIMIT 50
+    """, [str(id_camara), ano]) if id_camara and ano else []
+
+    return {
+        "politico": politico,
+        "ano": ano,
+        "anos": [int(a["ano"]) for a in por_ano],
+        "presenca": presenca,
+        "fidelidade": fidelidade,
+        "divergencias": divergencias,
+        "cota_por_ano": por_ano,
+        "cota_por_mes": por_mes,
+        "cota_por_tipo": por_tipo,
+        "fornecedores": fornecedores,
+        "maiores_notas": notas,
+        # O que o painel NÃO tem, dito com todas as letras e com o caminho
+        # para quem quiser conferir na fonte.
+        "so_na_pagina_oficial": ([
+            {"item": "Verba de gabinete",
+             "porque": "a Câmara publica o valor mensal só em HTML"},
+            {"item": "Pessoal de gabinete",
+             "porque": "nomes e cargos dos secretários, só em HTML"},
+            {"item": "Justificativa das faltas",
+             "porque": "a fonte publica quem esteve, nunca por que faltou — "
+                       "missão oficial e falta seca ficam iguais aqui"},
+        ] if da_camara else []),
+        "url_oficial": (f"https://www.camara.leg.br/deputados/{id_camara}"
+                        if da_camara and id_camara else None),
+    }
 
 
 @app.get("/api/politicos/{sk}/gastos")
@@ -620,15 +987,76 @@ def ficha_do_ente(cod_ibge: str, ano: int | None = None):
         ano = int(anos_disponiveis[0]["ano"]) if anos_disponiveis else None
 
     resumo = _consultar(
-        "SELECT ano, despesa_total, populacao, despesa_per_capita "
+        "SELECT ano, despesa_total, populacao, despesa_per_capita, "
+        "       receita_total, transferencia_recebida, transferencia_uniao, "
+        "       dependencia_transferencia, despesa_saude, despesa_educacao, "
+        "       saude_per_capita, educacao_per_capita, "
+        "       percentual_pessoal, acima_do_limite, divida_liquida "
         "FROM vw_mapa WHERE cod_ibge = ? AND ano = ?",
         [cod_ibge, ano]) if ano else []
 
-    financas = _consultar("""
-        SELECT cod_funcao, funcao, valor
-          FROM vw_financas_funcao
+    credito = _consultar("""
+        SELECT pleitos, valor_pleiteado, valor_deferido, valor_contratado
+          FROM vw_credito_ente WHERE cod_ibge = ? AND ano = ?
+    """, [cod_ibge, ano]) if ano else []
+
+    credito_finalidade = _consultar("""
+        SELECT finalidade, credor, tipo_credor, valor
+          FROM vw_credito_finalidade
          WHERE cod_ibge = ? AND ano = ?
          ORDER BY valor DESC LIMIT 15
+    """, [cod_ibge, ano]) if ano else []
+
+    # Por modalidade, não só o total: o total responde "quanto", a modalidade
+    # responde "de onde" — e é a segunda que explica a dependência do FPM.
+    transferencias_uniao = _consultar("""
+        SELECT cod_transferencia, transferencia, valor
+          FROM vw_transferencia_modalidade
+         WHERE cod_ibge = ? AND ano = ?
+         ORDER BY valor DESC LIMIT 20
+    """, [cod_ibge, ano]) if ano else []
+
+    # NATUREZA, não função. O Anexo I-D do DCA traz pessoal, juros e
+    # investimentos — não saúde e educação. Chamar de "função" na tela seria
+    # prometer um recorte que este anexo não tem.
+    financas = _consultar("""
+        SELECT cod_natureza, natureza, valor
+          FROM vw_despesa_natureza
+         WHERE cod_ibge = ? AND ano = ?
+         ORDER BY valor DESC LIMIT 15
+    """, [cod_ibge, ano]) if ano else []
+
+    conferencia = _consultar("""
+        SELECT somado, declarado FROM vw_conferencia_despesa
+         WHERE cod_ibge = ? AND ano = ?
+    """, [cod_ibge, ano]) if ano else []
+
+    # FUNÇÃO — saúde, educação, segurança. Vem do RREO, não do DCA, e por
+    # isso mora ao lado de `financas` em vez de dentro. São dois recortes do
+    # mesmo dinheiro: quem somar os dois dobra a despesa do ente.
+    funcoes = _consultar("""
+        SELECT cod_funcao, funcao, periodo, valor
+          FROM vw_despesa_por_funcao
+         WHERE cod_ibge = ? AND ano = ?
+         ORDER BY valor DESC LIMIT 20
+    """, [cod_ibge, ano]) if ano else []
+
+    # Mesma conferência do DCA, aplicada às funções. Vale ainda mais aqui,
+    # porque a regra de nível é por NOME de função — e nome é mais frágil que
+    # código. A view existia e nenhuma rota a expunha.
+    conferencia_funcao = _consultar("""
+        SELECT somado, declarado FROM vw_conferencia_funcao
+         WHERE cod_ibge = ? AND ano = ?
+    """, [cod_ibge, ano]) if ano else []
+
+    lrf = _consultar("""
+        SELECT poder, periodo, despesa_pessoal_liquida,
+               receita_corrente_liquida, percentual_pessoal, limite_maximo,
+               limite_prudencial, acima_do_limite, acima_do_prudencial,
+               divida_liquida
+          FROM vw_lrf_pessoal
+         WHERE cod_ibge = ? AND ano = ?
+         ORDER BY poder
     """, [cod_ibge, ano]) if ano else []
 
     indicadores = _consultar("""
@@ -667,6 +1095,14 @@ def ficha_do_ente(cod_ibge: str, ano: int | None = None):
         "ano": ano,
         "resumo": resumo[0] if resumo else None,
         "financas": financas,
+        "funcoes": funcoes,
+        "lrf": lrf,
+        "conferencia_despesa": conferencia[0] if conferencia else None,
+        "conferencia_funcao": (conferencia_funcao[0]
+                               if conferencia_funcao else None),
+        "transferencias_uniao": transferencias_uniao,
+        "credito": credito[0] if credito else None,
+        "credito_finalidade": credito_finalidade,
         "indicadores": indicadores,
         "governantes": governantes,
         "legislativo": legislativo,

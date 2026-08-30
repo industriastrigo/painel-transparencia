@@ -7,6 +7,7 @@ deputado_federal,Deputado Federal,legislativo,federal,,2023-02-01,41650.92,Decre
 senador,Senador,legislativo,federal,,2023-02-01,41650.92,Ato da Mesa do Senado,https://www12.senado.leg.br/transparencia,nao,NÃO CONFIRMADO — verifique o ato vigente
 governador,Governador,executivo,estadual,,,,cada estado fixa em lei própria,,nao,varia por UF — preencher por estado
 prefeito,Prefeito,executivo,municipal,,,,cada município fixa em lei própria,,nao,varia por município
+vice_prefeito,Vice-Prefeito,executivo,municipal,,,,cada município fixa em lei própria,,nao,varia por município — sem subsídio cadastrado, entra como lacuna declarada
 deputado_estadual,Deputado Estadual,legislativo,estadual,,,,limitado a 75% do subsídio de deputado federal,https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm,nao,teto constitucional art. 27
 vereador,Vereador,legislativo,municipal,,,,faixa por população — art. 29 VI da Constituição,https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm,nao,varia por faixa populacional
 desembargador,Desembargador,judiciario,estadual,estadual,,,"90,25% do subsídio de ministro do STF",,nao,derivado do teto

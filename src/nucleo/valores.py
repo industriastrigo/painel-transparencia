@@ -82,3 +82,61 @@ def numero(valor: Any) -> float | None:
 def inteiro(valor: Any, padrao: int | None = None) -> int | None:
     convertido = numero(valor)
     return padrao if convertido is None else int(convertido)
+
+
+def data_br(valor: Any) -> str | None:
+    """`dd/mm/aaaa` ou `dd/mm/aa` → `aaaa-mm-dd`.
+
+    O SADIPEM mistura os dois formatos no MESMO registro: `data_protocolo`
+    vem como "14/08/02" e `data_status` como "14/03/2019". Ano de dois
+    dígitos é ambíguo por construção, e a escolha aqui é explícita:
+
+        00–69 → 2000–2069        70–99 → 1970–1999
+
+    O corte em 70 não é arbitrário: o SADIPEM cobre pedidos de verificação de
+    limites, que existem desde a Lei de Responsabilidade Fiscal (2000). Um
+    "98" no acervo é muito mais provavelmente lixo de digitação do que um
+    pleito de 1998 — mas transformá-lo em 2098 seria pior, porque um ano no
+    futuro passa despercebido em qualquer filtro.
+
+    Devolve None em vez de chutar quando não reconhece o formato: data errada
+    é pior que data ausente, porque entra nos filtros como se fosse verdade.
+    """
+    if _vazio(valor):
+        return None
+    bruto = str(valor).strip()
+
+    # ISO 8601, com ou sem hora: "2017-08-14", "2014-05-31T23:00:03Z".
+    # O SADIPEM devolve NESTE formato, não no dd/mm/aa que a documentação
+    # mostra — e a versão anterior desta função lia "2017-08-14" como
+    # dia 2017, o que reprovava na validação e devolvia None. Resultado: 84 de
+    # 84 pleitos sem data, partição `ano=<NA>` e um WinError 123 no Windows.
+    if len(bruto) >= 10 and bruto[4] == "-" and bruto[7] == "-":
+        cabeca = bruto[:10]
+        try:
+            ano, mes, dia = (int(p) for p in cabeca.split("-"))
+        except ValueError:
+            return None
+        if 1 <= mes <= 12 and 1 <= dia <= 31 and 1900 <= ano <= 2100:
+            return f"{ano:04d}-{mes:02d}-{dia:02d}"
+        return None
+
+    partes = bruto.replace("-", "/").split("/")
+    if len(partes) != 3:
+        return None
+    try:
+        dia, mes, ano = (int(p) for p in partes)
+    except ValueError:
+        return None
+
+    if ano < 100:
+        ano = 2000 + ano if ano < 70 else 1900 + ano
+    if not (1 <= mes <= 12 and 1 <= dia <= 31 and 1900 <= ano <= 2100):
+        return None
+    return f"{ano:04d}-{mes:02d}-{dia:02d}"
+
+
+def ano_de(valor: Any) -> int | None:
+    """O ano de uma data brasileira, para particionar."""
+    data = data_br(valor)
+    return int(data[:4]) if data else None

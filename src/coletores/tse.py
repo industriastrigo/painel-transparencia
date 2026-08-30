@@ -19,7 +19,7 @@ from datetime import date
 
 import pandas as pd
 
-from ..nucleo import armazem, config, controle, rede
+from ..nucleo import armazem, config, controle, rede, tabela
 from ..nucleo.registro import obter as obter_log
 from ..nucleo.valores import opcional, texto
 from . import de_para
@@ -74,19 +74,10 @@ def _baixar_consulta_cand(ano: int) -> pd.DataFrame:
     log.info("baixando %s (arquivo grande, pode levar minutos)", url)
     conteudo = rede.buscar(FONTE, url, formato="binario")
 
-    quadros = []
-    with zipfile.ZipFile(io.BytesIO(conteudo)) as z:
-        alvos = [n for n in z.namelist() if n.lower().endswith(".csv")
-                 and "BRASIL" not in n.upper()]
-        for nome in alvos:
-            with z.open(nome) as f:
-                quadros.append(pd.read_csv(
-                    f, sep=";", encoding="latin-1", dtype=str,
-                    keep_default_na=False, na_values=[""], low_memory=False,
-                ))
-
-    _cache[ano] = pd.concat(quadros, ignore_index=True) if quadros \
-        else pd.DataFrame()
+    # O ZIP traz um CSV por UF e mais um BRASIL.csv que repete todos —
+    # somá-lo dobraria cada candidatura.
+    _cache[ano] = tabela.de_zip(conteudo, origem=f"TSE {ano}",
+                                ignorar=("BRASIL",))
     return _cache[ano]
 
 
