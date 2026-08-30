@@ -883,3 +883,58 @@ def test_ficha_de_vereador_explica_que_a_fonte_nao_existe(cliente):
         "a tela precisa distinguir 'a fonte não publica' de 'ainda não "
         "coletei' — a segunda frase promete um dado que nunca virá")
     assert "acervo" not in motivo.lower()
+
+
+def test_tramitacao_sob_demanda(cliente, monkeypatch):
+    """`coletar_tramitacoes` existia e NUNCA era chamada por ninguém: a ficha
+    de toda proposição dizia "não coletadas", para sempre.
+
+    Não dá para varrer: são 153.695 proposições no acervo, uma requisição
+    cada, mais de 42 h no freio de 1 req/s. Então a ficha busca as etapas de
+    QUEM alguém abriu, no clique."""
+    from src.coletores import camara  # noqa: PLC0415
+    from src.nucleo import armazem  # noqa: PLC0415
+
+    armazem.remover("proposicao")
+    armazem.remover("tramitacao")
+    armazem.mesclar("proposicao", [{
+        "casa": "camara", "id_proposicao": "42", "identificador": "PL 1/2026",
+        "sigla_tipo": "PL", "numero": "1", "ano": 2026,
+        "ementa": "Lei de teste", "data_apresentacao": "2026-01-10",
+        "situacao": "Tramitação Finalizada"}], "teste")
+    cliente.post("/api/recarregar")
+
+    ficha = cliente.get("/api/proposicoes/camara/42").json()
+    assert ficha["tramitacoes"] == []
+    assert ficha["tramitacao_sob_demanda"] is True, (
+        "a tela precisa saber que dá para buscar, em vez de só dizer que não tem")
+
+    chamadas = []
+
+    def falso(id_proposicao):
+        chamadas.append(id_proposicao)
+        armazem.mesclar("tramitacao", [{
+            "casa": "camara", "id_proposicao": "42", "seq_tramitacao": "1",
+            "data_hora": "2026-02-01T10:00", "orgao": "CCJ",
+            "descricao_tramitacao": "Aprovado parecer", "descricao_situacao": None,
+            "despacho": "", "ano": 2026}], "teste")
+        return 1
+
+    monkeypatch.setattr(camara, "coletar_tramitacoes", falso)
+    r = cliente.post("/api/proposicoes/camara/42/tramitacoes").json()
+
+    assert chamadas == ["42"], "uma requisição, para a proposição pedida"
+    assert r["coletadas"] == 1
+    assert r["tramitacoes"][0]["orgao"] == "CCJ"
+
+    # E o acervo passa a ter: reabrir a ficha não faz nova requisição.
+    ficha = cliente.get("/api/proposicoes/camara/42").json()
+    assert len(ficha["tramitacoes"]) == 1
+    assert ficha["tramitacao_sob_demanda"] is False
+
+
+def test_tramitacao_sob_demanda_so_vale_para_a_camara(cliente):
+    """O Senado não publica esse recurso; prometer o botão lá seria oferecer
+    um caminho que termina em erro."""
+    r = cliente.post("/api/proposicoes/senado/9/tramitacoes")
+    assert r.status_code == 400

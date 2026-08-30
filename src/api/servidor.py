@@ -987,7 +987,44 @@ def proposicao_detalhe(casa: str, id_proposicao: str):
     """, [casa, id_proposicao])
 
     return {"proposicao": cabecalho[0], "tramitacoes": etapas,
-            "votacoes": votacoes}
+            "votacoes": votacoes,
+            # A tramitação NÃO vem no arquivo em lote: é uma requisição por
+            # proposição, e o acervo tem 153.695 delas — mais de 42 h no freio
+            # de 1 req/s. Por isso ela é buscada quando alguém abre a ficha, e
+            # não numa varredura que ninguém terminaria.
+            "tramitacao_sob_demanda": bool(not etapas and casa == "camara")}
+
+
+@app.post("/api/proposicoes/{casa}/{id_proposicao}/tramitacoes")
+def coletar_tramitacao_agora(casa: str, id_proposicao: str):
+    """Busca as etapas desta proposição na Câmara, agora, e guarda no acervo.
+
+    Uma requisição para uma proposição. O lote anual da Câmara não traz
+    tramitação, e varrer as 153.695 do acervo levaria mais de 42 h — foi por
+    isso que `coletar_tramitacoes` existia e nunca era chamada por ninguém, e
+    a ficha dizia "não coletadas" para todas, para sempre.
+    """
+    if casa != "camara":
+        raise HTTPException(400, "só a Câmara publica tramitação por proposição")
+
+    from ..coletores import camara  # noqa: PLC0415
+
+    try:
+        quantas = camara.coletar_tramitacoes(str(id_proposicao))
+    except Exception as erro:  # noqa: BLE001
+        log.error("tramitação %s: %s", id_proposicao, erro)
+        raise HTTPException(
+            502, f"a Câmara não respondeu agora: {str(erro)[:160]}") from None
+
+    reiniciar_conexao()
+    etapas = _consultar("""
+        SELECT seq_tramitacao, data_hora, orgao, descricao_tramitacao,
+               descricao_situacao, despacho
+          FROM tramitacao
+         WHERE casa = ? AND id_proposicao = ?
+         ORDER BY CAST(seq_tramitacao AS INTEGER)
+    """, [casa, str(id_proposicao)])
+    return {"coletadas": quantas, "tramitacoes": etapas}
 
 
 @app.get("/api/votacoes/{casa}/{id_votacao}/votos")

@@ -2002,7 +2002,14 @@ async function abrirProposicao(casa, id) {
           t.despacho ? `<br><span class="cadencia">${escapar(t.despacho)}</span>` : ''}
         </td></tr>`).join('')}
       </tbody></table></div>`
-      : '<p class="vazio">Tramitações não coletadas para esta proposição.</p>'}
+      : `<p class="vazio">${detalhe.tramitacao_sob_demanda
+            ? 'A Câmara não publica tramitação no arquivo em lote: é uma '
+              + 'consulta por proposição, e o acervo tem 153 mil.'
+            : 'Tramitações não coletadas para esta proposição.'}</p>
+         ${detalhe.tramitacao_sob_demanda
+            ? `<p style="text-align:center"><button class="principal"
+                 id="buscar-tramitacao">Buscar as etapas agora</button></p>`
+            : ''}`}
 
     <h2>Votações</h2>
     ${votacoes.length ? votacoes.map((v) => `
@@ -2024,6 +2031,27 @@ async function abrirProposicao(casa, id) {
         <div class="lista-votos"></div>
       </div>`).join('')
       : '<p class="vazio">Sem votação nominal registrada para esta proposição.</p>'}`;
+
+  // Uma requisição, no clique de quem quer ver ESTA proposição. Varrer as
+  // 153 mil do acervo levaria mais de 42 h no freio de 1 req/s.
+  alvo.querySelector('#buscar-tramitacao')?.addEventListener('click', async (ev) => {
+    const botao = ev.currentTarget;
+    botao.disabled = true;
+    botao.textContent = 'Buscando na Câmara…';
+    // `buscar` monta query string; aqui o verbo é POST, então vai direto no
+    // fetch, como as outras escritas do painel.
+    const r = await fetch(`${API}/api/proposicoes/${encodeURIComponent(casa)}/`
+                          + `${encodeURIComponent(id)}/tramitacoes`,
+                          { method: 'POST' })
+      .then((resposta) => (resposta.ok ? resposta.json() : null))
+      .catch(() => null);
+    if (!r) {
+      botao.disabled = false;
+      botao.textContent = 'A Câmara não respondeu. Tentar de novo';
+      return;
+    }
+    abrirProposicao(casa, id);          // redesenha com as etapas no acervo
+  });
 
   alvo.querySelectorAll('.ver-votos').forEach((b) => {
     b.addEventListener('click', async () => {
