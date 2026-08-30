@@ -761,6 +761,30 @@ def ficha_do_politico(sk: str, ano: int | None = None):
          WHERE id_politico = ? ORDER BY ano DESC
     """, [str(id_camara)]) if id_camara else []
 
+    # A RESSALVA VIAJA COM O NÚMERO, e não só no HTML do painel.
+    #
+    # O aviso existia na tela e estava bem escrito. Só que esta API é aberta:
+    # quem consome o JSON — outro painel, uma planilha, um jornalista com
+    # `curl` — recebia `ausencias: 13` ao lado do nome de uma pessoa real e
+    # nada mais. A ressalva morava no cliente, e ausência sem justificativa
+    # publicada como número seco é acusação, não informação.
+    #
+    # Aqui ela é parte do dado. Só existe quando há presença para qualificar,
+    # e `teste_presenca.py` falha se um dia deixar de existir.
+    presenca_ressalva = [
+        "A Câmara publica QUEM ESTEVE, nunca quem faltou: a ausência é "
+        "subtração nossa.",
+        "Não há justificativa no dado aberto. Missão oficial, licença médica "
+        "e licença-maternidade aparecem iguais a falta seca.",
+        "Entram só sessões deliberativas encerradas DO PLENÁRIO; audiência "
+        "pública e seminário não são obrigação de comparecimento.",
+        "Reunião de comissão fica de fora: a Câmara publica quem esteve, mas "
+        "não quem é membro de cada comissão, e sem isso não há como saber a "
+        "quem aquela reunião era obrigação.",
+        "O denominador é a janela em que o parlamentar esteve em exercício, "
+        "não o ano inteiro.",
+    ] if presenca else []
+
     fidelidade = _consultar("""
         SELECT ano, votos_com_orientacao, votos_divergentes, taxa_divergencia
           FROM vw_fidelidade_partidaria
@@ -784,6 +808,7 @@ def ficha_do_politico(sk: str, ano: int | None = None):
         "ano": ano,
         "anos": [int(a["ano"]) for a in por_ano],
         "presenca": presenca,
+        "presenca_ressalva": presenca_ressalva,
         "fidelidade": fidelidade,
         "divergencias": divergencias,
         "cota_por_ano": por_ano,

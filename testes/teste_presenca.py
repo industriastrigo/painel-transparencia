@@ -135,3 +135,40 @@ def test_bancada_liberada_nao_conta_como_divergencia(con):
     assert linhas[0]["votos_com_orientacao"] == 1, "V2 estava liberada"
     assert linhas[0]["votos_divergentes"] == 0
     assert linhas[1]["votos_divergentes"] == 1
+
+
+def test_reuniao_de_comissao_nao_entra_no_denominador(con):
+    """O defeito mais caro que este arquivo já cobriu, medido no acervo real
+    de 2026: o campo `deliberativo` marca 566 eventos, dos quais 499 são
+    "Reunião Deliberativa" DE COMISSÃO e só 67 são sessão do Plenário.
+
+    Um deputado participa de duas ou três comissões. Contar as reuniões de
+    TODAS como obrigação dele produzia, em média, **483 faltas por deputado**
+    contra 12 na conta correta — e essas faltas iriam para a tela ao lado do
+    nome e da foto de 573 pessoas reais.
+
+    A Câmara publica quem esteve na reunião, mas não quem é membro da
+    comissão. Sem isso não há a quem atribuir a falta, e o que não se pode
+    atribuir não se publica."""
+    con.execute(
+        "INSERT INTO evento VALUES ('camara','C1','2026-02-11T10:00',NULL,"
+        "'Reunião Deliberativa','Comissão de Finanças','Encerrada',NULL,"
+        "TRUE,2026)")
+    con.execute(
+        "INSERT INTO evento VALUES ('camara','C2','2026-02-12T10:00',NULL,"
+        "'Reunião Deliberativa Extraordinária','Comissão de Educação',"
+        "'Encerrada',NULL,TRUE,2026)")
+
+    sessoes = con.execute(
+        "SELECT id_evento FROM vw_sessao_deliberativa ORDER BY id_evento"
+    ).fetchall()
+    assert [s[0] for s in sessoes] == ["E1", "E2", "E3", "E4"], (
+        "só sessão do Plenário entra: reunião de comissão não é obrigação de "
+        "todo deputado")
+
+    ana = con.execute(
+        "SELECT sessoes_possiveis, ausencias FROM vw_presenca_deputado "
+        "WHERE id_politico = '1'").fetchone()
+    assert ana == (4, 1), (
+        "o denominador continua sendo as 4 sessões do Plenário; as reuniões "
+        "de comissão não podem virar falta de ninguém")

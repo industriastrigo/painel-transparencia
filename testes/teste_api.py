@@ -796,3 +796,61 @@ def test_custo_medido_carrega_a_marca_da_coleta(cliente):
     assert any("PISO" in a and "pessoal_ativo" in a for a in r["avisos"]), (
         "o aviso precisa NOMEAR o recorte incompleto — 'alguns dados podem "
         "estar incompletos' é a frase que ninguém age em cima")
+
+
+def test_numero_de_ausencia_nunca_sai_sem_a_ressalva(cliente):
+    """Ausência é subtração NOSSA sobre uma pessoa nomeada, e a fonte não
+    publica justificativa: missão oficial, licença médica e licença-maternidade
+    ficam iguais a falta seca.
+
+    O aviso existia na tela e não no JSON. Esta API é aberta: quem consome o
+    dado direto recebia `ausencias: 13` ao lado do nome de uma pessoa real e
+    nada mais. A ressalva agora é parte do dado, e este teste é o que impede
+    que ela suma de novo."""
+    from src.nucleo import armazem  # noqa: PLC0415
+
+    armazem.mesclar("dim_politico", [{
+        "fonte_origem": "camara", "id_origem": "777", "nome": "FULANO DE TAL",
+        "nome_eleitoral": "Fulano", "sigla_partido": "XX", "sigla_uf": "SP",
+        "casa": "camara", "cargo": "deputado_federal", "url_foto": None}],
+        "teste")
+    armazem.remover("evento")
+    armazem.remover("presenca_evento")
+    armazem.mesclar("evento", [
+        {"casa": "camara", "id_evento": f"E{i}",
+         "data_hora_inicio": f"2026-0{i}-10T14:00", "data_hora_fim": None,
+         "descricao_tipo": "Sessão Deliberativa", "descricao": "Ordinária",
+         "situacao": "Encerrada", "local": "Plenário", "deliberativo": True,
+         "ano": 2026}
+        for i in (2, 3)], "teste")
+    # Presente numa das duas sessões: a outra vira "ausência", que é a
+    # subtração que este teste existe para qualificar.
+    armazem.mesclar("presenca_evento", [
+        {"casa": "camara", "id_evento": "E2", "id_politico": "777",
+         "data_hora_inicio": "2026-02-10T14:00", "ano": 2026, "mes": 2}],
+        "teste")
+    cliente.post("/api/recarregar")
+
+    achados = cliente.get("/api/politicos", params={"nome": "FULANO DE TAL"}).json()
+    # Pelo NOME exato, e não pelo primeiro da lista: outros testes deste
+    # arquivo semeiam políticos no mesmo armazém, e pegar `[0]` fazia este
+    # teste pular em silêncio quando a ordem mudava. Guarda que pula sozinha
+    # não guarda nada.
+    meu = [p for p in achados if p.get("nome") == "FULANO DE TAL"]
+    assert len(meu) == 1, f"esperava um FULANO DE TAL, achei {len(meu)}"
+    ficha = cliente.get(f"/api/politicos/{meu[0]['sk']}/ficha").json()
+
+    assert ficha.get("presenca"), (
+        "a semente tem duas sessões deliberativas e uma presença: se não há "
+        "linha de presença, o defeito está na view, não no teste")
+
+    ressalva = ficha.get("presenca_ressalva") or []
+    assert ressalva, "número de ausência sem ressalva é acusação, não informação"
+    texto = " ".join(ressalva).lower()
+    assert "justificativa" in texto
+    assert "licença" in texto or "licenca" in texto
+    assert "quem esteve" in texto
+
+    # E o denominador nunca pode faltar: "13 faltas" sozinho não é conferível.
+    for linha in ficha["presenca"]:
+        assert linha.get("sessoes_possiveis") is not None

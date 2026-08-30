@@ -1727,6 +1727,24 @@ async function abrirFichaDoPolitico(sk, ano) {
  * denominador do lado. "12 faltas" sozinho é uma acusação; "12 de 84
  * sessões, entre 3/fev e 18/dez" é um fato que o leitor pode conferir.
  */
+/** A ressalva que acompanha qualquer número de presença.
+ *
+ * Vem da API, para o texto não divergir entre o JSON e a tela. A cópia local
+ * é a rede de segurança de um caso só: acervo coletado por uma versão
+ * anterior, que ainda não mandava o campo. Nunca devolve vazio — número de
+ * ausência sem ressalva é uma acusação, e este projeto não publica acusação.
+ */
+function ressalvaDePresenca(f) {
+  const daApi = Array.isArray(f && f.presenca_ressalva) ? f.presenca_ressalva : [];
+  if (daApi.length) return daApi;
+  return [
+    'A Câmara publica QUEM ESTEVE, nunca quem faltou: a ausência é subtração nossa.',
+    'Não há justificativa no dado aberto. Missão oficial, licença médica e '
+      + 'licença-maternidade aparecem iguais a falta seca.',
+  ];
+}
+
+
 function abaDeAtuacao(f) {
   const presenca = f.presenca || [];
   const fidelidade = f.fidelidade || [];
@@ -1764,15 +1782,9 @@ function abaDeAtuacao(f) {
 
     <div class="aviso">
       <strong>Como esta conta é feita, e o que ela não sabe</strong>
-      <div>· Entram só <strong>sessões deliberativas encerradas</strong>.
-        Audiência pública e seminário são trabalho parlamentar, mas não
-        obrigação de comparecimento.</div>
-      <div>· A Câmara publica <strong>quem esteve</strong>, nunca quem
-        faltou. A ausência aqui é subtração nossa.</div>
-      <div>· <strong>Não há justificativa no dado aberto.</strong> Falta por
-        missão oficial, licença médica ou licença-maternidade aparece igual a
-        falta seca. Antes de concluir alguma coisa sobre uma pessoa, confira
-        na página oficial.</div>
+      ${ressalvaDePresenca(f).map((linha) => `<div>· ${escapar(linha)}</div>`).join('')}
+      <div>Antes de concluir alguma coisa sobre uma pessoa, confira na página
+        oficial da Câmara.</div>
     </div>` : ''}
 
     ${presenca.length > 1 ? `<h2>Presença por ano</h2>

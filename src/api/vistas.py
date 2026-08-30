@@ -256,14 +256,28 @@ DERIVADAS = {
     # de novo, é porque a chave voltou a descrever um grão mais fino que o
     # dado — e a tela mostra isso em vez de somar o dobro em silêncio.
     # ------------------------------------------------------- presença
-    # Só sessões DELIBERATIVAS entram no denominador. Audiência pública e
-    # seminário são trabalho, não obrigação de comparecimento; contá-los
-    # faria de quem prioriza o Plenário um faltoso.
+    # Só sessões DELIBERATIVAS DO PLENÁRIO entram no denominador. Audiência
+    # pública e seminário são trabalho, não obrigação de comparecimento;
+    # contá-los faria de quem prioriza o Plenário um faltoso.
+    #
+    # E o `deliberativo` sozinho NÃO basta, o que só apareceu quando medi o
+    # acervo: em 2026 ele marca 566 eventos, dos quais 499 são "Reunião
+    # Deliberativa" DE COMISSÃO e apenas 67 são sessão do Plenário. Um
+    # deputado participa de duas ou três comissões, não de todas — contar as
+    # 499 como obrigação dele fabricava, em média, **483 faltas por
+    # deputado**, contra 12 na conta correta. Eram 573 pessoas nomeadas a um
+    # clique de receber uma acusação inventada pelo denominador.
+    #
+    # A Câmara publica a presença em reunião de comissão, mas não a lista de
+    # membros de cada comissão: sem saber a quem aquela reunião era
+    # obrigação, não há como transformá-la em falta de ninguém. Fica de fora,
+    # e a ressalva na tela diz por quê.
     "vw_sessao_deliberativa": """
         SELECT casa, id_evento, ano,
                CAST(SUBSTR(data_hora_inicio, 1, 10) AS DATE) AS dia
           FROM evento
          WHERE deliberativo
+           AND descricao_tipo ILIKE 'sess_o deliberativa%'
            AND lower(situacao) LIKE 'encerrada%'
     """,
     # A fonte publica QUEM ESTEVE e nunca quem faltou. A falta é uma
