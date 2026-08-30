@@ -1,0 +1,16 @@
+# Registro-ouro: um valor por linha, conferido À MÃO contra o documento
+# publicado pela própria fonte. É o único teste que prova que o número está
+# CERTO, e não apenas presente.
+#
+# Como preencher, uma linha de cada vez (comece por uma só, do SICONFI):
+#   1. abra o documento no site da fonte (ex.: DCA de um município, ano X);
+#   2. anote o valor exatamente como ele aparece publicado;
+#   3. escreva o recorte que o isola no acervo, no campo `filtro`;
+#   4. guarde o link em `documento`, porque em seis meses ninguém lembra.
+#
+# tolerancia_pct existe para arredondamento da fonte, não para acomodar
+# divergência: 0,01 é o normal; 5 já é outra coisa sendo medida.
+#
+# Deixar vazio é uma escolha honesta: sem nenhum registro aqui, o portão avisa
+# em toda carga que nada prova que os valores estão corretos.
+tabela,filtro,expressao,valor_esperado,tolerancia_pct,documento
