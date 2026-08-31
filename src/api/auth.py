@@ -61,12 +61,18 @@ async def login(request: Request) -> Any:
         )
 
     # Determina a URL de retorno (callback)
-    if BASE_URL:
-        redirect_uri = f"{BASE_URL}/auth/callback"
+    base = os.getenv("BASE_URL", "").strip().rstrip("/")
+    if base:
+        redirect_uri = f"{base}/auth/callback"
     else:
         redirect_uri = str(request.url_for("auth_callback"))
+        # Se estiver atrás de proxy com terminação TLS (Cloud Run / Load Balancer)
+        proto = request.headers.get("x-forwarded-proto", "")
+        if proto == "https" and redirect_uri.startswith("http://"):
+            redirect_uri = "https://" + redirect_uri[7:]
 
     return await oauth.google.authorize_redirect(request, redirect_uri)
+
 
 
 @router.get("/callback", summary="Retorno do Google OAuth")

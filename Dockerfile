@@ -30,4 +30,5 @@ COPY dados/ ./dados/
 EXPOSE 8080
 
 # Inicia o servidor ASGI Uvicorn
-CMD exec uvicorn src.api.servidor:app --host 0.0.0.0 --port ${PORT}
+CMD exec uvicorn src.api.servidor:app --host 0.0.0.0 --port ${PORT} --proxy-headers --forwarded-allow-ips="*"
+
