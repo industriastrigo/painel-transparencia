@@ -65,7 +65,7 @@ class _Resposta:
 
 def _fingir(monkeypatch, corpo):
     class _Sessao:
-        def get(self, url, params=None, timeout=None):
+        def get(self, url, params=None, timeout=None, headers=None, **kwargs):
             return _Resposta(corpo)
 
     monkeypatch.setattr(rede, "sessao", lambda fonte: _Sessao())

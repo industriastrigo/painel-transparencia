@@ -335,14 +335,13 @@ orientacao_bancada = _registrar(Tabela(
 despesa_parlamentar = _registrar(Tabela(
     nome="despesa_parlamentar",
     camada="fato",
-    campos_pk=("casa", "id_documento", "num_parcela", "num_ressarcimento"),
+    campos_pk=("casa", "id_politico", "id_documento", "num_parcela", "num_ressarcimento", "ano", "mes"),
     particoes=("ano", "mes"),
     data_referencia="data_emissao",
     descricao="Cota parlamentar, nota a nota. Único dado guardado no grão "
               "bruto, por decisão de escopo. `ideDocumento` sozinho NÃO é "
               "único — reembolso parcelado repete o documento em várias "
-              "linhas —, e a chave curta descartava ~1.300 notas por ano "
-              "como se fossem duplicatas.",
+              "linhas, e despesas internas (como telefonia) têm id_documento=0.",
     cadencia="mensal",
 ))
 
@@ -367,6 +366,46 @@ emenda_parlamentar = _registrar(Tabela(
     data_referencia="data_referencia",
     descricao="Emendas individuais, de bancada, de comissão e transferências "
               "especiais (Pix), do Portal da Transparência.",
+    cadencia="mensal",
+))
+
+cartao_corporativo = _registrar(Tabela(
+    nome="cartao_corporativo",
+    camada="fato",
+    campos_pk=("ano", "mes", "codigo_orgao", "cpf_portador", "data_transacao", "cnpj_cpf_favorecido", "valor"),
+    particoes=("ano",),
+    data_referencia="data_referencia",
+    descricao="Gastos do Cartão de Pagamento do Governo Federal (CPGF) / Cartões Corporativos do Executivo.",
+    cadencia="mensal",
+))
+
+viagem_servico = _registrar(Tabela(
+    nome="viagem_servico",
+    camada="fato",
+    campos_pk=("ano", "id_viagem", "codigo_orgao", "cpf_viajante", "data_inicio"),
+    particoes=("ano",),
+    data_referencia="data_referencia",
+    descricao="Diárias, passagens e viagens a serviço do Governo Federal (PCDP / CGU).",
+    cadencia="mensal",
+))
+
+bem_declarado = _registrar(Tabela(
+    nome="bem_declarado",
+    camada="fato",
+    campos_pk=("id_politico", "ano_eleicao", "sequencial_candidato", "tipo_bem", "descricao_bem", "valor_bem"),
+    particoes=("ano_eleicao",),
+    data_referencia="data_referencia",
+    descricao="Declaração de bens e evolução patrimonial de políticos e candidatos (TSE).",
+    cadencia="eleitoral",
+))
+
+contrato_governo = _registrar(Tabela(
+    nome="contrato_governo",
+    camada="fato",
+    campos_pk=("ano", "id_contrato", "codigo_orgao", "cnpj_fornecedor"),
+    particoes=("ano",),
+    data_referencia="data_referencia",
+    descricao="Contratos públicos, licitações, dispensas e fornecedores (PNCP / Compras.gov.br / CGU).",
     cadencia="mensal",
 ))
 
@@ -521,7 +560,7 @@ _COLUNAS: dict[str, tuple[tuple[str, str], ...]] = {
     ),
     "proposicao": (
         ("casa", "VARCHAR"), ("id_proposicao", "VARCHAR"), ("sigla_tipo", "VARCHAR"),
-        ("identificador", "VARCHAR"), ("ementa", "VARCHAR"),
+        ("numero", "VARCHAR"), ("identificador", "VARCHAR"), ("ementa", "VARCHAR"),
         ("data_apresentacao", "VARCHAR"), ("situacao", "VARCHAR"),
         ("tramitacao_atual", "VARCHAR"), ("orgao_atual", "VARCHAR"),
         ("regime", "VARCHAR"), ("data_ultimo_status", "VARCHAR"),
@@ -598,6 +637,39 @@ _COLUNAS: dict[str, tuple[tuple[str, str], ...]] = {
         ("ano", "INTEGER"), ("codigo_emenda", "VARCHAR"), ("tipo_emenda", "VARCHAR"),
         ("autor", "VARCHAR"), ("funcao", "VARCHAR"), ("valor_empenhado", "DOUBLE"),
         ("valor_pago", "DOUBLE"), ("localidade", "VARCHAR"),
+    ),
+    "cartao_corporativo": (
+        ("ano", "INTEGER"), ("mes", "INTEGER"),
+        ("codigo_orgao", "VARCHAR"), ("nome_orgao", "VARCHAR"),
+        ("nome_portador", "VARCHAR"), ("cpf_portador", "VARCHAR"),
+        ("nome_favorecido", "VARCHAR"), ("cnpj_cpf_favorecido", "VARCHAR"),
+        ("tipo_cartao", "VARCHAR"), ("data_transacao", "VARCHAR"),
+        ("valor", "DOUBLE"), ("data_referencia", "VARCHAR"),
+    ),
+    "viagem_servico": (
+        ("ano", "INTEGER"), ("mes", "INTEGER"), ("id_viagem", "VARCHAR"),
+        ("codigo_orgao", "VARCHAR"), ("nome_orgao", "VARCHAR"),
+        ("nome_viajante", "VARCHAR"), ("cpf_viajante", "VARCHAR"), ("cargo_viajante", "VARCHAR"),
+        ("origem", "VARCHAR"), ("destino", "VARCHAR"), ("motivo", "VARCHAR"),
+        ("data_inicio", "VARCHAR"), ("data_fim", "VARCHAR"),
+        ("valor_diarias", "DOUBLE"), ("valor_passagens", "DOUBLE"),
+        ("valor_outros", "DOUBLE"), ("valor_total", "DOUBLE"),
+        ("data_referencia", "VARCHAR"),
+    ),
+    "bem_declarado": (
+        ("id_politico", "VARCHAR"), ("ano_eleicao", "INTEGER"),
+        ("sequencial_candidato", "VARCHAR"), ("cargo", "VARCHAR"),
+        ("tipo_bem", "VARCHAR"), ("descricao_bem", "VARCHAR"),
+        ("valor_bem", "DOUBLE"), ("data_referencia", "VARCHAR"),
+    ),
+    "contrato_governo": (
+        ("ano", "INTEGER"), ("id_contrato", "VARCHAR"), ("numero_contrato", "VARCHAR"),
+        ("codigo_orgao", "VARCHAR"), ("nome_orgao", "VARCHAR"),
+        ("cnpj_fornecedor", "VARCHAR"), ("nome_fornecedor", "VARCHAR"),
+        ("modalidade_licitacao", "VARCHAR"), ("objeto", "VARCHAR"),
+        ("valor_inicial", "DOUBLE"), ("valor_atualizado", "DOUBLE"),
+        ("data_inicio_vigencia", "VARCHAR"), ("data_fim_vigencia", "VARCHAR"),
+        ("data_referencia", "VARCHAR"),
     ),
 }
 

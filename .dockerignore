@@ -1,0 +1,36 @@
+# Git e Ambiente Virtual
+.git
+.github
+.gitignore
+.gitattributes
+.venv
+venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Dados brutos volumosos (apenas dados tratados vão para o container)
+dados/bruto/
+dados/temp/
+.tmp/
+logs/
+_to_delete/
+
+# Arquivos de teste e cache
+.pytest_cache/
+testes/
+pytest.ini
+
+# Scripts de desenvolvimento local Windows
+*.bat
+*.vbs
+ABRIR PAINEL.bat
+CONFIGURAR GITHUB.bat
+INICIAR EM SEGUNDO PLANO.vbs
+
+# Segredos locais
+.env
+.env.local
+.env.*.local

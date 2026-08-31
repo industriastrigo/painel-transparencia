@@ -95,7 +95,7 @@ def test_grava_preservando_o_resto_do_arquivo(tmp_path):
         "PAINEL_COMPRESSAO=zstd\n", encoding="utf-8")
 
     segredos.gravar_no_env("CHAVE_PORTAL_TRANSPARENCIA", CHAVE, destino)
-    linhas = destino.read_text().splitlines()
+    linhas = destino.read_text(encoding="utf-8").splitlines()
 
     assert linhas[0] == "# comentário meu", "comentário do usuário sobrevive"
     assert linhas[1] == "PAINEL_API_PORTA=8123"
@@ -107,8 +107,8 @@ def test_acrescenta_quando_a_variavel_nao_existia(tmp_path):
     destino = tmp_path / ".env"
     destino.write_text("PAINEL_API_PORTA=8123\n", encoding="utf-8")
     segredos.gravar_no_env("CHAVE_PORTAL_TRANSPARENCIA", CHAVE, destino)
-    assert "PAINEL_API_PORTA=8123" in destino.read_text()
-    assert f"CHAVE_PORTAL_TRANSPARENCIA={CHAVE}" in destino.read_text()
+    assert "PAINEL_API_PORTA=8123" in destino.read_text(encoding="utf-8")
+    assert f"CHAVE_PORTAL_TRANSPARENCIA={CHAVE}" in destino.read_text(encoding="utf-8")
 
 
 def test_gravacao_nao_deixa_arquivo_temporario(tmp_path):

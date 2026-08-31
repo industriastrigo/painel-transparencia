@@ -16,19 +16,25 @@
        e `aria-selected` é inválido num botão comum, então o leitor de tela
        ignorava e nunca anunciava qual aba estava aberta. Meio caminho é pior
        que nenhum dos dois. O `tabindex` é gerido em painel.js (roving). -->
-  <nav role="tablist" aria-label="Seções do painel">
+  <nav class="abas" role="tablist" aria-label="Seções do painel">
     <button role="tab" id="aba-btn-mapa" data-aba="mapa"
             aria-controls="aba-mapa" aria-selected="true" tabindex="0">Mapa</button>
     <button role="tab" id="aba-btn-politicos" data-aba="politicos"
             aria-controls="aba-politicos" aria-selected="false" tabindex="-1">Políticos</button>
+    <button role="tab" id="aba-btn-executivo" data-aba="executivo"
+            aria-controls="aba-executivo" aria-selected="false" tabindex="-1">Poder Executivo</button>
     <button role="tab" id="aba-btn-proposicoes" data-aba="proposicoes"
             aria-controls="aba-proposicoes" aria-selected="false" tabindex="-1">Projetos de lei</button>
-    <button role="tab" id="aba-btn-fontes" data-aba="fontes"
-            aria-controls="aba-fontes" aria-selected="false" tabindex="-1">Fontes</button>
     <button role="tab" id="aba-btn-custo" data-aba="custo"
             aria-controls="aba-custo" aria-selected="false" tabindex="-1">Custo do Estado</button>
+    <button role="tab" id="aba-btn-glossario" data-aba="glossario"
+            aria-controls="aba-glossario" aria-selected="false" tabindex="-1">Glossário & Metodologia</button>
+    <button role="tab" id="aba-btn-fontes" data-aba="fontes"
+            aria-controls="aba-fontes" aria-selected="false" tabindex="-1">Fontes</button>
     <button role="tab" id="aba-btn-atualizar" data-aba="atualizar"
             aria-controls="aba-atualizar" aria-selected="false" tabindex="-1">Atualizar</button>
+    <button role="tab" id="aba-btn-explorador" data-aba="explorador"
+            aria-controls="aba-explorador" aria-selected="false" tabindex="-1">Banco de Dados (GCP)</button>
   </nav>
 </header>
 
@@ -50,9 +56,9 @@
              que ditava o tamanho do seletor, e ele estourava 380px. -->
         <label for="metrica">Métrica</label>
         <select id="metrica">
-          <optgroup label="Quanto gasta">
-            <option value="despesa_per_capita">Despesa por habitante</option>
-            <option value="despesa_total">Despesa total</option>
+          <optgroup label="Quanto gasta (Empenhos)">
+            <option value="despesa_per_capita">Despesas Empenhadas por habitante</option>
+            <option value="despesa_total">Despesas Empenhadas (total)</option>
           </optgroup>
           <optgroup label="Quanto arrecada">
             <option value="receita_total">Arrecadação</option>
@@ -63,10 +69,10 @@
             <option value="transferencia_uniao">Transferências (pago pelo Tesouro)</option>
             <option value="dependencia_transferencia">Dependência de transferências</option>
           </optgroup>
-          <optgroup label="Em que gasta">
-            <option value="despesa_saude">Saúde — total</option>
+          <optgroup label="Em que gasta (Por função)">
+            <option value="despesa_saude">Saúde — total empenhado</option>
             <option value="saude_per_capita">Saúde por habitante</option>
-            <option value="despesa_educacao">Educação — total</option>
+            <option value="despesa_educacao">Educação — total empenhado</option>
             <option value="educacao_per_capita">Educação por habitante</option>
           </optgroup>
           <optgroup label="Saúde fiscal">
@@ -156,6 +162,60 @@
     </div>
 
     <div class="barra">
+      <div>
+        <label for="filtro-ano-politico">Ano de Competência / Mandato</label>
+        <select id="filtro-ano-politico">
+          <option value="">Todos os anos</option>
+          <optgroup label="Mandato 2023–2027 (Lula)">
+            <option value="2026">Exercício 2026</option>
+            <option value="2025">Exercício 2025</option>
+            <option value="2024">Exercício 2024</option>
+            <option value="2023">Exercício 2023</option>
+          </optgroup>
+          <optgroup label="Mandato 2019–2023 (Bolsonaro)">
+            <option value="2022">Exercício 2022</option>
+            <option value="2021">Exercício 2021</option>
+            <option value="2020">Exercício 2020</option>
+            <option value="2019">Exercício 2019</option>
+          </optgroup>
+          <optgroup label="Mandato 2015–2019 (Dilma / Temer)">
+            <option value="2018">Exercício 2018</option>
+            <option value="2017">Exercício 2017</option>
+            <option value="2016">Exercício 2016</option>
+            <option value="2015">Exercício 2015</option>
+          </optgroup>
+          <optgroup label="Mandato 2011–2015 (Dilma)">
+            <option value="2014">Exercício 2014</option>
+            <option value="2013">Exercício 2013</option>
+            <option value="2012">Exercício 2012</option>
+            <option value="2011">Exercício 2011</option>
+          </optgroup>
+          <optgroup label="Mandato 2007–2011 (Lula)">
+            <option value="2010">Exercício 2010</option>
+            <option value="2009">Exercício 2009</option>
+            <option value="2008">Exercício 2008</option>
+            <option value="2007">Exercício 2007</option>
+          </optgroup>
+          <optgroup label="Mandato 2003–2007 (Lula)">
+            <option value="2006">Exercício 2006</option>
+            <option value="2005">Exercício 2005</option>
+            <option value="2004">Exercício 2004</option>
+            <option value="2003">Exercício 2003</option>
+          </optgroup>
+          <optgroup label="Mandato 1999–2003 (FHC)">
+            <option value="2002">Exercício 2002</option>
+            <option value="2001">Exercício 2001</option>
+            <option value="2000">Exercício 2000</option>
+            <option value="1999">Exercício 1999</option>
+          </optgroup>
+          <optgroup label="Mandato 1995–1999 (FHC)">
+            <option value="1998">Exercício 1998</option>
+            <option value="1997">Exercício 1997</option>
+            <option value="1996">Exercício 1996</option>
+            <option value="1995">Exercício 1995</option>
+          </optgroup>
+        </select>
+      </div>
       <div><label for="filtro-uf">UF</label>
         <input id="filtro-uf" size="4" placeholder="SP" maxlength="2"></div>
       <div><label for="filtro-cargo">Cargo</label>
@@ -188,8 +248,8 @@
         <div class="rolagem">
           <table id="tabela-politicos">
             <caption class="rodape-mapa" style="text-align:left;caption-side:bottom">
-              Cadastro do TSE, conciliado com o código IBGE.</caption>
-            <thead><tr><th>Nome</th><th>Cargo</th><th>Partido</th><th>UF</th><th>Fonte</th></tr></thead>
+              Cadastro do TSE, conciliado com o código IBGE e mandatos oficiais.</caption>
+            <thead><tr><th>Nome</th><th>Cargo</th><th>Mandato / Vigência</th><th>Partido</th><th>UF</th><th>Fonte</th></tr></thead>
             <tbody aria-live="polite" aria-busy="false"></tbody>
           </table>
         </div>
@@ -197,6 +257,201 @@
       <div class="cartao">
         <h2>Quantos existem</h2>
         <div id="resumo-politicos"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------------------------------------------------- poder executivo -->
+  <section id="aba-executivo" role="tabpanel" tabindex="-1"
+           aria-labelledby="aba-btn-executivo" hidden>
+    <div class="aviso">
+      <strong>Mandatos do Poder Executivo & Contas de Gestão</strong>
+      Acompanhe os dados completos de quem governa (Presidente, Governador ou Prefeito):
+      arrecadação total, despesas executadas, se o mandato fechou no <strong>Superávit</strong>
+      ou <strong>Déficit</strong> orçamentário, em quais áreas o dinheiro foi investido e
+      o respeito aos limites da Lei de Responsabilidade Fiscal (LRF).
+    </div>
+
+    <div class="barra">
+      <div>
+        <label for="executivo-esfera">Esfera / Cargo</label>
+        <select id="executivo-esfera">
+          <option value="estadual" selected>Governador (Estadual)</option>
+          <option value="federal">Presidente da República (Federal)</option>
+          <option value="municipal">Prefeito (Municipal)</option>
+        </select>
+      </div>
+      <div id="bloco-executivo-uf">
+        <label for="executivo-uf">Estado / UF</label>
+        <select id="executivo-uf">
+          <option value="SP" selected>São Paulo (SP)</option>
+          <option value="AC">Acre (AC)</option>
+          <option value="AL">Alagoas (AL)</option>
+          <option value="AP">Amapá (AP)</option>
+          <option value="AM">Amazonas (AM)</option>
+          <option value="BA">Bahia (BA)</option>
+          <option value="CE">Ceará (CE)</option>
+          <option value="DF">Distrito Federal (DF)</option>
+          <option value="ES">Espírito Santo (ES)</option>
+          <option value="GO">Goiás (GO)</option>
+          <option value="MA">Maranhão (MA)</option>
+          <option value="MT">Mato Grosso (MT)</option>
+          <option value="MS">Mato Grosso do Sul (MS)</option>
+          <option value="MG">Minas Gerais (MG)</option>
+          <option value="PA">Pará (PA)</option>
+          <option value="PB">Paraíba (PB)</option>
+          <option value="PR">Paraná (PR)</option>
+          <option value="PE">Pernambuco (PE)</option>
+          <option value="PI">Piauí (PI)</option>
+          <option value="RJ">Rio de Janeiro (RJ)</option>
+          <option value="RN">Rio Grande do Norte (RN)</option>
+          <option value="RS">Rio Grande do Sul (RS)</option>
+          <option value="RO">Rondônia (RO)</option>
+          <option value="RR">Roraima (RR)</option>
+          <option value="SC">Santa Catarina (SC)</option>
+          <option value="SE">Sergipe (SE)</option>
+          <option value="TO">Tocantins (TO)</option>
+        </select>
+      </div>
+      <div id="bloco-executivo-municipio" hidden>
+        <label for="executivo-municipio">Município</label>
+        <select id="executivo-municipio" style="min-width:200px"></select>
+      </div>
+      <div>
+        <label for="executivo-mandato">Mandato / Período</label>
+        <select id="executivo-mandato" style="min-width:220px"></select>
+      </div>
+      <div>
+        <label for="executivo-ano">Ano de Competência</label>
+        <select id="executivo-ano"></select>
+      </div>
+      <div class="acao">
+        <button id="btn-atualizar-executivo" class="principal">Consultar</button>
+      </div>
+    </div>
+
+    <!-- Destaque do Chefe do Executivo -->
+    <div id="executivo-governante" style="margin-bottom:18px"></div>
+
+    <div class="painel" style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+      <!-- Card Fiscal: Superávit ou Déficit -->
+      <div class="cartao" id="executivo-card-fiscal">
+        <h2>Resultado Fiscal do Exercício</h2>
+        <div id="executivo-resultado-saldo"></div>
+      </div>
+
+      <!-- Card LRF e Gestão Fiscal -->
+      <div class="cartao" id="executivo-card-lrf">
+        <h2>Responsabilidade Fiscal & Pessoal (LRF)</h2>
+        <div id="executivo-conteudo-lrf"></div>
+      </div>
+    </div>
+
+    <div class="painel" style="margin-top:16px; display:grid; grid-template-columns: 1.2fr 1fr; gap:16px;">
+      <!-- Com o que gastaram: Funções de Governo -->
+      <div class="cartao">
+        <h2>Com o que gastaram (Áreas de Investimento)</h2>
+        <p class="rodape-mapa" style="margin-top:-6px;margin-bottom:8px">
+          Despesas públicas por função de governo (Saúde, Educação, Segurança, Transporte, etc.).
+        </p>
+        <div id="executivo-gastos-funcao" class="rolagem"></div>
+      </div>
+
+      <!-- Série Histórica Anual do Mandato -->
+      <div class="cartao">
+        <h2>Evolução Anual do Mandato</h2>
+        <p class="rodape-mapa" style="margin-top:-6px;margin-bottom:8px">
+          Histórico anual de receitas, despesas e saldo orçamentário.
+        </p>
+        <div id="executivo-serie-anual" class="rolagem"></div>
+      </div>
+    </div>
+
+    <!-- Bloco de Cartões Corporativos do Executivo (CPGF) -->
+    <div class="cartao" style="margin-top:16px" id="executivo-secao-cartoes">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px">
+        <h2>💳 Cartões Corporativos do Executivo Federal (CPGF)</h2>
+        <span class="badge-metodo">Portal da Transparência / CGU</span>
+      </div>
+      <p class="rodape-mapa" style="margin-top:-4px; margin-bottom:12px">
+        Gastos efetuados com o Cartão de Pagamento do Governo Federal pela Presidência da República, Ministérios e órgãos federais.
+      </p>
+      
+      <div class="tiras" id="executivo-topo-cartoes"></div>
+
+      <div class="painel" style="margin-top:14px; display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+        <div class="cartao" style="background:var(--superficie-2)">
+          <h3>Maiores Favorecidos / Estabelecimentos</h3>
+          <p class="rodape-mapa">Onde os recursos do cartão corporativo foram mais utilizados.</p>
+          <div id="executivo-cartoes-favorecidos" class="rolagem"></div>
+        </div>
+
+        <div class="cartao" style="background:var(--superficie-2)">
+          <h3>Maiores Gastos por Ministério / Órgão</h3>
+          <p class="rodape-mapa">Órgãos com maior volume de gastos com cartão de pagamento.</p>
+          <div id="executivo-cartoes-orgaos" class="rolagem"></div>
+        </div>
+      </div>
+
+      <div class="cartao" style="background:var(--superficie-2); margin-top:14px">
+        <h3>Maiores Transações Individuais com Cartão Corporativo</h3>
+        <div id="executivo-cartoes-transacoes" class="rolagem"></div>
+      </div>
+    </div>
+
+    <!-- Bloco de Diárias e Passagens de Viagens a Serviço (PCDP) -->
+    <div class="cartao" style="margin-top:16px" id="executivo-secao-viagens">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px">
+        <h2>✈️ Viagens a Serviço, Diárias & Passagens Aéreas (PCDP)</h2>
+        <span class="badge-metodo">Portal da Transparência / CGU</span>
+      </div>
+      <p class="rodape-mapa" style="margin-top:-4px; margin-bottom:12px">
+        Custos de passagens aéreas, diárias e hospedagem de comitivas e viagens oficiais de ministros e servidores.
+      </p>
+      <div class="tiras" id="executivo-topo-viagens"></div>
+
+      <div class="painel" style="margin-top:14px; display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+        <div class="cartao" style="background:var(--superficie-2)">
+          <h3>Destinos Mais Visitados</h3>
+          <div id="executivo-viagens-destinos" class="rolagem"></div>
+        </div>
+        <div class="cartao" style="background:var(--superficie-2)">
+          <h3>Gastos por Ministério / Órgão</h3>
+          <div id="executivo-viagens-orgaos" class="rolagem"></div>
+        </div>
+      </div>
+
+      <div class="cartao" style="background:var(--superficie-2); margin-top:14px">
+        <h3>Maiores Viagens Oficiais Registradas</h3>
+        <div id="executivo-viagens-maiores" class="rolagem"></div>
+      </div>
+    </div>
+
+    <!-- Bloco de Contratos Públicos e Fornecedores (PNCP) -->
+    <div class="cartao" style="margin-top:16px" id="executivo-secao-contratos">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px">
+        <h2>📜 Contratos Públicos, Licitações & Fornecedores (PNCP)</h2>
+        <span class="badge-metodo">Compras Governamentais</span>
+      </div>
+      <p class="rodape-mapa" style="margin-top:-4px; margin-bottom:12px">
+        Contratos administrativos firmados, com destaque para dispensas, inexigibilidades e maiores fornecedores.
+      </p>
+      <div class="tiras" id="executivo-topo-contratos"></div>
+
+      <div class="painel" style="margin-top:14px; display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+        <div class="cartao" style="background:var(--superficie-2)">
+          <h3>Maiores Fornecedores Contratados</h3>
+          <div id="executivo-contratos-fornecedores" class="rolagem"></div>
+        </div>
+        <div class="cartao" style="background:var(--superficie-2)">
+          <h3>Contratos por Modalidade de Licitação</h3>
+          <div id="executivo-contratos-modalidades" class="rolagem"></div>
+        </div>
+      </div>
+
+      <div class="cartao" style="background:var(--superficie-2); margin-top:14px">
+        <h3>Maiores Contratos Firmados</h3>
+        <div id="executivo-contratos-maiores" class="rolagem"></div>
       </div>
     </div>
   </section>
@@ -265,29 +520,47 @@
   <!-- ------------------------------------------------------------ custo -->
   <section id="aba-custo" role="tabpanel" tabindex="-1"
            aria-labelledby="aba-btn-custo" hidden>
+    
+    <div class="barra">
+      <div>
+        <label for="custo-ano">Ano de Competência</label>
+        <select id="custo-ano"></select>
+      </div>
+      <div>
+        <label for="custo-filtro-poder">Filtrar por Poder</label>
+        <select id="custo-filtro-poder">
+          <option value="">Todos os Poderes</option>
+          <option value="Executivo">Executivo</option>
+          <option value="Legislativo">Legislativo</option>
+          <option value="Judiciário">Judiciário</option>
+          <option value="Ministério Público">Ministério Público</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="aviso" style="margin-top:10px; margin-bottom:12px">
+      <strong>Guia Rápido para o Cidadão</strong>
+      Aqui você compara três realidades financeiras no ano selecionado:
+      <strong>1. Arrecadação:</strong> Total de impostos recolhidos de estados e municípios.
+      <strong>2. Despesas Empenhadas:</strong> O total oficial que governos contrataram em obras, saúde, educação e serviços.
+      <strong>3. Remuneração dos Agentes Públicos:</strong> Salários-base oficiais (subsídios fixados por lei) das autoridades dos Três Poderes.
+    </div>
+
     <div class="tiras" id="topo-custo"></div>
-    <p class="rodape-mapa">Três medidas diferentes do mesmo Estado, lado a lado
-      de propósito: <strong>o que ele arrecada</strong>, <strong>o que ele
-      empenha</strong> e <strong>o que os subsídios custariam</strong>. A
-      terceira é conta nossa; as outras duas são medidas da fonte. As duas
-      primeiras somam <strong>estados e municípios</strong> — o orçamento da
-      União não entra, porque não está no SICONFI.</p>
     <div id="avisos-custo"></div>
 
     <div class="painel">
       <div class="cartao">
-        <h2>Subsídio por cargo</h2>
+        <h2>Salários e Subsídios Oficiais por Cargo</h2>
         <p class="rodape-mapa">
-          Custo anual estimado = ocupantes × subsídio mensal × 13,33
-          (12 meses + 13º + terço de férias). É uma <strong>conta</strong>,
-          não um valor medido: não inclui gabinete, auxílios, diárias nem
-          encargos.
+          Remuneração-base mensal fixada em lei ou norma jurídica. 
+          O <strong>custo anual estimado</strong> considera 13,33 remunerações (12 meses + 13º salário + 1/3 de férias) multiplicadas pela quantidade de ocupantes cadastrados. Não inclui verba de gabinete nem diárias.
         </p>
         <div class="rolagem">
           <table id="tabela-custo">
             <thead><tr>
-              <th>Cargo</th><th>Ocupantes</th><th>Subsídio mensal</th>
-              <th>Custo anual estimado</th><th>Norma</th>
+              <th>Cargo & Poder</th><th>Ocupantes</th><th>Salário Mensal</th>
+              <th>Custo Anual da Categoria</th><th>Norma / Lei</th>
             </tr></thead>
             <tbody></tbody>
           </table>
@@ -295,10 +568,259 @@
       </div>
 
       <div class="cartao">
-        <h2>Quanto sai dos cofres</h2>
+        <h2>Execução Real dos Gastos (Por Poder e Função)</h2>
+        <p class="rodape-mapa">
+          Valores executados e declarados no SICONFI (Tesouro Nacional) pelas administrações públicas.
+        </p>
         <div id="lateral-custo"></div>
       </div>
     </div>
+  </section>
+
+  <!-- --------------------------------------------------------- glossário -->
+  <section id="aba-glossario" role="tabpanel" tabindex="-1"
+           aria-labelledby="aba-btn-glossario" hidden>
+    
+    <div class="indice-glossario">
+      <a href="#glos-abas">📑 1. Abas do Painel</a>
+      <a href="#glos-filtros">🎛️ 2. Guia de Filtros</a>
+      <a href="#glos-formulas">📐 3. Metodologia & Fórmulas</a>
+      <a href="#glos-adrs">🏛️ 4. Decisões Arquiteturais (ADRs)</a>
+      <a href="#glos-apis">🌐 5. Fontes & Roadmap de APIs</a>
+    </div>
+
+    <!-- 1. Abas -->
+    <div class="cartao secao-glossario" id="glos-abas">
+      <h2>📑 1. Estrutura e Abas do Painel</h2>
+      <p class="rodape-mapa">O Painel da Transparência organiza as finanças e a atuação pública brasileira em 7 visões complementares:</p>
+      
+      <div class="grid-glossario">
+        <div class="cartao" style="background:var(--superficie-2)">
+          <h3>🗺️ Mapa do Brasil</h3>
+          <p>Visão territorial do país, estados e municípios. Permite navegar visualmente pelo mapa interativo, consultar 14 métricas fiscais/socioeconômicas e visualizar rankings de despesa, receita e saúde fiscal.</p>
+        </div>
+        <div class="cartao" style="background:var(--superficie-2)">
+          <h3>🏛️ Políticos & Mandatos</h3>
+          <p>Catálogo unificado de governantes e parlamentares (do Presidente e Governadores a Deputados, Senadores, Prefeitos e Vereadores). Traz biografia, mandatos, votos nominais e gastos da Cota Parlamentar (CEAP).</p>
+        </div>
+        <div class="cartao" style="background:var(--superficie-2)">
+          <h3>📜 Projetos de Lei & Votações</h3>
+          <p>Acompanhamento de proposições legislativas na Câmara e no Senado, com situação de tramitação, ementa oficial, resultado de votações no plenário e índice de fidelidade partidária.</p>
+        </div>
+        <div class="cartao" style="background:var(--superficie-2)">
+          <h3>💰 Custo do Estado</h3>
+          <p>Análise comparativa das três realidades fiscais do país por <strong>Ano de Competência</strong>: Arrecadação de Tributos, Despesas Empenhadas e Salários/Subsídios Oficiais das autoridades dos Três Poderes.</p>
+        </div>
+        <div class="cartao" style="background:var(--superficie-2)">
+          <h3>📚 Glossário & Metodologia</h3>
+          <p>Documentação pública completa de todas as fórmulas matemáticas, conceitos fiscais, filtros e decisões arquiteturais do projeto.</p>
+        </div>
+        <div class="cartao" style="background:var(--superficie-2)">
+          <h3>🏢 Fontes Oficiais</h3>
+          <p>Inventário dos órgãos governamentais de onde os dados são extraídos (SICONFI, Tesouro Nacional, Câmara, Senado, TSE, IBGE e CGU), com datas e status de cada coleta.</p>
+        </div>
+        <div class="cartao" style="background:var(--superficie-2)">
+          <h3>🔄 Atualizar Dados</h3>
+          <p>Central de controle que permite disparar coletas incrementais, atualizar exercícios fiscais e gerenciar chaves de acesso a APIs governamentais.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Filtros -->
+    <div class="cartao secao-glossario" id="glos-filtros">
+      <h2>🎛️ 2. Guia de Filtros e Seletores</h2>
+      <p class="rodape-mapa">Como tirar o melhor proveito dos controles interativos disponíveis em cada tela:</p>
+
+      <div class="grid-glossario">
+        <div class="cartao" style="background:var(--superficie-2)">
+          <h3>📅 Ano de Competência / Exercício</h3>
+          <p>Presente no Mapa e no Custo do Estado. Define o ano contábil do orçamento analisado. As fontes fecham em calendários distintos (o RREO sai durante o ano corrente; o DCA fecha no ano seguinte).</p>
+        </div>
+        <div class="cartao" style="background:var(--superficie-2)">
+          <h3>📊 Seletor de Métrica (Mapa)</h3>
+          <p>Organizado em 5 grupos temáticos: <em>Quanto Gasta</em>, <em>Quanto Arrecada</em>, <em>Quanto Recebe da União</em>, <em>Em Que Gasta (Saúde/Educação)</em> e <em>Saúde Fiscal (LRF/Dívida)</em>.</p>
+        </div>
+        <div class="cartao" style="background:var(--superficie-2)">
+          <h3>🔍 Busca Textual (Políticos e Projetos)</h3>
+          <p>Filtro instantâneo sem necessidade de recarregar. Busca por nome do político, número da proposição, partido ou palavra-chave na ementa.</p>
+        </div>
+        <div class="cartao" style="background:var(--superficie-2)">
+          <h3>⚖️ Filtro por Poder (Custo do Estado)</h3>
+          <p>Permite isolar a análise de remuneração e cargos entre Executivo, Legislativo, Judiciário e Ministério Público.</p>
+        </div>
+        <div class="cartao" style="background:var(--superficie-2)">
+          <h3>🏷️ Rótulos & Destaque no Mapa</h3>
+          <p>Permite alternar entre exibição automática de siglas, exibição de todos os entes ou mapa limpo para análise de densidade de cor.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Metodologia & Fórmulas -->
+    <div class="cartao secao-glossario" id="glos-formulas">
+      <h2>📐 3. Metodologia & Fórmulas Explicadas</h2>
+      <p class="rodape-mapa">Todas as contas do painel são abertas, auditáveis e fundamentadas em normas públicas:</p>
+
+      <div class="cartao" style="background:var(--superficie-2); margin-top:12px">
+        <h3><span class="badge-metodo">Fórmula</span> Despesa e Receita por Habitante (Per Capita)</h3>
+        <div class="formula-box">Valor Per Capita = (Valor Total em R$) / (População Oficial do IBGE no Ano)</div>
+        <p><strong>Por que é feita assim?</strong> Comparar os R$ 80 bilhões de São Paulo com os R$ 15 milhões de um município de 3 mil habitantes em valores absolutos não informa nada sobre a qualidade do gasto. A divisão pela população do IBGE equilibra a régua e permite saber quanto o governo aplica por cidadão.</p>
+      </div>
+
+      <div class="cartao" style="background:var(--superficie-2); margin-top:12px">
+        <h3><span class="badge-metodo">Fórmula</span> Dependência de Transferências (%)</h3>
+        <div class="formula-box">Dependência (%) = (Transferências Recebidas da União e Estados / Arrecadação Total) × 100</div>
+        <p><strong>Por que é feita assim?</strong> Mede o grau de autonomia financeira do município. Valores acima de 80% indicam que o município quase não gera arrecadação própria (IPTU, ISS) e vive exclusivamente de repasses constitucionais como o FPM (Fundo de Participação dos Municípios).</p>
+      </div>
+
+      <div class="cartao" style="background:var(--superficie-2); margin-top:12px">
+        <h3><span class="badge-metodo">Fórmula</span> Custo Anual Estimado de Subsídios por Cargo</h3>
+        <div class="formula-box">Custo Anual Estimado = Ocupantes no Cargo × Subsídio Mensal Oficial × 13,33</div>
+        <p><strong>Por que é feita assim?</strong> O multiplicador <strong>13,33</strong> reflete o custo mínimo legal da remuneração anual: 12 meses regulares + 13º salário (1,00) + 1/3 de abono constitucional de férias (0,33). É uma estimativa da folha-base e não embute penduricalhos, diárias ou verbas indenizatórias.</p>
+      </div>
+
+      <div class="cartao" style="background:var(--superficie-2); margin-top:12px">
+        <h3><span class="badge-metodo">Fórmula</span> Despesa com Pessoal sobre a RCL (Lei de Responsabilidade Fiscal)</h3>
+        <div class="formula-box">Percentual Folha (%) = (Despesa Líquida com Pessoal / Receita Corrente Líquida - RCL) × 100</div>
+        <p><strong>Por que é feita assim?</strong> A Lei Complementar nº 101/2000 (LRF) estabelece tetos rígidos para evitar o colapso das contas públicas. No Poder Executivo Municipal, o limite máximo é <strong>54,0%</strong>, com limite prudencial em <strong>51,3%</strong> (95% do teto) e limite de alerta em <strong>48,6%</strong> (90% do teto).</p>
+      </div>
+
+      <div class="cartao" style="background:var(--superficie-2); margin-top:12px">
+        <h3><span class="badge-metodo">Fórmula</span> Reconciliação Contábil (Somado vs Declarado)</h3>
+        <div class="formula-box">Diferença = (Soma das Categorias Econômicas Nível 1) - (Total Geral Declarado pelo Ente)</div>
+        <p><strong>Por que é feita assim?</strong> Mecanismo de dupla conferência matemática nos demonstrativos do SICONFI. Se a soma das linhas de Despesas Correntes + Capital diferir do total anunciado pelo município, o painel detecta a inconsistência na hora.</p>
+      </div>
+
+      <div class="cartao" style="background:var(--superficie-2); margin-top:12px">
+        <h3><span class="badge-metodo">Conceito</span> Emendas Orçamentárias (Individuais, Pix, Bancada e Comissão)</h3>
+        <div class="formula-box">Taxa de Execução da Emenda (%) = (Valor Efetivamente Pago / Valor Total Empenhado) × 100</div>
+        <p><strong>O que é e como funciona?</strong> Emendas são parcelas do Orçamento Geral da União (OGU) cuja destinação é indicada por deputados federais e senadores para atender municípios e projetos públicos.
+        <strong>Valor Empenhado:</strong> O recurso foi reservado pelo Governo Federal e compromissado para o projeto.
+        <strong>Valor Pago:</strong> O dinheiro foi de fato transferido e creditado na conta bancária do município beneficiário.
+        <strong>Transferência Especial (Emenda Pix):</strong> Repasse direto ao caixa da prefeitura sem vinculação prévia a convênio formal, permitindo aplicação ágil sob fiscalização dos tribunais de contas.</p>
+      </div>
+
+      <div class="cartao" style="background:var(--superficie-2); margin-top:12px">
+        <h3><span class="badge-metodo">Conceito</span> Repasses e Transferências Constitucionais da União</h3>
+        <div class="formula-box">Repasses Federais = FPM + FPE + FUNDEB + Royalties (Petróleo/Mineração) + Desonerações/LC</div>
+        <p><strong>O que é e como funciona?</strong> A Constituição Federal determina a partilha de tributos federais (como Imposto de Renda e IPI) com os estados e municípios para reduzir as desigualdades regionais.
+        <strong>FPM (Fundo de Participação dos Municípios):</strong> Principal fonte de receita de mais de 80% das cidades brasileiras.
+        <strong>FUNDEB:</strong> Fundo destinado exclusivamente à manutenção da Educação Básica e remuneração dos professores.
+        <strong>Royalties:</strong> Compensação financeira paga pela exploração de recursos naturais (petróleo, gás e minérios).</p>
+      </div>
+
+      <div class="cartao" style="background:var(--superficie-2); margin-top:12px">
+        <h3><span class="badge-metodo">Conceito</span> Operações de Crédito & Endividamento (SADIPEM / Tesouro Nacional)</h3>
+        <div class="formula-box">Status do Pleito: Pleiteado (Pedido Inicial) ➔ Deferido (Autorizado pela STN) ➔ Contratado (Assinado com o Banco)</div>
+        <p><strong>O que é e como funciona?</strong> Para financiar grandes obras de infraestrutura, prefeituras e governos estaduais solicitam autorização ao Tesouro Nacional através do Sistema SADIPEM. O painel distingue o valor <strong>pleiteado</strong> (pedido), o valor <strong>deferido</strong> (aprovado após análise de capacidade de pagamento - CAPAG) e o valor <strong>contratado</strong> (efetivamente formalizado com bancos como Caixa, BNDES ou Banco Mundial).</p>
+      </div>
+
+      <div class="cartao" style="background:var(--superficie-2); margin-top:12px">
+        <h3><span class="badge-metodo">Fórmula</span> Presença Parlamentar e Fidelidade Partidária</h3>
+        <div class="formula-box">Taxa de Presença = (Sessões Deliberativas Presente) / (Sessões Deliberativas no Período de Atividade) × 100</div>
+        <p><strong>Por que é feita assim?</strong> O painel considera exclusivamente as sessões deliberativas de plenário da Câmara e do Senado durante a janela real de exercício do parlamentar (excluindo períodos de licença ou posse tardia para não criar ausências artificiais). A <strong>fidelidade partidária</strong> mede o percentual de votos em que o parlamentar acompanhou a orientação oficial da liderança da sua bancada em matérias não liberadas.</p>
+      </div>
+    </div>
+
+    <!-- 4. ADRs -->
+    <div class="cartao secao-glossario" id="glos-adrs">
+      <h2>🏛️ 4. Decisões Arquiteturais Registradas (ADRs)</h2>
+      <p class="rodape-mapa">Princípios inegociáveis de engenharia de dados do projeto:</p>
+
+      <div class="grid-glossario">
+        <div class="cartao" style="background:var(--superficie-2)">
+          <h3>ADR 1: Despesas Empenhadas como Padrão</h3>
+          <p>O estágio de <strong>Empenho</strong> é o padrão oficial de exibição de gastos, pois reflete o compromisso assumido pelo governante na competência do ano.</p>
+        </div>
+        <div class="cartao" style="background:var(--superficie-2)">
+          <h3>ADR 2: Código IBGE de 7 Dígitos Universal</h3>
+          <p>O código IBGE é a chave primária de integração de todas as tabelas territoriais. O casamento eleitoral (TSE) é auditado exclusivamente via tabela De-Para.</p>
+        </div>
+        <div class="cartao" style="background:var(--superficie-2)">
+          <h3>ADR 3: Competência Anual Estrita</h3>
+          <p>Restos a Pagar pagos de mandatos passados não são somados ao ano corrente, impedindo distorções em anos de transição eleitoral.</p>
+        </div>
+        <div class="cartao" style="background:var(--superficie-2)">
+          <h3>ADR 4: Normalização Per Capita Obrigatória</h3>
+          <p>Todo ranking comparativo municipal é obrigatoriamente exibido em Reais por habitante, prevenindo distorções populacionais.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. Fontes & Roadmap -->
+    <div class="cartao secao-glossario" id="glos-apis">
+      <h2>🌐 5. Fontes Atuais & Roadmap de Novas APIs</h2>
+      <p class="rodape-mapa">Origem das informações e próximos passos de expansão:</p>
+
+      <div class="rolagem">
+        <table>
+          <thead>
+            <tr>
+              <th>Fonte Governamental</th>
+              <th>Dados Fornecidos</th>
+              <th>Cadência</th>
+              <th>Status no Painel</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>SICONFI / Tesouro Nacional</strong></td>
+              <td>DCA (Receitas e Despesas), RREO (Saúde e Educação) e RGF (LRF e Dívida)</td>
+              <td>Mensal / Bimestral</td>
+              <td><span class="badge-metodo">Integrado (5.570 municípios)</span></td>
+            </tr>
+            <tr>
+              <td><strong>IBGE (SIDRA e Geociências)</strong></td>
+              <td>População anual oficial e malhas cartográficas GeoJSON</td>
+              <td>Anual</td>
+              <td><span class="badge-metodo">Integrado (100% Brasil)</span></td>
+            </tr>
+            <tr>
+              <td><strong>Câmara dos Deputados</strong></td>
+              <td>Deputados, Proposições, Votações nominais e Cota Parlamentar (CEAP)</td>
+              <td>Diária</td>
+              <td><span class="badge-metodo">Integrado (REST + Batch)</span></td>
+            </tr>
+            <tr>
+              <td><strong>Senado Federal</strong></td>
+              <td>Senadores, Mandatos e Votações nominais</td>
+              <td>Diária</td>
+              <td><span class="badge-metodo">Integrado</span></td>
+            </tr>
+            <tr>
+              <td><strong>TSE (Dados Abertos)</strong></td>
+              <td>Candidaturas e resultados eleitorais de prefeitos, governadores e vereadores</td>
+              <td>Bienal (Eleições)</td>
+              <td><span class="badge-metodo">Integrado (De-Para IBGE)</span></td>
+            </tr>
+            <tr>
+              <td><strong>SADIPEM / Tesouro</strong></td>
+              <td>Operações de crédito de estados e municípios (PVL)</td>
+              <td>Mensal</td>
+              <td><span class="badge-metodo">Integrado</span></td>
+            </tr>
+            <tr>
+              <td><strong>Portal da Transparência / CGU</strong></td>
+              <td>Transferências voluntárias, convênios e emendas parlamentares</td>
+              <td>Mensal</td>
+              <td><span class="badge-metodo">Integrado (com chave)</span></td>
+            </tr>
+            <tr>
+              <td><strong>Conselho Nacional de Justiça (CNJ / Datajud)</strong></td>
+              <td>Folha de pagamento e remunerações detalhadas de magistrados e tribunais</td>
+              <td>Mensal</td>
+              <td><span class="badge-metodo" style="background:var(--atencao-fraco);color:var(--atencao);border-color:var(--atencao)">Roadmap de Expansão</span></td>
+            </tr>
+            <tr>
+              <td><strong>Receita Federal (CNPJs / QSA)</strong></td>
+              <td>Quadro societário e vínculos de fornecedores das cotas parlamentares</td>
+              <td>Mensal</td>
+              <td><span class="badge-metodo" style="background:var(--atencao-fraco);color:var(--atencao);border-color:var(--atencao)">Roadmap de Expansão</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
   </section>
 
   <!-- -------------------------------------------------------- atualizar -->
@@ -373,6 +895,78 @@
         </div>
         <pre id="log-coleta" class="log" hidden></pre>
       </div>
+    </div>
+  </section>
+
+  <!-- -------------------------------------------------------- explorador GCP -->
+  <section id="aba-explorador" role="tabpanel" tabindex="-1"
+           aria-labelledby="aba-btn-explorador" hidden>
+    <div class="gcp-layout-container">
+      <!-- Painel Esquerdo: Árvore de Recursos (Datasets e Tabelas) -->
+      <aside class="gcp-sidebar">
+        <div class="gcp-sidebar-header">
+          <h2>Explorador de Dados</h2>
+          <div class="gcp-busca-arvore-wrap">
+            <input id="filtro-arvore-tabelas" placeholder="Filtrar tabelas / colunas..." />
+          </div>
+        </div>
+        <div id="explorador-arvore" class="gcp-arvore-corpo"></div>
+      </aside>
+
+      <!-- Painel Direito: Trabalho com a Tabela / Console SQL -->
+      <main class="gcp-work-area">
+        <!-- Header da Tabela Ativa -->
+        <header class="gcp-tabela-header">
+          <div class="gcp-header-left">
+            <span class="gcp-icone-tabela-grande">📄</span>
+            <div id="explorador-tabela-titulo"></div>
+          </div>
+        </header>
+
+        <!-- Navegação de Abas da Tabela Estilo BigQuery -->
+        <div class="gcp-tabela-nav" role="tablist">
+          <button class="gcp-tab-btn" data-painel="esquema" aria-selected="true" role="tab">📋 Esquema</button>
+          <button class="gcp-tab-btn" data-painel="detalhes" aria-selected="false" role="tab">ℹ️ Detalhes</button>
+          <button class="gcp-tab-btn" data-painel="preview" aria-selected="false" role="tab">👁️ Visualização (100 linhas)</button>
+          <button class="gcp-tab-btn" data-painel="sql" aria-selected="false" role="tab">⚡ Editor SQL / Extração</button>
+        </div>
+
+        <!-- Conteúdo das Abas -->
+        <div class="gcp-tabela-paineis">
+          <!-- 1. ESQUEMA -->
+          <div id="painel-esquema" class="gcp-painel-tab">
+            <div id="painel-esquema-conteudo"></div>
+          </div>
+
+          <!-- 2. DETALHES -->
+          <div id="painel-detalhes" class="gcp-painel-tab" hidden>
+            <div id="painel-detalhes-conteudo"></div>
+          </div>
+
+          <!-- 3. PREVIEW -->
+          <div id="painel-preview" class="gcp-painel-tab" hidden>
+            <div id="painel-preview-conteudo"></div>
+          </div>
+
+          <!-- 4. EDITOR SQL -->
+          <div id="painel-sql" class="gcp-painel-tab" hidden>
+            <div class="gcp-sql-editor-container">
+              <div class="gcp-sql-toolbar">
+                <button id="btn-executar-sql" class="principal">▶ Executar Consulta</button>
+                <div class="gcp-sql-export-acoes">
+                  <button id="btn-exportar-csv" class="secundario">📥 Baixar CSV</button>
+                  <button id="btn-exportar-json" class="secundario">📥 Baixar JSON</button>
+                </div>
+                <span id="sql-status-msg" class="gcp-sql-status">Pronto para consulta (Ctrl + Enter)</span>
+              </div>
+              <textarea id="editor-sql-texto" rows="6" spellcheck="false" placeholder="SELECT * FROM ..."></textarea>
+              <div id="sql-resultado-container" class="gcp-sql-resultado">
+                <p class="vazio" style="padding:20px">Clique em "Executar Consulta" ou use Ctrl + Enter para rodar.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
     </div>
   </section>
 

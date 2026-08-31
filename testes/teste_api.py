@@ -390,6 +390,7 @@ def _cenario_executivo():
     """Presidente e governador, com o subsídio do presidente cadastrado."""
     from src.nucleo import armazem  # noqa: PLC0415
 
+    armazem.remover("mandato")
     armazem.mesclar("dim_cargo_publico", [
         dict(cod_cargo="presidente", cargo="Presidente da República",
              poder="executivo", esfera="federal", ramo=None),
@@ -979,3 +980,73 @@ def test_ficha_de_proposicao_acha_a_votacao_pela_relacao_da_camara(cliente):
         "a votação chega à proposição pela relação da Câmara, não pela coluna "
         "que vem vazia")
     assert ficha["votacoes"][0]["sim"] == 1
+
+
+def test_politicos_filtro_ano(cliente):
+    # Testar busca com ano
+    linhas = cliente.get("/api/politicos", params={"ano": 2025}).json()
+    assert isinstance(linhas, list)
+    if linhas:
+        assert "ano_inicio" in linhas[0]
+        assert "ano_fim" in linhas[0]
+        assert "data_inicio" in linhas[0]
+
+
+def test_politico_ficha_com_ano_e_detalhes(cliente):
+    # Obter um político qualquer
+    linhas = cliente.get("/api/politicos").json()
+    if linhas:
+        sk = linhas[0]["sk"]
+        ficha = cliente.get(f"/api/politicos/{sk}/ficha", params={"ano": 2025}).json()
+        assert "politico" in ficha
+        assert "votos" in ficha
+        assert "proposicoes" in ficha
+        assert "mandatos" in ficha
+
+
+def test_executivo_mandato_federal(cliente):
+    res = cliente.get("/api/executivo/mandato", params={"esfera": "federal"}).json()
+    assert res["esfera"] == "federal"
+    assert "governante" in res
+    assert "gastos_por_funcao" in res
+    assert "serie_anual" in res
+
+
+def test_executivo_mandato_estadual(cliente):
+    res = cliente.get("/api/executivo/mandato", params={"esfera": "estadual", "sigla_uf": "SP"}).json()
+    assert res["esfera"] == "estadual"
+    assert "governante" in res
+    assert "gastos_por_funcao" in res
+    assert "serie_anual" in res
+
+
+def test_executivo_municipios(cliente):
+    res = cliente.get("/api/executivo/municipios", params={"uf": "SP"}).json()
+    assert isinstance(res, list)
+    if res:
+        assert "cod_ibge" in res[0]
+        assert "nome" in res[0]
+
+
+def test_ficha_politico_traz_emendas(cliente):
+    linhas = cliente.get("/api/politicos").json()
+    if linhas:
+        sk = linhas[0]["sk"]
+        ficha = cliente.get(f"/api/politicos/{sk}/ficha").json()
+        assert "emendas" in ficha
+        assert "emendas_total_empenhado" in ficha
+        assert "emendas_total_pago" in ficha
+        assert isinstance(ficha["emendas"], list)
+
+
+def test_ente_detalhe_traz_transferencias_historico_e_emendas(cliente):
+    res = cliente.get("/api/ente/29").json()
+    assert "transferencias_historico" in res
+    assert "emendas_recebidas" in res
+    assert isinstance(res["transferencias_historico"], list)
+    assert isinstance(res["emendas_recebidas"], list)
+
+
+
+
+

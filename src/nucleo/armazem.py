@@ -159,7 +159,8 @@ def preparar(
 
     df = df.copy()
     for coluna in COLUNAS_CONTROLE + ["sk"]:
-        df.pop(coluna, None) if coluna in df.columns else None
+        if coluna in df.columns:
+            df.drop(columns=[coluna], inplace=True)
 
     campos_negocio = list(tabela.campos_negocio) or [
         c for c in df.columns if not c.startswith("_")

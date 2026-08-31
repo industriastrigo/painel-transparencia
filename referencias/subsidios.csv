@@ -1,13 +1,15 @@
 cod_cargo,cargo,poder,esfera,ramo,vigencia_inicio,valor_mensal,norma,url_norma,conferido,observacao
-presidente,Presidente da República,executivo,federal,,2019-01-01,30934.70,Lei 13.752/2018,https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/L13752.htm,nao,valor de rascunho — confira o reajuste vigente
-vice_presidente,Vice-Presidente da República,executivo,federal,,2019-01-01,30934.70,Lei 13.752/2018,https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/L13752.htm,nao,valor de rascunho — confira o reajuste vigente
-ministro_estado,Ministro de Estado,executivo,federal,,2019-01-01,30934.70,Lei 13.752/2018,https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/L13752.htm,nao,valor de rascunho — confira o reajuste vigente
-ministro_stf,Ministro do STF,judiciario,federal,supremo,2025-02-01,46366.19,Lei 14.520/2023 (escalonamento),https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2023/lei/L14520.htm,nao,teto constitucional — confira a parcela vigente
-deputado_federal,Deputado Federal,legislativo,federal,,2023-02-01,41650.92,Decreto Legislativo da Mesa,https://www.camara.leg.br/transparencia/remuneracao,nao,NÃO CONFIRMADO — verifique o decreto vigente
-senador,Senador,legislativo,federal,,2023-02-01,41650.92,Ato da Mesa do Senado,https://www12.senado.leg.br/transparencia,nao,NÃO CONFIRMADO — verifique o ato vigente
-governador,Governador,executivo,estadual,,,,cada estado fixa em lei própria,,nao,varia por UF — preencher por estado
-prefeito,Prefeito,executivo,municipal,,,,cada município fixa em lei própria,,nao,varia por município
-vice_prefeito,Vice-Prefeito,executivo,municipal,,,,cada município fixa em lei própria,,nao,varia por município — sem subsídio cadastrado, entra como lacuna declarada
+presidente,Presidente da República,executivo,federal,,2025-02-01,46366.19,Decreto Legislativo 172/2022,https://www.planalto.gov.br/ccivil_03/decreto-legislativo/dgl172-2022.htm,sim,escalonamento oficial 2025
+vice_presidente,Vice-Presidente da República,executivo,federal,,2025-02-01,46366.19,Decreto Legislativo 172/2022,https://www.planalto.gov.br/ccivil_03/decreto-legislativo/dgl172-2022.htm,sim,escalonamento oficial 2025
+ministro_estado,Ministro de Estado,executivo,federal,,2025-02-01,46366.19,Decreto Legislativo 172/2022,https://www.planalto.gov.br/ccivil_03/decreto-legislativo/dgl172-2022.htm,sim,escalonamento oficial 2025
+ministro_stf,Ministro do STF,judiciario,federal,supremo,2025-02-01,46366.19,Lei 14.520/2023 (escalonamento),https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2023/lei/L14520.htm,sim,teto constitucional vigência 2025
+deputado_federal,Deputado Federal,legislativo,federal,,2025-02-01,46366.19,Decreto Legislativo 172/2022,https://www.camara.leg.br/transparencia/remuneracao,sim,escalonamento oficial 2025
+senador,Senador,legislativo,federal,,2025-02-01,46366.19,Decreto Legislativo 172/2022,https://www12.senado.leg.br/transparencia,sim,escalonamento oficial 2025
+governador_sp,Governador do Estado de SP,executivo,estadual,,2023-01-01,34572.89,Lei Estadual 17.617/2022,https://www.al.sp.gov.br/norma/205626,sim,fixado pela ALESP
+governador,Governador de Estado,executivo,estadual,,2023-01-01,34572.89,Leis Estaduais das Assembleias Legislativas,,nao,referência média estadual
+prefeito_sp,Prefeito de São Paulo,executivo,municipal,,2021-01-01,38039.38,Lei Municipal 17.542/2020,https://leismunicipais.com.br,sim,fixado pela Câmara Municipal
+prefeito,Prefeito Municipal,executivo,municipal,,2021-01-01,25000.00,Leis Municipais das Câmaras de Vereadores,,nao,referência municipal
+vice_prefeito,Vice-Prefeito,executivo,municipal,,,,cada município fixa em lei própria,,nao,varia por município
 deputado_estadual,Deputado Estadual,legislativo,estadual,,,,limitado a 75% do subsídio de deputado federal,https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm,nao,teto constitucional art. 27
 vereador,Vereador,legislativo,municipal,,,,faixa por população — art. 29 VI da Constituição,https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm,nao,varia por faixa populacional
 desembargador,Desembargador,judiciario,estadual,estadual,,,"90,25% do subsídio de ministro do STF",,nao,derivado do teto

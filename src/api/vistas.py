@@ -518,6 +518,188 @@ DERIVADAS = {
           FROM transferencia_uniao
          GROUP BY ALL
     """,
+    "vw_transferencia_historico_ente": """
+        SELECT cod_ibge, ano,
+               SUM(valor) AS total_transferencias,
+               SUM(valor) FILTER (WHERE transferencia = 'FPM' OR transferencia LIKE 'FPM%') AS fpm,
+               SUM(valor) FILTER (WHERE transferencia = 'FPE') AS fpe,
+               SUM(valor) FILTER (WHERE transferencia LIKE 'FUNDEB%') AS fundeb,
+               SUM(valor) FILTER (WHERE transferencia LIKE 'Royalties%') AS royalties
+          FROM transferencia_uniao
+         GROUP BY ALL
+    """,
+    # ----------------------------------------------- emendas parlamentares
+    "vw_emenda_parlamentar": """
+        SELECT ano, codigo_emenda, tipo_emenda, autor,
+               funcao,
+               COALESCE(
+                   TRY_CAST(valor_empenhado AS DOUBLE),
+                   TRY_CAST(REPLACE(REPLACE(CAST(valor_empenhado AS VARCHAR), '.', ''), ',', '.') AS DOUBLE),
+                   0.0
+               ) AS valor_empenhado,
+               COALESCE(
+                   TRY_CAST(valor_pago AS DOUBLE),
+                   TRY_CAST(REPLACE(REPLACE(CAST(valor_pago AS VARCHAR), '.', ''), ',', '.') AS DOUBLE),
+                   0.0
+               ) AS valor_pago,
+               localidade
+          FROM emenda_parlamentar
+    """,
+    "vw_emenda_por_autor": """
+        SELECT autor, ano, tipo_emenda, funcao,
+               COUNT(*) AS emendas,
+               SUM(COALESCE(
+                   TRY_CAST(valor_empenhado AS DOUBLE),
+                   TRY_CAST(REPLACE(REPLACE(CAST(valor_empenhado AS VARCHAR), '.', ''), ',', '.') AS DOUBLE),
+                   0.0
+               )) AS valor_empenhado,
+               SUM(COALESCE(
+                   TRY_CAST(valor_pago AS DOUBLE),
+                   TRY_CAST(REPLACE(REPLACE(CAST(valor_pago AS VARCHAR), '.', ''), ',', '.') AS DOUBLE),
+                   0.0
+               )) AS valor_pago
+          FROM emenda_parlamentar
+         GROUP BY ALL
+    """,
+    "vw_emenda_por_municipio": """
+        SELECT localidade, ano, autor, tipo_emenda, funcao,
+               COUNT(*) AS emendas,
+               SUM(COALESCE(
+                   TRY_CAST(valor_empenhado AS DOUBLE),
+                   TRY_CAST(REPLACE(REPLACE(CAST(valor_empenhado AS VARCHAR), '.', ''), ',', '.') AS DOUBLE),
+                   0.0
+               )) AS valor_empenhado,
+               SUM(COALESCE(
+                   TRY_CAST(valor_pago AS DOUBLE),
+                   TRY_CAST(REPLACE(REPLACE(CAST(valor_pago AS VARCHAR), '.', ''), ',', '.') AS DOUBLE),
+                   0.0
+               )) AS valor_pago
+          FROM emenda_parlamentar
+         GROUP BY ALL
+    """,
+    # ------------------------------------------------- cartões corporativos
+    "vw_cartao_corporativo": """
+        SELECT ano, mes, codigo_orgao, nome_orgao,
+               nome_portador, cpf_portador,
+               nome_favorecido, cnpj_cpf_favorecido,
+               tipo_cartao, data_transacao,
+               COALESCE(
+                   TRY_CAST(valor AS DOUBLE),
+                   TRY_CAST(REPLACE(REPLACE(CAST(valor AS VARCHAR), '.', ''), ',', '.') AS DOUBLE),
+                   0.0
+               ) AS valor,
+               data_referencia
+          FROM cartao_corporativo
+    """,
+    "vw_cartao_por_orgao": """
+        SELECT ano, codigo_orgao, nome_orgao,
+               COUNT(*) AS transacoes,
+               SUM(COALESCE(
+                   TRY_CAST(valor AS DOUBLE),
+                   TRY_CAST(REPLACE(REPLACE(CAST(valor AS VARCHAR), '.', ''), ',', '.') AS DOUBLE),
+                   0.0
+               )) AS total_gasto
+          FROM cartao_corporativo
+         GROUP BY ALL
+    """,
+    "vw_cartao_por_favorecido": """
+        SELECT ano, nome_favorecido, cnpj_cpf_favorecido,
+               COUNT(*) AS transacoes,
+               SUM(COALESCE(
+                   TRY_CAST(valor AS DOUBLE),
+                   TRY_CAST(REPLACE(REPLACE(CAST(valor AS VARCHAR), '.', ''), ',', '.') AS DOUBLE),
+                   0.0
+               )) AS total_gasto
+          FROM cartao_corporativo
+         GROUP BY ALL
+    """,
+    "vw_cartao_serie_anual": """
+        SELECT ano,
+               COUNT(*)                                          AS transacoes,
+               SUM(COALESCE(TRY_CAST(valor AS DOUBLE), 0.0))    AS total_gasto,
+               SUM(COALESCE(TRY_CAST(valor AS DOUBLE), 0.0)) FILTER (
+                 WHERE nome_orgao ILIKE '%Presidência da República%'
+                    OR nome_orgao ILIKE '%Presidencia da Republica%'
+                    OR nome_orgao ILIKE '%Gabinete de Segurança Institucional%'
+               ) AS total_presidencia
+          FROM cartao_corporativo
+         GROUP BY ALL
+    """,
+    # ----------------------------------------------- viagens e diárias PCDP
+    "vw_viagem_servico": """
+        SELECT ano, mes, id_viagem, codigo_orgao, nome_orgao,
+               nome_viajante, cpf_viajante, cargo_viajante,
+               origem, destino, motivo, data_inicio, data_fim,
+               COALESCE(TRY_CAST(valor_diarias AS DOUBLE), 0.0)    AS valor_diarias,
+               COALESCE(TRY_CAST(valor_passagens AS DOUBLE), 0.0)  AS valor_passagens,
+               COALESCE(TRY_CAST(valor_outros AS DOUBLE), 0.0)     AS valor_outros,
+               COALESCE(TRY_CAST(valor_total AS DOUBLE), 0.0)      AS valor_total,
+               data_referencia
+          FROM viagem_servico
+    """,
+    "vw_viagem_por_orgao": """
+        SELECT ano, codigo_orgao, nome_orgao,
+               COUNT(*)                                                AS viagens,
+               SUM(COALESCE(TRY_CAST(valor_diarias AS DOUBLE), 0.0))   AS total_diarias,
+               SUM(COALESCE(TRY_CAST(valor_passagens AS DOUBLE), 0.0)) AS total_passagens,
+               SUM(COALESCE(TRY_CAST(valor_total AS DOUBLE), 0.0))     AS total_gasto
+          FROM viagem_servico
+         GROUP BY ALL
+    """,
+    "vw_viagem_por_destino": """
+        SELECT ano, destino,
+               COUNT(*)                                                AS viagens,
+               SUM(COALESCE(TRY_CAST(valor_total AS DOUBLE), 0.0))     AS total_gasto
+          FROM viagem_servico
+         GROUP BY ALL
+    """,
+    "vw_viagem_serie_anual": """
+        SELECT ano,
+               COUNT(*)                                                AS viagens,
+               SUM(COALESCE(TRY_CAST(valor_diarias AS DOUBLE), 0.0))   AS total_diarias,
+               SUM(COALESCE(TRY_CAST(valor_passagens AS DOUBLE), 0.0)) AS total_passagens,
+               SUM(COALESCE(TRY_CAST(valor_total AS DOUBLE), 0.0))     AS total_gasto
+          FROM viagem_servico
+         GROUP BY ALL
+    """,
+    # --------------------------------- declaração de bens e patrimônio (TSE)
+    "vw_bem_declarado": """
+        SELECT id_politico, ano_eleicao, sequencial_candidato, cargo,
+               tipo_bem, descricao_bem,
+               COALESCE(TRY_CAST(valor_bem AS DOUBLE), 0.0) AS valor_bem,
+               data_referencia
+          FROM bem_declarado
+    """,
+    "vw_patrimonio_politico": """
+        SELECT id_politico, ano_eleicao, cargo,
+               COUNT(*)                                              AS total_bens,
+               SUM(COALESCE(TRY_CAST(valor_bem AS DOUBLE), 0.0))    AS total_declarado
+          FROM bem_declarado
+         GROUP BY ALL
+    """,
+    # --------------------------------- contratos públicos e licitações (PNCP)
+    "vw_contrato_governo": """
+        SELECT ano, id_contrato, numero_contrato, codigo_orgao, nome_orgao,
+               cnpj_fornecedor, nome_fornecedor, modalidade_licitacao, objeto,
+               COALESCE(TRY_CAST(valor_inicial AS DOUBLE), 0.0)    AS valor_inicial,
+               COALESCE(TRY_CAST(valor_atualizado AS DOUBLE), 0.0) AS valor_atualizado,
+               data_inicio_vigencia, data_fim_vigencia, data_referencia
+          FROM contrato_governo
+    """,
+    "vw_contrato_por_fornecedor": """
+        SELECT ano, cnpj_fornecedor, nome_fornecedor,
+               COUNT(*)                                                AS contratos,
+               SUM(COALESCE(TRY_CAST(valor_atualizado AS DOUBLE), 0.0)) AS total_contratado
+          FROM contrato_governo
+         GROUP BY ALL
+    """,
+    "vw_contrato_por_modalidade": """
+        SELECT ano, modalidade_licitacao,
+               COUNT(*)                                                AS contratos,
+               SUM(COALESCE(TRY_CAST(valor_atualizado AS DOUBLE), 0.0)) AS total_contratado
+          FROM contrato_governo
+         GROUP BY ALL
+    """,
     # ------------------------------------------------ operações de crédito
     # Três medidas, e a diferença entre elas é a informação:
     #   pedido    — tudo que foi protocolado, inclusive o que foi negado

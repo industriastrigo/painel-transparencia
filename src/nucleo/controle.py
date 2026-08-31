@@ -8,7 +8,7 @@ Fica em dados/_ctl/ingestao.parquet e responde duas perguntas:
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 import pandas as pd
@@ -52,7 +52,7 @@ def gravar_marca(
             "linhas": int(linhas),
             "situacao": situacao,
             "detalhe": detalhe[:500],
-            "lido_em": datetime.utcnow(),
+            "lido_em": datetime.now(timezone.utc),
         }],
         fonte="controle",
     )
@@ -69,7 +69,7 @@ def registrar_entes(fonte: str, recurso: str, ano: int,
     """
     if not resultados:
         return
-    momento = datetime.utcnow()
+    momento = datetime.now(timezone.utc)
     armazem.mesclar(
         "coleta_ente",
         [{

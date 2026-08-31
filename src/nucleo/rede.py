@@ -303,7 +303,16 @@ def buscar(
             raise
         except Exception as erro:  # noqa: BLE001
             ultimo_erro = erro
-            espera = min(2 ** tentativa, 30)
+            if isinstance(erro, requests.HTTPError) and getattr(erro, "response", None) is not None and getattr(erro.response, "status_code", None) == 429:
+                headers = getattr(erro.response, "headers", None) or {}
+                retry_header = headers.get("Retry-After") if isinstance(headers, dict) else None
+                if retry_header and str(retry_header).isdigit():
+                    espera = max(int(retry_header), 5)
+                else:
+                    espera = min(4 * (2 ** tentativa), 60)
+            else:
+                espera = min(2 ** tentativa, 30)
+
             if not silencioso:
                 log.warning("%s %s — tentativa %d/%d falhou (%s), aguardando %ds",
                             fonte, url, tentativa, tentativas, erro, espera)
