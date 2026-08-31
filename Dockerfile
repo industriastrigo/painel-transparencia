@@ -23,10 +23,8 @@ COPY src/ ./src/
 COPY publico/ ./publico/
 
 # Copia os dados processados e malhas (Parquet tratado)
-COPY dados/dim/ ./dados/dim/
-COPY dados/fato/ ./dados/fato/
-COPY dados/malhas/ ./dados/malhas/
-COPY dados/_ctl/ ./dados/_ctl/
+COPY dados/ ./dados/
+
 
 # Porta dinâmica do Cloud Run (padrão 8080)
 EXPOSE 8080
