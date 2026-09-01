@@ -152,14 +152,56 @@ export async function carregarExecutivo() {
       }
     }
 
-    // 2. Anos de Competência
+    // 2. Popular Seletor de Mandatos
+    const seletorMandato = $('#executivo-mandato');
+    const blocoMandato = $('#bloco-executivo-mandato');
+    const mandatos = d.mandatos_disponiveis || [];
+
+    if (blocoMandato) {
+      blocoMandato.hidden = (esfera === 'geral');
+    }
+
+    if (seletorMandato) {
+      if (!mandatos.length) {
+        seletorMandato.innerHTML = '<option value="todos">Todos os Períodos</option>';
+      } else {
+        const anoAlvo = Number(d.ano_selecionado);
+        const valorAtual = seletorMandato.value;
+        const mandatoAtivo = mandatos.find((m) => m.ano_inicio <= anoAlvo && m.ano_fim >= anoAlvo) || mandatos[0];
+        const chaveAtiva = `${mandatoAtivo.ano_inicio}_${mandatoAtivo.ano_fim}`;
+        const chaveEscolhida = (valorAtual && (valorAtual === 'todos' || mandatos.some(m => `${m.ano_inicio}_${m.ano_fim}` === valorAtual)))
+          ? valorAtual
+          : chaveAtiva;
+
+        seletorMandato.innerHTML = mandatos.map((m) => {
+          const chave = `${m.ano_inicio}_${m.ano_fim}`;
+          const sel = (chave === chaveEscolhida) ? 'selected' : '';
+          const anosStr = (m.anos || []).join(',');
+          return `<option value="${chave}" data-anos="${anosStr}" ${sel}>${escapar(m.rotulo || m.nome)}</option>`;
+        }).join('') + `<option value="todos" data-anos="${(d.serie_anual || []).map(s => s.ano).join(',')}" ${chaveEscolhida === 'todos' ? 'selected' : ''}>Todos os Anos (${d.serie_anual?.[d.serie_anual.length - 1]?.ano || ''}–${d.serie_anual?.[0]?.ano || ''})</option>`;
+      }
+    }
+
+    // 3. Popular Anos de Competência
     const seletorAno = $('#executivo-ano');
     if (seletorAno && d.serie_anual?.length) {
-      const anoSelecionado = d.ano_selecionado || d.serie_anual[0]?.ano;
-      seletorAno.innerHTML = d.serie_anual.map((s) =>
-        `<option value="${s.ano}" ${s.ano === anoSelecionado ? 'selected' : ''}>${s.ano}</option>`
+      const optMandato = seletorMandato?.selectedOptions?.[0];
+      const anosPermitidos = (optMandato && optMandato.dataset?.anos)
+        ? optMandato.dataset.anos.split(',').map(Number).filter(Boolean)
+        : null;
+
+      const anosLista = (anosPermitidos && anosPermitidos.length > 0)
+        ? d.serie_anual.filter((s) => anosPermitidos.includes(s.ano))
+        : d.serie_anual;
+
+      const listaFinal = anosLista.length ? anosLista : d.serie_anual;
+      const anoSelecionado = d.ano_selecionado || listaFinal[0]?.ano;
+
+      seletorAno.innerHTML = listaFinal.map((s) =>
+        `<option value="${s.ano}" ${s.ano === Number(anoSelecionado) ? 'selected' : ''}>${s.ano}</option>`
       ).join('');
     }
+
 
     // 3. Resultado Fiscal (Superávit / Déficit)
     const atual = d.ano_atual;
@@ -451,10 +493,14 @@ export function configurarEventosExecutivo() {
     const blocoMun = $('#bloco-executivo-municipio');
     const blocoMandato = $('#bloco-executivo-mandato');
 
-    if (esfera === 'geral' || esfera === 'federal') {
+    if (esfera === 'geral') {
       if (blocoUf) blocoUf.hidden = true;
       if (blocoMun) blocoMun.hidden = true;
-      if (blocoMandato) blocoMandato.hidden = esfera === 'geral';
+      if (blocoMandato) blocoMandato.hidden = true;
+    } else if (esfera === 'federal') {
+      if (blocoUf) blocoUf.hidden = true;
+      if (blocoMun) blocoMun.hidden = true;
+      if (blocoMandato) blocoMandato.hidden = false;
     } else if (esfera === 'estadual') {
       if (blocoUf) blocoUf.hidden = false;
       if (blocoMun) blocoMun.hidden = true;
@@ -465,6 +511,10 @@ export function configurarEventosExecutivo() {
       if (blocoMandato) blocoMandato.hidden = false;
       popularMunicipiosExecutivo($('#executivo-uf')?.value);
     }
+    const seletorMandato = $('#executivo-mandato');
+    if (seletorMandato) seletorMandato.value = '';
+    const seletorAno = $('#executivo-ano');
+    if (seletorAno) seletorAno.value = '';
     carregarExecutivo();
   });
 
@@ -472,10 +522,32 @@ export function configurarEventosExecutivo() {
     if ($('#executivo-esfera')?.value === 'municipal') {
       popularMunicipiosExecutivo(e.target.value);
     }
+    const seletorMandato = $('#executivo-mandato');
+    if (seletorMandato) seletorMandato.value = '';
+    const seletorAno = $('#executivo-ano');
+    if (seletorAno) seletorAno.value = '';
     carregarExecutivo();
   });
 
-  $('#executivo-municipio')?.addEventListener('change', carregarExecutivo);
+  $('#executivo-municipio')?.addEventListener('change', () => {
+    const seletorMandato = $('#executivo-mandato');
+    if (seletorMandato) seletorMandato.value = '';
+    const seletorAno = $('#executivo-ano');
+    if (seletorAno) seletorAno.value = '';
+    carregarExecutivo();
+  });
+
+  $('#executivo-mandato')?.addEventListener('change', (e) => {
+    const opt = e.target.selectedOptions?.[0];
+    const anos = opt?.dataset?.anos ? opt.dataset.anos.split(',').map(Number).filter(Boolean) : null;
+    const seletorAno = $('#executivo-ano');
+    if (seletorAno && anos && anos.length) {
+      seletorAno.value = String(anos[0]);
+    }
+    carregarExecutivo();
+  });
+
   $('#executivo-ano')?.addEventListener('change', carregarExecutivo);
   $('#btn-atualizar-executivo')?.addEventListener('click', carregarExecutivo);
 }
+

@@ -350,7 +350,29 @@ def executivo_mandato(esfera: str = "geral", sigla_uf: str = "SP",
     # Governante ativo no ano solicitado
     if esfera == "geral":
         governante = None
-        mandatos_disponiveis = []
+        mandatos_disponiveis = [
+            {
+                "ano_inicio": 2023,
+                "ano_fim": 2027,
+                "nome": "Gestões Atuais (2023–2026)",
+                "rotulo": "Ciclo 2023–2026 (Gestões Atuais)",
+                "anos": [2026, 2025, 2024, 2023]
+            },
+            {
+                "ano_inicio": 2019,
+                "ano_fim": 2022,
+                "nome": "Gestões Anteriores (2019–2022)",
+                "rotulo": "Ciclo 2019–2022 (Gestões Anteriores)",
+                "anos": [2022, 2021, 2020, 2019]
+            },
+            {
+                "ano_inicio": 2015,
+                "ano_fim": 2018,
+                "nome": "Gestões Históricas (2015–2018)",
+                "rotulo": "Ciclo 2015–2018 (Gestões Históricas)",
+                "anos": [2018, 2017, 2016, 2015]
+            }
+        ]
     else:
         filtro_ano_gov = "AND (m.ano_inicio <= ? AND (m.ano_fim >= ? OR m.ano_fim IS NULL))"
         params_gov_ano = list(params_gov) + [ano_alvo, ano_alvo]
@@ -387,16 +409,19 @@ def executivo_mandato(esfera: str = "geral", sigla_uf: str = "SP",
         for mh in mandatos_hist:
             ini = int(mh["ano_inicio"]) if mh.get("ano_inicio") else 2023
             fim = int(mh["ano_fim"]) if mh.get("ano_fim") else (ini + 4)
-            rotulo = f"Mandato {ini}–{fim} ({mh.get('nome', '')})"
-            anos_mandato = [a for a in range(ini, fim) if a in [s["ano"] for s in serie_anual]] or list(range(ini, fim))
+            nome_m = mh.get('nome') or 'Governante'
+            rotulo = f"Mandato {ini}–{fim} ({nome_m})"
+            anos_possiveis = [a for a in range(ini, fim + 1) if a <= 2026]
+            anos_mandato = [a for a in anos_possiveis if a in [s["ano"] for s in serie_anual]] or anos_possiveis
             mandatos_disponiveis.append({
                 "ano_inicio": ini,
                 "ano_fim": fim,
-                "nome": mh.get("nome"),
+                "nome": nome_m,
                 "partido": mh.get("sigla_partido"),
                 "rotulo": rotulo,
                 "anos": sorted(anos_mandato, reverse=True)
             })
+
 
     # Funções de Governo no ano
     if esfera == "geral":
