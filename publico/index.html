@@ -23,8 +23,12 @@
             aria-controls="aba-politicos" aria-selected="false" tabindex="-1">Políticos</button>
     <button role="tab" id="aba-btn-executivo" data-aba="executivo"
             aria-controls="aba-executivo" aria-selected="false" tabindex="-1">Poder Executivo</button>
+    <button role="tab" id="aba-btn-legislativo" data-aba="legislativo"
+            aria-controls="aba-legislativo" aria-selected="false" tabindex="-1">Poder Legislativo</button>
     <button role="tab" id="aba-btn-judiciario" data-aba="judiciario"
             aria-controls="aba-judiciario" aria-selected="false" tabindex="-1">Poder Judiciário</button>
+    <button role="tab" id="aba-btn-mp" data-aba="mp"
+            aria-controls="aba-mp" aria-selected="false" tabindex="-1">Ministério Público</button>
     <button role="tab" id="aba-btn-proposicoes" data-aba="proposicoes"
 
             aria-controls="aba-proposicoes" aria-selected="false" tabindex="-1">Projetos de lei</button>
@@ -501,6 +505,55 @@
 
   </section>
 
+  <!-- -------------------------------------------------------- legislativo -->
+  <section id="aba-legislativo" role="tabpanel" tabindex="-1"
+           aria-labelledby="aba-btn-legislativo" hidden>
+    
+    <!-- Barra de Filtros -->
+    <div class="barra">
+      <div>
+        <label for="filtro-leg-esfera">Esfera</label>
+        <select id="filtro-leg-esfera">
+          <option value="federal">Congresso Nacional (Federal)</option>
+          <option value="estadual">Assembleias Legislativas (Estadual)</option>
+          <option value="municipal">Câmaras Municipais (Municipal)</option>
+          <option value="geral">Todas as Esferas</option>
+        </select>
+      </div>
+      <div>
+        <label for="filtro-leg-casa">Casa Legislativa</label>
+        <select id="filtro-leg-casa">
+          <option value="">Todas as casas</option>
+          <option value="camara">Câmara dos Deputados</option>
+          <option value="senado">Senado Federal</option>
+        </select>
+      </div>
+      <div>
+        <label for="filtro-leg-ano">Ano de Competência</label>
+        <select id="filtro-leg-ano">
+          <option value="2026">2026</option>
+          <option value="2025">2025</option>
+          <option value="2024">2024</option>
+          <option value="2023">2023</option>
+          <option value="2022">2022</option>
+          <option value="2021">2021</option>
+          <option value="2020">2020</option>
+          <option value="2019">2019</option>
+        </select>
+      </div>
+      <div style="flex:1; min-width:200px">
+        <label for="filtro-leg-busca">Buscar Parlamentar ou Partido</label>
+        <input id="filtro-leg-busca" type="search" placeholder="Nome, partido ou estado...">
+      </div>
+      <div class="acao">
+        <button id="btn-buscar-leg" class="principal">Consultar</button>
+      </div>
+    </div>
+
+    <!-- Conteúdo do Legislativo -->
+    <div id="legislativo-conteudo"></div>
+  </section>
+
   <!-- -------------------------------------------------------- judiciário -->
   <section id="aba-judiciario" role="tabpanel" tabindex="-1"
            aria-labelledby="aba-btn-judiciario" hidden>
@@ -612,6 +665,121 @@
             <tr><td colspan="7" class="carregando">Carregando dados...</td></tr>
           </tbody>
         </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- -------------------------------------------------- ministério público -->
+  <section id="aba-mp" role="tabpanel" tabindex="-1"
+           aria-labelledby="aba-btn-mp" hidden>
+    
+    <!-- Barra de Filtros -->
+    <div class="barra">
+      <div style="flex:1; min-width:200px">
+        <label for="filtro-mp-busca">Buscar Membro do MP</label>
+        <input id="filtro-mp-busca" type="search" placeholder="Nome, comarca, cargo ou lotação...">
+      </div>
+      <div>
+        <label for="filtro-mp-ramo">Ramo do Ministério Público</label>
+        <select id="filtro-mp-ramo">
+          <option value="">Todos os ramos</option>
+          <option value="Federal">MPF (Federal / PGR)</option>
+          <option value="Trabalho">MPT (Trabalho)</option>
+          <option value="Militar">MPM (Militar)</option>
+          <option value="Distrito Federal">MPDFT (Distrito Federal)</option>
+          <option value="Estadual">MPEs (Estaduais)</option>
+        </select>
+      </div>
+      <div>
+        <label for="filtro-mp-cargo">Cargo</label>
+        <select id="filtro-mp-cargo">
+          <option value="">Todos os cargos</option>
+          <option value="procurador_geral_republica">Procurador-Geral da República</option>
+          <option value="procurador_justica">Procurador de Justiça / PGJ</option>
+          <option value="subprocurador_geral_trabalho">Subprocurador-Geral</option>
+          <option value="promotor_justica">Promotor de Justiça Titular</option>
+          <option value="promotor_substituto">Promotor de Justiça Substituto</option>
+        </select>
+      </div>
+      <div>
+        <label for="filtro-mp-ordem">Ordenar por</label>
+        <select id="filtro-mp-ordem">
+          <option value="remuneracao">Maior Remuneração Líquida</option>
+          <option value="nome">Nome (A - Z)</option>
+        </select>
+      </div>
+      <div class="acao">
+        <button id="filtro-mp-limpar" class="discreto">Limpar</button>
+      </div>
+    </div>
+
+    <!-- KPIs do Ministério Público -->
+    <div class="tiras" id="mp-kpis" style="margin-top: 14px;">
+      <div class="tira">
+        <span>Membros Mapeados</span>
+        <div style="display:flex; flex-direction:column; align-items:flex-end">
+          <strong style="font-size:1.15rem; color:var(--realce, #38bdf8)" id="mp-kpi-total">—</strong>
+          <span style="font-size:0.82rem; color:var(--texto-fraco); margin-top:2px">promotores e procuradores</span>
+        </div>
+      </div>
+      <div class="tira">
+        <span>Folha Mensal Estimada</span>
+        <div style="display:flex; flex-direction:column; align-items:flex-end">
+          <strong style="font-size:1.15rem" id="mp-kpi-folha">—</strong>
+          <span style="font-size:0.82rem; color:var(--texto-fraco); margin-top:2px">subsídios e adicionais</span>
+        </div>
+      </div>
+      <div class="tira">
+        <span>Remuneração Líquida Média</span>
+        <div style="display:flex; flex-direction:column; align-items:flex-end">
+          <strong style="font-size:1.15rem; color:var(--calmo, #10b981)" id="mp-kpi-media">—</strong>
+          <span style="font-size:0.82rem; color:var(--texto-fraco); margin-top:2px">média apurada por membro</span>
+        </div>
+      </div>
+      <div class="tira">
+        <span>Volume de Penduricalhos</span>
+        <div style="display:flex; flex-direction:column; align-items:flex-end">
+          <strong style="font-size:1.15rem; color:var(--alerta, #f59e0b)" id="mp-kpi-penduricalhos">—</strong>
+          <span style="font-size:0.82rem; color:var(--texto-fraco); margin-top:2px">indenizações e gratificações</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabela de Membros do MP -->
+    <div class="cartao" style="margin-top: 16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px">
+        <h2>⚖️ Procuradores e Promotores de Justiça</h2>
+        <span class="badge-metodo" id="mp-total-filtrado">Carregando...</span>
+      </div>
+      <p class="rodape-mapa" style="margin-top:-4px; margin-bottom:12px">
+        Dados do Conselho Nacional do Ministério Público (CNMP) e das Procuradorias-Gerais. Clique em "Detalhar" para ver a composição salarial completa.
+      </p>
+
+      <div class="rolagem">
+        <table class="tabela-dados" id="tabela-mp">
+          <thead>
+            <tr>
+              <th>Nome & Lotação</th>
+              <th>Cargo & Grau</th>
+              <th>Órgão / Ramo</th>
+              <th class="num">Subsídio Base</th>
+              <th class="num">Penduricalhos</th>
+              <th class="num">Remuneração Líquida</th>
+              <th style="width:90px">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tabela-mp-corpo">
+            <tr><td colspan="7" class="carregando">Carregando dados...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Modal de Detalhe do Membro do MP -->
+    <div id="modal-mp-detalhe" class="modal" hidden style="position:fixed; inset:0; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; z-index:999">
+      <div class="cartao" style="max-width:650px; width:90%; max-height:85vh; overflow-y:auto; position:relative; background:var(--superficie)">
+        <button id="modal-mp-fechar" style="position:absolute; right:16px; top:16px; border:none; background:none; font-size:1.4rem; cursor:pointer; color:var(--texto)">✖</button>
+        <div id="modal-mp-corpo"></div>
       </div>
     </div>
   </section>

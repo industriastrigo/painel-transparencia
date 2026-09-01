@@ -9,6 +9,7 @@ from src.nucleo.normalizadores import (
     gerar_cod_politico_interno,
     gerar_cod_magistrado_interno,
     gerar_cod_ministro_estado_interno,
+    gerar_cod_membro_mp_interno,
 )
 
 
@@ -84,3 +85,9 @@ def test_gerar_cod_magistrado_interno():
 def test_gerar_cod_ministro_estado_interno():
     assert gerar_cod_ministro_estado_interno("Fazenda", "Fernando Haddad") == "MIN_EST_FAZENDA_FERNANDO_HADDAD"
     assert gerar_cod_ministro_estado_interno("Justiça e Segurança Pública") == "MIN_EST_JUSTICA_E_SEGURANCA_PUBLICA"
+
+
+def test_gerar_cod_membro_mp_interno():
+    assert gerar_cod_membro_mp_interno("Paulo Gustavo Gonet Branco", "MPF") == "MP_MPF_PAULO_GUSTAVO_GONET_BRANCO"
+    assert gerar_cod_membro_mp_interno("Mário Luiz Sarrubbo", "MPSP", uf="SP") == "MP_MPSP_MARIO_LUIZ_SARRUBBO"
+

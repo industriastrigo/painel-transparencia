@@ -191,3 +191,21 @@ def gerar_cod_ministro_estado_interno(
         slug_nome = gerar_slug_codigo(nome)
         return f"MIN_EST_{slug_pasta}_{slug_nome}"
     return f"MIN_EST_{slug_pasta}"
+
+
+def gerar_cod_membro_mp_interno(
+    nome: str | None,
+    ramo: str | None = None,
+    cargo: str | None = None,
+    uf: str | None = None
+) -> str:
+    """Gera o código interno padronizado para um membro do Ministério Público.
+
+    Exemplos:
+        ("Paulo Gonet Branco", "MPF") -> "MP_MPF_PAULO_GONET_BRANCO"
+        ("Mário Luiz Sarrubbo", "MPSP", uf="SP") -> "MP_MPSP_MARIO_LUIZ_SARRUBBO"
+    """
+    slug_nome = gerar_slug_codigo(nome or "DESCONHECIDO")
+    slug_ramo = gerar_slug_codigo(ramo or (f"MPE_{uf}" if uf else "MP"))
+    return f"MP_{slug_ramo}_{slug_nome}"
+

@@ -18,6 +18,7 @@ from ..nucleo.normalizadores import (
     gerar_cod_magistrado_interno,
     gerar_cod_cargo_interno,
     gerar_cod_ministro_estado_interno,
+    gerar_cod_membro_mp_interno,
 )
 from ..nucleo.registro import obter as obter_log
 
@@ -911,6 +912,43 @@ DERIVADAS = {
                m.url_foto
           FROM dim_magistrado m
     """,
+    # Membros do Ministério Público (MPU e MPEs / CNMP)
+    "vw_membro_mp": """
+        SELECT m.sk,
+               COALESCE(gerar_cod_membro_mp(m.nome, m.ramo), m.sk) AS cod_membro_mp_interno,
+               COALESCE(gerar_cod_cargo(m.cargo), m.cargo) AS cod_cargo_interno,
+               m.id_origem,
+               m.nome AS nome_extraido,
+               normalizar_nome(m.nome) AS nome_formatado,
+               normalizar_nome(m.nome) AS nome,
+               m.cargo,
+               normalizar_nome(m.cargo_descricao) AS cargo_descricao,
+               m.orgao_mp,
+               m.ramo,
+               m.grau,
+               m.sigla_uf,
+               normalizar_nome(m.lotacao) AS lotacao,
+               m.data_posse,
+               m.situacao,
+               m.url_foto
+          FROM dim_membro_mp m
+    """,
+    "vw_remuneracao_mp": """
+        SELECT r.sk,
+               r.sk_membro_mp,
+               r.ano,
+               r.mes,
+               COALESCE(r.subsidio, 0.0) AS subsidio,
+               COALESCE(r.vantagens_pessoais, 0.0) AS vantagens_pessoais,
+               COALESCE(r.indenizacoes, 0.0) AS indenizacoes,
+               COALESCE(r.gratificacoes, 0.0) AS gratificacoes,
+               COALESCE(r.total_bruto, 0.0) AS total_bruto,
+               COALESCE(r.retencao_teto, 0.0) AS retencao_teto,
+               COALESCE(r.descontos_legais, 0.0) AS descontos_legais,
+               COALESCE(r.total_liquido, 0.0) AS total_liquido,
+               (COALESCE(r.indenizacoes, 0.0) + COALESCE(r.gratificacoes, 0.0)) AS penduricalhos
+          FROM fato_remuneracao_mp r
+    """,
     # Subsídio vigente = a linha de vigência mais recente de cada cargo.
     "vw_subsidio_vigente": """
         SELECT cod_cargo, vigencia_inicio, valor_mensal, norma, url_norma,
@@ -1046,6 +1084,10 @@ def _udf_gerar_cod_ministro(pasta: str, nome: str) -> str:
     return gerar_cod_ministro_estado_interno(pasta, nome)
 
 
+def _udf_gerar_cod_membro_mp(nome: str, ramo: str) -> str:
+    return gerar_cod_membro_mp_interno(nome, ramo)
+
+
 def criar(con: duckdb.DuckDBPyConnection) -> list[str]:
     criadas = []
 
@@ -1057,6 +1099,7 @@ def criar(con: duckdb.DuckDBPyConnection) -> list[str]:
         con.create_function("gerar_cod_magistrado", _udf_gerar_cod_magistrado)
         con.create_function("gerar_cod_cargo", _udf_gerar_cod_cargo)
         con.create_function("gerar_cod_ministro", _udf_gerar_cod_ministro)
+        con.create_function("gerar_cod_membro_mp", _udf_gerar_cod_membro_mp)
     except Exception as erro_udf:
         log.debug("UDFs já registradas ou aviso: %s", erro_udf)
 

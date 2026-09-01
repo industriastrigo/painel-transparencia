@@ -145,6 +145,29 @@ dim_magistrado = _registrar(Tabela(
     ),
 ))
 
+dim_membro_mp = _registrar(Tabela(
+    nome="dim_membro_mp",
+    camada="dim",
+    campos_pk=("sk",),
+    descricao="Promotores e Procuradores de Justiça do Ministério Público (MPU e MPEs / CNMP).",
+    cadencia="mensal",
+    colunas=(
+        ("sk", "VARCHAR"),
+        ("id_origem", "VARCHAR"),
+        ("nome", "VARCHAR"),
+        ("cargo", "VARCHAR"),
+        ("cargo_descricao", "VARCHAR"),
+        ("orgao_mp", "VARCHAR"),
+        ("ramo", "VARCHAR"),
+        ("grau", "VARCHAR"),
+        ("sigla_uf", "VARCHAR"),
+        ("lotacao", "VARCHAR"),
+        ("data_posse", "VARCHAR"),
+        ("situacao", "VARCHAR"),
+        ("url_foto", "VARCHAR"),
+    ),
+))
+
 # --------------------------------------------------------------- fatos
 
 fato_remuneracao_magistrado = _registrar(Tabela(
@@ -157,6 +180,29 @@ fato_remuneracao_magistrado = _registrar(Tabela(
     colunas=(
         ("sk", "VARCHAR"),
         ("sk_magistrado", "VARCHAR"),
+        ("ano", "INTEGER"),
+        ("mes", "INTEGER"),
+        ("subsidio", "DOUBLE"),
+        ("vantagens_pessoais", "DOUBLE"),
+        ("indenizacoes", "DOUBLE"),
+        ("gratificacoes", "DOUBLE"),
+        ("total_bruto", "DOUBLE"),
+        ("retencao_teto", "DOUBLE"),
+        ("descontos_legais", "DOUBLE"),
+        ("total_liquido", "DOUBLE"),
+    ),
+))
+
+fato_remuneracao_mp = _registrar(Tabela(
+    nome="fato_remuneracao_mp",
+    camada="fato",
+    campos_pk=("sk_membro_mp", "ano", "mes"),
+    particoes=("ano",),
+    descricao="Folha de pagamento detalhada dos membros do Ministério Público (CNMP).",
+    cadencia="mensal",
+    colunas=(
+        ("sk", "VARCHAR"),
+        ("sk_membro_mp", "VARCHAR"),
         ("ano", "INTEGER"),
         ("mes", "INTEGER"),
         ("subsidio", "DOUBLE"),
