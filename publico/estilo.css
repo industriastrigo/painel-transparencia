@@ -1859,3 +1859,56 @@ a:hover { color: var(--realce-vivo); }
   font-size: 1.05rem;
 }
 
+/* ------------------------------------------------------------------ Tiras / Cards KPI */
+.tiras {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  margin: 14px 0;
+}
+
+.tira {
+  background: var(--superficie-2, #202028);
+  border: 1px solid var(--borda, #2e2e38);
+  border-radius: 8px;
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.tira::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--realce, #38bdf8);
+}
+
+.tira span {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--texto-sutil, #888);
+}
+
+.tira strong, .tira .valor {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--texto, #fff);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+.tira .detalhe {
+  font-size: 0.78rem;
+  color: var(--texto-fraco, #aaa);
+  margin-top: 2px;
+}
+
+

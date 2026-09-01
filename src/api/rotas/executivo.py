@@ -380,15 +380,23 @@ def executivo_mandato(esfera: str = "estadual", sigla_uf: str = "SP",
         "cod_ibge": cod_ibge_busca,
         "ente_nome": ente_nome,
         "sigla_uf": uf_busca,
+        "ente": {
+            "nome": ente_nome,
+            "sigla_uf": uf_busca,
+        },
         "ano": ano_alvo,
+        "ano_selecionado": ano_alvo,
+        "ano_atual": item_ano,
+        "resultado_ano": item_ano,
         "anos_disponiveis": anos_disponiveis,
         "mandatos_disponiveis": mandatos_disponiveis,
         "governante": governante,
-        "resultado_ano": item_ano,
         "gastos_por_funcao": funcoes,
+        "despesas_funcao": funcoes,
         "serie_anual": serie_anual,
         "lrf": lrf
     }
+
 
 
 @router.get("/api/executivo/cartoes")
@@ -396,7 +404,7 @@ def executivo_cartoes(ano: int | None = None, orgao: str | None = None, limite: 
     """Gastos do Cartão de Pagamento do Governo Federal (CPGF)."""
     if ano is None:
         ultimo = _consultar("SELECT MAX(ano) AS ano FROM vw_cartao_corporativo")
-        ano = int(ultimo[0]["ano"]) if ultimo and ultimo[0].get("ano") is not None else None
+        ano = int(ultimo[0]["ano"]) if ultimo and ultimo[0].get("ano") is not None else 2026
 
     condicoes = []
     parametros: list[Any] = []
@@ -412,6 +420,7 @@ def executivo_cartoes(ano: int | None = None, orgao: str | None = None, limite: 
     totais = _consultar(f"""
         SELECT COUNT(*) AS total_transacoes,
                SUM(valor) AS total_gasto,
+               COUNT(DISTINCT nome_orgao) AS total_orgaos,
                SUM(valor) FILTER (
                  WHERE nome_orgao ILIKE '%Presidência da República%'
                     OR nome_orgao ILIKE '%Presidencia da Republica%'
@@ -421,22 +430,27 @@ def executivo_cartoes(ano: int | None = None, orgao: str | None = None, limite: 
     """, parametros)
 
     por_orgao = _consultar(f"""
-        SELECT nome_orgao, COUNT(*) AS transacoes, SUM(valor) AS total_gasto
+        SELECT nome_orgao, nome_orgao AS nome, COUNT(*) AS transacoes,
+               SUM(valor) AS total_gasto, SUM(valor) AS valor
           FROM vw_cartao_corporativo {onde}
          GROUP BY nome_orgao ORDER BY total_gasto DESC LIMIT 15
     """, parametros)
 
     por_favorecido = _consultar(f"""
-        SELECT nome_favorecido, cnpj_cpf_favorecido,
-               COUNT(*) AS transacoes, SUM(valor) AS total_gasto
+        SELECT nome_favorecido, nome_favorecido AS nome,
+               cnpj_cpf_favorecido, cnpj_cpf_favorecido AS cnpj_cpf,
+               COUNT(*) AS transacoes, SUM(valor) AS total_gasto, SUM(valor) AS valor
           FROM vw_cartao_corporativo {onde}
          GROUP BY nome_favorecido, cnpj_cpf_favorecido
          ORDER BY total_gasto DESC LIMIT 20
     """, parametros)
 
     maiores_gastos = _consultar(f"""
-        SELECT data_transacao, nome_orgao, nome_portador,
-               nome_favorecido, cnpj_cpf_favorecido, tipo_cartao, valor
+        SELECT data_transacao, data_transacao AS data,
+               nome_orgao, nome_orgao AS orgao,
+               nome_portador, nome_portador AS portador,
+               nome_favorecido, nome_favorecido AS favorecido,
+               cnpj_cpf_favorecido, tipo_cartao, tipo_cartao AS tipo, valor
           FROM vw_cartao_corporativo {onde}
          ORDER BY valor DESC LIMIT {int(limite)}
     """, parametros)
@@ -458,9 +472,13 @@ def executivo_cartoes(ano: int | None = None, orgao: str | None = None, limite: 
         "total_gasto": float(tot.get("total_gasto") or 0.0),
         "total_presidencia": float(tot.get("total_presidencia") or 0.0),
         "total_transacoes": int(tot.get("total_transacoes") or 0),
+        "total_orgaos": int(tot.get("total_orgaos") or 0),
         "por_orgao": por_orgao,
+        "orgaos": por_orgao,
         "por_favorecido": por_favorecido,
+        "favorecidos": por_favorecido,
         "maiores_gastos": maiores_gastos,
+        "transacoes": maiores_gastos,
         "serie_anual": serie_anual,
     }
 
@@ -470,7 +488,7 @@ def executivo_viagens(ano: int | None = None, orgao: str | None = None, limite: 
     """Viagens a serviço, diárias e passagens do Governo Federal (PCDP / CGU)."""
     if ano is None:
         ultimo = _consultar("SELECT MAX(ano) AS ano FROM vw_viagem_servico")
-        ano = int(ultimo[0]["ano"]) if ultimo and ultimo[0].get("ano") is not None else None
+        ano = int(ultimo[0]["ano"]) if ultimo and ultimo[0].get("ano") is not None else 2026
 
     condicoes = []
     parametros: list[Any] = []
@@ -492,23 +510,27 @@ def executivo_viagens(ano: int | None = None, orgao: str | None = None, limite: 
     """, parametros)
 
     por_orgao = _consultar(f"""
-        SELECT nome_orgao, COUNT(*) AS viagens,
-               SUM(valor_diarias) AS total_diarias,
-               SUM(valor_passagens) AS total_passagens,
-               SUM(valor_total) AS total_gasto
+        SELECT nome_orgao, nome_orgao AS orgao, COUNT(*) AS viagens,
+               SUM(valor_diarias) AS total_diarias, SUM(valor_diarias) AS diarias,
+               SUM(valor_passagens) AS total_passagens, SUM(valor_passagens) AS passagens,
+               SUM(valor_total) AS total_gasto, SUM(valor_total) AS valor
           FROM vw_viagem_servico {onde}
          GROUP BY nome_orgao ORDER BY total_gasto DESC LIMIT 15
     """, parametros)
 
     por_destino = _consultar(f"""
-        SELECT destino, COUNT(*) AS viagens, SUM(valor_total) AS total_gasto
+        SELECT destino, COUNT(*) AS viagens, SUM(valor_total) AS total_gasto, SUM(valor_total) AS valor
           FROM vw_viagem_servico {onde}
          GROUP BY destino ORDER BY total_gasto DESC LIMIT 20
     """, parametros)
 
     maiores_viagens = _consultar(f"""
-        SELECT data_inicio, data_fim, nome_orgao, nome_viajante, cargo_viajante,
-               origem, destino, motivo, valor_diarias, valor_passagens, valor_total
+        SELECT data_inicio, data_fim, nome_orgao, nome_orgao AS orgao,
+               nome_viajante, nome_viajante AS nome, cargo_viajante, cargo_viajante AS cargo,
+               origem, destino, motivo,
+               valor_diarias, valor_diarias AS diarias,
+               valor_passagens, valor_passagens AS passagens,
+               valor_total, valor_total AS valor
           FROM vw_viagem_servico {onde}
          ORDER BY valor_total DESC LIMIT {int(limite)}
     """, parametros)
@@ -532,18 +554,21 @@ def executivo_viagens(ano: int | None = None, orgao: str | None = None, limite: 
         "total_passagens": float(tot.get("total_passagens") or 0.0),
         "total_gasto": float(tot.get("total_gasto") or 0.0),
         "por_orgao": por_orgao,
+        "orgaos": por_orgao,
         "por_destino": por_destino,
+        "destinos": por_destino,
         "maiores_viagens": maiores_viagens,
+        "maiores": maiores_viagens,
         "serie_anual": serie_anual,
     }
 
 
 @router.get("/api/executivo/contratos")
-def executivo_contratos(ano: int | None = None, orgao: str | None = None, limite: int = 50):
+def executivo_contratos(esfera: str | None = None, sigla_uf: str | None = None, ano: int | None = None, orgao: str | None = None, limite: int = 50):
     """Contratos públicos, licitações, dispensas e fornecedores (PNCP / CGU)."""
     if ano is None:
         ultimo = _consultar("SELECT MAX(ano) AS ano FROM vw_contrato_governo")
-        ano = int(ultimo[0]["ano"]) if ultimo and ultimo[0].get("ano") is not None else None
+        ano = int(ultimo[0]["ano"]) if ultimo and ultimo[0].get("ano") is not None else 2026
 
     condicoes = []
     parametros: list[Any] = []
@@ -559,28 +584,40 @@ def executivo_contratos(ano: int | None = None, orgao: str | None = None, limite
     totais = _consultar(f"""
         SELECT COUNT(*) AS total_contratos,
                SUM(valor_atualizado) AS total_contratado,
-               SUM(valor_inicial) AS total_inicial
+               SUM(valor_inicial) AS total_inicial,
+               COUNT(*) FILTER (
+                   WHERE modalidade_licitacao ILIKE '%Dispensa%'
+                      OR modalidade_licitacao ILIKE '%Inexigibilidade%'
+               ) AS dispensas_inexigibilidades
           FROM vw_contrato_governo {onde}
     """, parametros)
 
     por_modalidade = _consultar(f"""
-        SELECT modalidade_licitacao, COUNT(*) AS contratos,
-               SUM(valor_atualizado) AS total_contratado
+        SELECT modalidade_licitacao, modalidade_licitacao AS modalidade, COUNT(*) AS contratos,
+               SUM(valor_atualizado) AS total_contratado, SUM(valor_atualizado) AS valor
           FROM vw_contrato_governo {onde}
          GROUP BY modalidade_licitacao ORDER BY total_contratado DESC
     """, parametros)
 
     por_fornecedor = _consultar(f"""
-        SELECT nome_fornecedor, cnpj_fornecedor, COUNT(*) AS contratos,
-               SUM(valor_atualizado) AS total_contratado
+        SELECT nome_fornecedor, nome_fornecedor AS fornecedor,
+               cnpj_fornecedor, cnpj_fornecedor AS cnpj, COUNT(*) AS contratos,
+               SUM(valor_atualizado) AS total_contratado, SUM(valor_atualizado) AS valor
           FROM vw_contrato_governo {onde}
          GROUP BY nome_fornecedor, cnpj_fornecedor ORDER BY total_contratado DESC LIMIT 20
     """, parametros)
 
     maiores_contratos = _consultar(f"""
-        SELECT id_contrato, numero_contrato, nome_orgao, nome_fornecedor, cnpj_fornecedor,
-               modalidade_licitacao, objeto, valor_inicial, valor_atualizado,
-               data_inicio_vigencia, data_fim_vigencia
+        SELECT id_contrato, id_contrato AS id,
+               numero_contrato, numero_contrato AS numero,
+               nome_orgao, nome_orgao AS orgao,
+               nome_fornecedor, nome_fornecedor AS fornecedor,
+               cnpj_fornecedor, cnpj_fornecedor AS cnpj,
+               modalidade_licitacao, modalidade_licitacao AS modalidade,
+               objeto, valor_inicial,
+               valor_atualizado, valor_atualizado AS valor,
+               data_inicio_vigencia, data_inicio_vigencia AS data_inicio,
+               data_fim_vigencia, data_fim_vigencia AS data_fim
           FROM vw_contrato_governo {onde}
          ORDER BY valor_atualizado DESC LIMIT {int(limite)}
     """, parametros)
@@ -594,11 +631,18 @@ def executivo_contratos(ano: int | None = None, orgao: str | None = None, limite
         "ano": ano,
         "anos_disponiveis": anos_disponiveis,
         "total_contratos": int(tot.get("total_contratos") or 0),
+        "quantidade_contratos": int(tot.get("total_contratos") or 0),
         "total_contratado": float(tot.get("total_contratado") or 0.0),
         "total_inicial": float(tot.get("total_inicial") or 0.0),
+        "dispensas_inexigibilidades": int(tot.get("dispensas_inexigibilidades") or 0),
         "por_modalidade": por_modalidade,
+        "modalidades": por_modalidade,
         "por_fornecedor": por_fornecedor,
+        "fornecedores": por_fornecedor,
         "maiores_contratos": maiores_contratos,
+        "maiores": maiores_contratos,
     }
+
+
 
 

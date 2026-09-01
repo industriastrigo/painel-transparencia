@@ -235,22 +235,26 @@ export async function carregarCartoesExecutivo(esfera, uf, codIbge, ano) {
         <div class="tira"><span>Órgãos Portadores</span><strong>${numero.format(d.total_orgaos || 0)}</strong></div>
       `;
     }
+    const listaFav = d.favorecidos || d.por_favorecido || [];
+    const listaOrg = d.orgaos || d.por_orgao || [];
+    const listaTrans = d.transacoes || d.maiores_gastos || [];
+
     if (alvoFav) {
-      alvoFav.innerHTML = (d.favorecidos || []).length ? `
+      alvoFav.innerHTML = listaFav.length ? `
         <table><thead><tr><th>Estabelecimento</th><th>Total Gasto</th></tr></thead><tbody>
-        ${d.favorecidos.slice(0, 8).map((f) => `<tr><td>${txt(f.nome)}</td><td class="valor">${dinheiro.format(f.valor)}</td></tr>`).join('')}
+        ${listaFav.slice(0, 8).map((f) => `<tr><td>${txt(f.nome || f.nome_favorecido)}</td><td class="valor">${dinheiro.format(f.valor || f.total_gasto || 0)}</td></tr>`).join('')}
         </tbody></table>` : '<p class="vazio">Sem dados de favorecidos.</p>';
     }
     if (alvoOrg) {
-      alvoOrg.innerHTML = (d.orgaos || []).length ? `
+      alvoOrg.innerHTML = listaOrg.length ? `
         <table><thead><tr><th>Órgão / Ministério</th><th>Total Gasto</th></tr></thead><tbody>
-        ${d.orgaos.slice(0, 8).map((o) => `<tr><td>${txt(o.nome)}</td><td class="valor">${dinheiro.format(o.valor)}</td></tr>`).join('')}
+        ${listaOrg.slice(0, 8).map((o) => `<tr><td>${txt(o.nome || o.nome_orgao)}</td><td class="valor">${dinheiro.format(o.valor || o.total_gasto || 0)}</td></tr>`).join('')}
         </tbody></table>` : '<p class="vazio">Sem dados de órgãos.</p>';
     }
     if (alvoTrans) {
-      alvoTrans.innerHTML = (d.transacoes || []).length ? `
+      alvoTrans.innerHTML = listaTrans.length ? `
         <table><thead><tr><th>Data</th><th>Órgão</th><th>Favorecido</th><th>Valor</th></tr></thead><tbody>
-        ${d.transacoes.slice(0, 10).map((t) => `<tr><td>${formatarData(t.data)}</td><td>${txt(t.orgao)}</td><td>${txt(t.favorecido)}</td><td class="valor">${dinheiro.format(t.valor)}</td></tr>`).join('')}
+        ${listaTrans.slice(0, 10).map((t) => `<tr><td>${formatarData(t.data || t.data_transacao)}</td><td>${txt(t.orgao || t.nome_orgao)}</td><td>${txt(t.favorecido || t.nome_favorecido)}</td><td class="valor">${dinheiro.format(t.valor || 0)}</td></tr>`).join('')}
         </tbody></table>` : '<p class="vazio">Sem dados de transações.</p>';
     }
   } catch (e) {
@@ -273,27 +277,31 @@ export async function carregarViagensExecutivo(ano, orgao) {
     const d = await buscar('/api/executivo/viagens', { ano: ano || undefined, orgao: orgao || undefined });
     if (alvoTopo) {
       alvoTopo.innerHTML = `
-        <div class="tira"><span>Total em Viagens</span><strong>${dinheiro.format(d.total_viagens || 0)}</strong></div>
+        <div class="tira"><span>Total em Viagens</span><strong>${dinheiro.format(d.total_gasto || d.total_viagens || 0)}</strong></div>
         <div class="tira"><span>Passagens Aéreas</span><strong>${dinheiro.format(d.total_passagens || 0)}</strong></div>
         <div class="tira"><span>Diárias Pagas</span><strong>${dinheiro.format(d.total_diarias || 0)}</strong></div>
       `;
     }
+    const listaDest = d.destinos || d.por_destino || [];
+    const listaOrg = d.orgaos || d.por_orgao || [];
+    const listaMaior = d.maiores || d.maiores_viagens || [];
+
     if (alvoDest) {
-      alvoDest.innerHTML = (d.destinos || []).length ? `
+      alvoDest.innerHTML = listaDest.length ? `
         <table><thead><tr><th>Destino</th><th>Total Gasto</th></tr></thead><tbody>
-        ${d.destinos.slice(0, 8).map((x) => `<tr><td>${txt(x.destino)}</td><td class="valor">${dinheiro.format(x.valor)}</td></tr>`).join('')}
+        ${listaDest.slice(0, 8).map((x) => `<tr><td>${txt(x.destino)}</td><td class="valor">${dinheiro.format(x.valor || x.total_gasto || 0)}</td></tr>`).join('')}
         </tbody></table>` : '<p class="vazio">Sem dados de destinos.</p>';
     }
     if (alvoOrg) {
-      alvoOrg.innerHTML = (d.orgaos || []).length ? `
+      alvoOrg.innerHTML = listaOrg.length ? `
         <table><thead><tr><th>Órgão</th><th>Total</th></tr></thead><tbody>
-        ${d.orgaos.slice(0, 8).map((x) => `<tr><td>${txt(x.orgao)}</td><td class="valor">${dinheiro.format(x.valor)}</td></tr>`).join('')}
+        ${listaOrg.slice(0, 8).map((x) => `<tr><td>${txt(x.orgao || x.nome_orgao)}</td><td class="valor">${dinheiro.format(x.valor || x.total_gasto || 0)}</td></tr>`).join('')}
         </tbody></table>` : '<p class="vazio">Sem dados de viagens por órgão.</p>';
     }
     if (alvoMaior) {
-      alvoMaior.innerHTML = (d.maiores || []).length ? `
+      alvoMaior.innerHTML = listaMaior.length ? `
         <table><thead><tr><th>Beneficiário</th><th>Destino</th><th>Motivo</th><th>Total</th></tr></thead><tbody>
-        ${d.maiores.slice(0, 10).map((m) => `<tr><td>${txt(m.nome)}</td><td>${txt(m.destino)}</td><td>${txt(m.motivo)}</td><td class="valor">${dinheiro.format(m.valor)}</td></tr>`).join('')}
+        ${listaMaior.slice(0, 10).map((m) => `<tr><td>${txt(m.nome || m.nome_viajante)}</td><td>${txt(m.destino)}</td><td>${txt(m.motivo)}</td><td class="valor">${dinheiro.format(m.valor || m.valor_total || 0)}</td></tr>`).join('')}
         </tbody></table>` : '<p class="vazio">Sem viagens registradas.</p>';
     }
   } catch (e) {
@@ -321,32 +329,37 @@ export async function carregarContratosExecutivo(esfera, uf, codIbge, ano) {
     if (alvoTopo) {
       alvoTopo.innerHTML = `
         <div class="tira"><span>Total Contratado</span><strong>${dinheiro.format(d.total_contratado || 0)}</strong></div>
-        <div class="tira"><span>Contratos Firmados</span><strong>${numero.format(d.quantidade_contratos || 0)}</strong></div>
+        <div class="tira"><span>Contratos Firmados</span><strong>${numero.format(d.quantidade_contratos || d.total_contratos || 0)}</strong></div>
         <div class="tira"><span>Dispensas / Inexigibilidades</span><strong>${numero.format(d.dispensas_inexigibilidades || 0)}</strong></div>
       `;
     }
+    const listaForn = d.fornecedores || d.por_fornecedor || [];
+    const listaMod = d.modalidades || d.por_modalidade || [];
+    const listaMaior = d.maiores || d.maiores_contratos || [];
+
     if (alvoForn) {
-      alvoForn.innerHTML = (d.fornecedores || []).length ? `
+      alvoForn.innerHTML = listaForn.length ? `
         <table><thead><tr><th>Fornecedor</th><th>Total Contratado</th></tr></thead><tbody>
-        ${d.fornecedores.slice(0, 8).map((f) => `<tr><td>${txt(f.fornecedor)}</td><td class="valor">${dinheiro.format(f.valor)}</td></tr>`).join('')}
+        ${listaForn.slice(0, 8).map((f) => `<tr><td>${txt(f.fornecedor || f.nome_fornecedor)}</td><td class="valor">${dinheiro.format(f.valor || f.total_contratado || 0)}</td></tr>`).join('')}
         </tbody></table>` : '<p class="vazio">Sem dados de fornecedores.</p>';
     }
     if (alvoMod) {
-      alvoMod.innerHTML = (d.modalidades || []).length ? `
+      alvoMod.innerHTML = listaMod.length ? `
         <table><thead><tr><th>Modalidade</th><th>Total</th></tr></thead><tbody>
-        ${d.modalidades.slice(0, 8).map((m) => `<tr><td>${txt(m.modalidade)}</td><td class="valor">${dinheiro.format(m.valor)}</td></tr>`).join('')}
+        ${listaMod.slice(0, 8).map((m) => `<tr><td>${txt(m.modalidade || m.modalidade_licitacao)}</td><td class="valor">${dinheiro.format(m.valor || m.total_contratado || 0)}</td></tr>`).join('')}
         </tbody></table>` : '<p class="vazio">Sem dados de modalidades.</p>';
     }
     if (alvoMaior) {
-      alvoMaior.innerHTML = (d.maiores || []).length ? `
+      alvoMaior.innerHTML = listaMaior.length ? `
         <table><thead><tr><th>Objeto</th><th>Fornecedor</th><th>Vigência</th><th>Valor</th></tr></thead><tbody>
-        ${d.maiores.slice(0, 10).map((c) => `<tr><td>${txt(c.objeto)}</td><td>${txt(c.fornecedor)}</td><td>${formatarData(c.data_inicio)} a ${formatarData(c.data_fim)}</td><td class="valor">${dinheiro.format(c.valor)}</td></tr>`).join('')}
+        ${listaMaior.slice(0, 10).map((c) => `<tr><td>${txt(c.objeto)}</td><td>${txt(c.fornecedor || c.nome_fornecedor)}</td><td>${formatarData(c.data_inicio || c.data_inicio_vigencia)} a ${formatarData(c.data_fim || c.data_fim_vigencia)}</td><td class="valor">${dinheiro.format(c.valor || c.valor_atualizado || 0)}</td></tr>`).join('')}
         </tbody></table>` : '<p class="vazio">Sem contratos registrados.</p>';
     }
   } catch (e) {
     if (alvoTopo) alvoTopo.innerHTML = falha(e.message);
   }
 }
+
 
 export function configurarEventosExecutivo() {
   $('#executivo-esfera')?.addEventListener('change', (e) => {
