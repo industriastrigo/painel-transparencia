@@ -25,7 +25,7 @@ export async function popularMunicipiosExecutivo(uf) {
 }
 
 export async function carregarExecutivo() {
-  const esfera = $('#executivo-esfera')?.value || 'estadual';
+  const esfera = $('#executivo-esfera')?.value || 'geral';
   const uf = $('#executivo-uf')?.value || 'SP';
   const codIbge = $('#executivo-municipio')?.value || '';
   const ano = $('#executivo-ano')?.value ? Number($('#executivo-ano').value) : null;
@@ -36,6 +36,14 @@ export async function carregarExecutivo() {
   const alvoFuncao = $('#executivo-gastos-funcao');
   const alvoSerie = $('#executivo-serie-anual');
 
+  const titFiscal = $('#executivo-titulo-fiscal');
+  const titCartoes = $('#executivo-titulo-cartoes');
+  const subCartoes = $('#executivo-subtitulo-cartoes');
+  const titViagens = $('#executivo-titulo-viagens');
+  const subViagens = $('#executivo-subtitulo-viagens');
+  const titContratos = $('#executivo-titulo-contratos');
+  const subContratos = $('#executivo-subtitulo-contratos');
+
   if (alvoGov) alvoGov.innerHTML = esqueleto(3);
   if (alvoSaldo) alvoSaldo.innerHTML = esqueleto(3);
   if (alvoLrf) alvoLrf.innerHTML = esqueleto(3);
@@ -45,37 +53,102 @@ export async function carregarExecutivo() {
   try {
     const d = await buscar('/api/executivo/mandato', {
       esfera,
-      sigla_uf: esfera !== 'federal' ? uf : 'BR',
+      sigla_uf: esfera === 'estadual' || esfera === 'municipal' ? uf : 'BR',
       cod_ibge: esfera === 'municipal' ? codIbge : undefined,
       ano: ano || undefined,
     });
 
-    // 1. Renderizar Governante
     const gov = d.governante;
+    const nomeEnte = d.ente?.nome || (esfera === 'federal' ? 'Brasil' : 'Estado de ' + uf);
+
+    // 1. Renderizar Topo / Governante
     if (alvoGov) {
-      if (!gov) {
-        alvoGov.innerHTML = '<p class="vazio">Sem dados de governante cadastrado no período.</p>';
+      if (esfera === 'geral') {
+        alvoGov.innerHTML = `
+          <div class="cartao" style="border-left: 4px solid var(--realce, #38bdf8); background: var(--superficie-2, #202028); padding: 18px 22px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px">
+              <div>
+                <span class="selo calmo" style="text-transform:uppercase; font-size:11px; letter-spacing:0.5px">VISÃO GERAL CONSOLIDADA</span>
+                <h2 style="margin:6px 0 3px 0; font-size:1.6rem; color:var(--texto, #fff)">Gastos do Poder Executivo</h2>
+                <p class="rodape-mapa" style="margin:0; font-size:0.92rem; color:var(--texto-sutil, #888)">
+                  Panorama consolidado das contas públicas, despesas executadas, contratos e suprimentos da União, dos 26 Estados, DF e Municípios.
+                </p>
+              </div>
+              <div style="text-align:right">
+                <span class="pe" style="display:block; color:var(--texto-fraco)">Abrangência do Painel</span>
+                <strong style="font-size:1.15rem; color:var(--realce, #38bdf8)">Todas as Esferas de Governo</strong>
+              </div>
+            </div>
+          </div>`;
+      } else if (!gov) {
+        alvoGov.innerHTML = `<p class="vazio">Sem dados de governante cadastrado no período para ${escapar(nomeEnte)}.</p>`;
       } else {
         const salario = aNumero(gov.salario);
         alvoGov.innerHTML = `
-          <div class="cartao" style="border-left: 4px solid var(--accent, #1a73e8); background: var(--superficie);">
+          <div class="cartao" style="border-left: 4px solid var(--realce, #38bdf8); background: var(--superficie); padding: 18px 22px;">
             <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px">
               <div>
                 <span class="selo calmo" style="text-transform:uppercase; font-size:11px; letter-spacing:0.5px">${escapar(gov.cargo || 'Governante')}</span>
-                <h2 style="margin:4px 0 2px 0; font-size:1.4rem">${txt(gov.nome)}</h2>
+                <h2 style="margin:4px 0 2px 0; font-size:1.45rem">${txt(gov.nome)}</h2>
                 <p class="rodape-mapa" style="margin:0">
                   ${gov.sigla_partido ? `<strong>${escapar(gov.sigla_partido)}</strong> · ` : ''}
-                  ${escapar(d.ente?.nome || '')} (${escapar(d.ente?.sigla_uf || '')}) · 
+                  ${escapar(nomeEnte)} (${escapar(d.ente?.sigla_uf || '')}) · 
                   Mandato: <strong>${escapar(gov.ano_inicio || '')} a ${escapar(gov.ano_fim || 'Atual')}</strong>
                 </p>
               </div>
               <div style="text-align:right">
                 <span class="pe" style="display:block; color:var(--texto-fraco)">Subsídio mensal do cargo</span>
-                <strong style="font-size:1.3rem; color:var(--texto)">${Number.isFinite(salario) ? dinheiroExato.format(salario) : '—'}</strong>
+                <strong style="font-size:1.35rem; color:var(--texto)">${Number.isFinite(salario) ? dinheiroExato.format(salario) : '—'}</strong>
                 ${gov.norma_salario ? `<p class="pe" style="margin:2px 0 0 0">${escapar(gov.norma_salario)}</p>` : ''}
               </div>
             </div>
           </div>`;
+      }
+    }
+
+    // Atualização dinâmica dos títulos das seções
+    if (titFiscal) {
+      titFiscal.textContent = esfera === 'geral'
+        ? `Resultado Fiscal Consolidado (${escapar(d.ano_selecionado)})`
+        : `Situação Orçamentária — ${nomeEnte} (${escapar(d.ano_selecionado)})`;
+    }
+
+    if (titCartoes) {
+      if (esfera === 'geral') {
+        titCartoes.textContent = '💳 Gastos com Cartões de Pagamento & Suprimentos do Poder Executivo';
+        if (subCartoes) subCartoes.textContent = 'Gastos efetuados com cartões de pagamento e suprimentos de fundos no Poder Executivo (Federal, Estadual e Municipal).';
+      } else if (esfera === 'federal') {
+        titCartoes.textContent = '💳 Cartão de Pagamento do Governo Federal (CPGF) — Presidência & Ministérios';
+        if (subCartoes) subCartoes.textContent = 'Gastos efetuados com o Cartão de Pagamento do Governo Federal pela Presidência da República e Ministérios.';
+      } else {
+        titCartoes.textContent = `💳 Cartões de Pagamento & Suprimentos — ${nomeEnte}${gov ? ' (' + gov.nome + ')' : ''}`;
+        if (subCartoes) subCartoes.textContent = `Despesas e suprimentos de fundos executados pelas Secretarias e órgãos de ${nomeEnte}.`;
+      }
+    }
+
+    if (titViagens) {
+      if (esfera === 'geral') {
+        titViagens.textContent = '✈️ Viagens a Serviço, Diárias & Passagens Oficiais do Poder Executivo';
+        if (subViagens) subViagens.textContent = 'Custos de passagens aéreas, diárias e hospedagem de comitivas e viagens oficiais de gestores públicos.';
+      } else if (esfera === 'federal') {
+        titViagens.textContent = '✈️ Viagens a Serviço (PCDP) — Presidência da República & Ministérios';
+        if (subViagens) subViagens.textContent = 'Custos de passagens aéreas, diárias e hospedagem de viagens oficiais de ministros e comitivas federais.';
+      } else {
+        titViagens.textContent = `✈️ Viagens Oficiais & Diárias — ${nomeEnte}`;
+        if (subViagens) subViagens.textContent = `Missões oficiais e diárias de viagens do ${gov ? gov.cargo + ' ' + gov.nome : 'Governo'} e Secretários de ${nomeEnte}.`;
+      }
+    }
+
+    if (titContratos) {
+      if (esfera === 'geral') {
+        titContratos.textContent = '📜 Grandes Contratos Públicos, Licitações & Fornecedores do Poder Executivo';
+        if (subContratos) subContratos.textContent = 'Contratos administrativos de grande porte e principais fornecedores do Poder Executivo.';
+      } else if (esfera === 'federal') {
+        titContratos.textContent = '📜 Contratos Públicos Federais (PNCP) — Governo Federal';
+        if (subContratos) subContratos.textContent = 'Contratos administrativos federais firmados, com destaque para dispensas, inexigibilidades e fornecedores.';
+      } else {
+        titContratos.textContent = `📜 Contratos Públicos & Licitações — ${nomeEnte}`;
+        if (subContratos) subContratos.textContent = `Contratos e fornecedores de infraestrutura, saúde, educação e serviços de ${nomeEnte}.`;
       }
     }
 
@@ -207,10 +280,10 @@ export async function carregarExecutivo() {
     if (alvoGov) alvoGov.innerHTML = falha(erro.message);
   }
 
-  // Carregar blocos federais (Cartões, Viagens e Contratos)
+  // Carregar blocos (Cartões, Viagens e Contratos) com o recorte selecionado
   await Promise.all([
     carregarCartoesExecutivo(esfera, uf, codIbge, ano),
-    carregarViagensExecutivo(ano),
+    carregarViagensExecutivo(esfera, uf, codIbge, ano),
     carregarContratosExecutivo(esfera, uf, codIbge, ano),
   ]);
 }
@@ -227,7 +300,12 @@ export async function carregarCartoesExecutivo(esfera, uf, codIbge, ano) {
   if (alvoTrans) alvoTrans.innerHTML = esqueleto(4);
 
   try {
-    const d = await buscar('/api/executivo/cartoes', { ano: ano || undefined });
+    const d = await buscar('/api/executivo/cartoes', {
+      esfera: esfera || undefined,
+      sigla_uf: esfera === 'estadual' || esfera === 'municipal' ? uf : undefined,
+      cod_ibge: esfera === 'municipal' ? codIbge : undefined,
+      ano: ano || undefined,
+    });
     if (alvoTopo) {
       alvoTopo.innerHTML = `
         <div class="tira"><span>Total Gasto no Cartão</span><strong>${dinheiro.format(d.total_gasto || 0)}</strong></div>
@@ -243,26 +321,26 @@ export async function carregarCartoesExecutivo(esfera, uf, codIbge, ano) {
       alvoFav.innerHTML = listaFav.length ? `
         <table><thead><tr><th>Estabelecimento</th><th>Total Gasto</th></tr></thead><tbody>
         ${listaFav.slice(0, 8).map((f) => `<tr><td>${txt(f.nome || f.nome_favorecido)}</td><td class="valor">${dinheiro.format(f.valor || f.total_gasto || 0)}</td></tr>`).join('')}
-        </tbody></table>` : '<p class="vazio">Sem dados de favorecidos.</p>';
+        </tbody></table>` : '<p class="vazio">Sem dados de favorecidos no recorte selecionado.</p>';
     }
     if (alvoOrg) {
       alvoOrg.innerHTML = listaOrg.length ? `
-        <table><thead><tr><th>Órgão / Ministério</th><th>Total Gasto</th></tr></thead><tbody>
+        <table><thead><tr><th>Órgão / Secretaria</th><th>Total Gasto</th></tr></thead><tbody>
         ${listaOrg.slice(0, 8).map((o) => `<tr><td>${txt(o.nome || o.nome_orgao)}</td><td class="valor">${dinheiro.format(o.valor || o.total_gasto || 0)}</td></tr>`).join('')}
-        </tbody></table>` : '<p class="vazio">Sem dados de órgãos.</p>';
+        </tbody></table>` : '<p class="vazio">Sem dados de órgãos no recorte selecionado.</p>';
     }
     if (alvoTrans) {
       alvoTrans.innerHTML = listaTrans.length ? `
         <table><thead><tr><th>Data</th><th>Órgão</th><th>Favorecido</th><th>Valor</th></tr></thead><tbody>
         ${listaTrans.slice(0, 10).map((t) => `<tr><td>${formatarData(t.data || t.data_transacao)}</td><td>${txt(t.orgao || t.nome_orgao)}</td><td>${txt(t.favorecido || t.nome_favorecido)}</td><td class="valor">${dinheiro.format(t.valor || 0)}</td></tr>`).join('')}
-        </tbody></table>` : '<p class="vazio">Sem dados de transações.</p>';
+        </tbody></table>` : '<p class="vazio">Sem dados de transações no recorte selecionado.</p>';
     }
   } catch (e) {
     if (alvoTopo) alvoTopo.innerHTML = falha(e.message);
   }
 }
 
-export async function carregarViagensExecutivo(ano, orgao) {
+export async function carregarViagensExecutivo(esfera, uf, codIbge, ano) {
   const alvoTopo = $('#executivo-topo-viagens');
   const alvoDest = $('#executivo-viagens-destinos');
   const alvoOrg = $('#executivo-viagens-orgaos');
@@ -274,7 +352,12 @@ export async function carregarViagensExecutivo(ano, orgao) {
   if (alvoMaior) alvoMaior.innerHTML = esqueleto(4);
 
   try {
-    const d = await buscar('/api/executivo/viagens', { ano: ano || undefined, orgao: orgao || undefined });
+    const d = await buscar('/api/executivo/viagens', {
+      esfera: esfera || undefined,
+      sigla_uf: esfera === 'estadual' || esfera === 'municipal' ? uf : undefined,
+      cod_ibge: esfera === 'municipal' ? codIbge : undefined,
+      ano: ano || undefined,
+    });
     if (alvoTopo) {
       alvoTopo.innerHTML = `
         <div class="tira"><span>Total em Viagens</span><strong>${dinheiro.format(d.total_gasto || d.total_viagens || 0)}</strong></div>
@@ -290,11 +373,11 @@ export async function carregarViagensExecutivo(ano, orgao) {
       alvoDest.innerHTML = listaDest.length ? `
         <table><thead><tr><th>Destino</th><th>Total Gasto</th></tr></thead><tbody>
         ${listaDest.slice(0, 8).map((x) => `<tr><td>${txt(x.destino)}</td><td class="valor">${dinheiro.format(x.valor || x.total_gasto || 0)}</td></tr>`).join('')}
-        </tbody></table>` : '<p class="vazio">Sem dados de destinos.</p>';
+        </tbody></table>` : '<p class="vazio">Sem dados de destinos no recorte selecionado.</p>';
     }
     if (alvoOrg) {
       alvoOrg.innerHTML = listaOrg.length ? `
-        <table><thead><tr><th>Órgão</th><th>Total</th></tr></thead><tbody>
+        <table><thead><tr><th>Órgão / Secretaria</th><th>Total</th></tr></thead><tbody>
         ${listaOrg.slice(0, 8).map((x) => `<tr><td>${txt(x.orgao || x.nome_orgao)}</td><td class="valor">${dinheiro.format(x.valor || x.total_gasto || 0)}</td></tr>`).join('')}
         </tbody></table>` : '<p class="vazio">Sem dados de viagens por órgão.</p>';
     }
@@ -302,7 +385,7 @@ export async function carregarViagensExecutivo(ano, orgao) {
       alvoMaior.innerHTML = listaMaior.length ? `
         <table><thead><tr><th>Beneficiário</th><th>Destino</th><th>Motivo</th><th>Total</th></tr></thead><tbody>
         ${listaMaior.slice(0, 10).map((m) => `<tr><td>${txt(m.nome || m.nome_viajante)}</td><td>${txt(m.destino)}</td><td>${txt(m.motivo)}</td><td class="valor">${dinheiro.format(m.valor || m.valor_total || 0)}</td></tr>`).join('')}
-        </tbody></table>` : '<p class="vazio">Sem viagens registradas.</p>';
+        </tbody></table>` : '<p class="vazio">Sem viagens registradas no recorte selecionado.</p>';
     }
   } catch (e) {
     if (alvoTopo) alvoTopo.innerHTML = falha(e.message);
@@ -323,7 +406,8 @@ export async function carregarContratosExecutivo(esfera, uf, codIbge, ano) {
   try {
     const d = await buscar('/api/executivo/contratos', {
       esfera: esfera || undefined,
-      sigla_uf: uf || undefined,
+      sigla_uf: esfera === 'estadual' || esfera === 'municipal' ? uf : undefined,
+      cod_ibge: esfera === 'municipal' ? codIbge : undefined,
       ano: ano || undefined,
     });
     if (alvoTopo) {
@@ -341,40 +425,44 @@ export async function carregarContratosExecutivo(esfera, uf, codIbge, ano) {
       alvoForn.innerHTML = listaForn.length ? `
         <table><thead><tr><th>Fornecedor</th><th>Total Contratado</th></tr></thead><tbody>
         ${listaForn.slice(0, 8).map((f) => `<tr><td>${txt(f.fornecedor || f.nome_fornecedor)}</td><td class="valor">${dinheiro.format(f.valor || f.total_contratado || 0)}</td></tr>`).join('')}
-        </tbody></table>` : '<p class="vazio">Sem dados de fornecedores.</p>';
+        </tbody></table>` : '<p class="vazio">Sem dados de fornecedores no recorte selecionado.</p>';
     }
     if (alvoMod) {
       alvoMod.innerHTML = listaMod.length ? `
         <table><thead><tr><th>Modalidade</th><th>Total</th></tr></thead><tbody>
         ${listaMod.slice(0, 8).map((m) => `<tr><td>${txt(m.modalidade || m.modalidade_licitacao)}</td><td class="valor">${dinheiro.format(m.valor || m.total_contratado || 0)}</td></tr>`).join('')}
-        </tbody></table>` : '<p class="vazio">Sem dados de modalidades.</p>';
+        </tbody></table>` : '<p class="vazio">Sem dados de modalidades no recorte selecionado.</p>';
     }
     if (alvoMaior) {
       alvoMaior.innerHTML = listaMaior.length ? `
         <table><thead><tr><th>Objeto</th><th>Fornecedor</th><th>Vigência</th><th>Valor</th></tr></thead><tbody>
         ${listaMaior.slice(0, 10).map((c) => `<tr><td>${txt(c.objeto)}</td><td>${txt(c.fornecedor || c.nome_fornecedor)}</td><td>${formatarData(c.data_inicio || c.data_inicio_vigencia)} a ${formatarData(c.data_fim || c.data_fim_vigencia)}</td><td class="valor">${dinheiro.format(c.valor || c.valor_atualizado || 0)}</td></tr>`).join('')}
-        </tbody></table>` : '<p class="vazio">Sem contratos registrados.</p>';
+        </tbody></table>` : '<p class="vazio">Sem contratos registrados no recorte selecionado.</p>';
     }
   } catch (e) {
     if (alvoTopo) alvoTopo.innerHTML = falha(e.message);
   }
 }
 
-
 export function configurarEventosExecutivo() {
   $('#executivo-esfera')?.addEventListener('change', (e) => {
     const esfera = e.target.value;
     const blocoUf = $('#bloco-executivo-uf');
     const blocoMun = $('#bloco-executivo-municipio');
-    if (esfera === 'federal') {
+    const blocoMandato = $('#bloco-executivo-mandato');
+
+    if (esfera === 'geral' || esfera === 'federal') {
       if (blocoUf) blocoUf.hidden = true;
       if (blocoMun) blocoMun.hidden = true;
+      if (blocoMandato) blocoMandato.hidden = esfera === 'geral';
     } else if (esfera === 'estadual') {
       if (blocoUf) blocoUf.hidden = false;
       if (blocoMun) blocoMun.hidden = true;
+      if (blocoMandato) blocoMandato.hidden = false;
     } else {
       if (blocoUf) blocoUf.hidden = false;
       if (blocoMun) blocoMun.hidden = false;
+      if (blocoMandato) blocoMandato.hidden = false;
       popularMunicipiosExecutivo($('#executivo-uf')?.value);
     }
     carregarExecutivo();

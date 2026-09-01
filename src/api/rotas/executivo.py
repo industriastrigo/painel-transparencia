@@ -217,6 +217,35 @@ def executivo_em_destaque(uf: str | None = None, cargo: str | None = None,
     return res
 
 
+def _montar_filtro_esfera_orgao(esfera: str | None, sigla_uf: str | None, cod_ibge: str | None) -> tuple[list[str], list[Any]]:
+    conds: list[str] = []
+    params: list[Any] = []
+    if not esfera or esfera == "geral":
+        return conds, params
+    if esfera == "federal":
+        conds.append("(nome_orgao ILIKE '%Presidência%' OR nome_orgao ILIKE '%Ministério%' OR nome_orgao ILIKE '%Comando%' OR nome_orgao ILIKE '%Federal%')")
+    elif esfera == "estadual":
+        uf = (sigla_uf or "SP").upper()
+        if uf == "SP":
+            conds.append("(nome_orgao ILIKE '%São Paulo%' OR nome_orgao ILIKE '%SP%' OR nome_orgao ILIKE '%Bandeirantes%' OR nome_orgao ILIKE '%Metrô%' OR nome_orgao ILIKE '%CPTM%' OR nome_orgao ILIKE '%DER%')")
+        elif uf == "RJ":
+            conds.append("(nome_orgao ILIKE '%Rio de Janeiro%' OR nome_orgao ILIKE '%RJ%' OR nome_orgao ILIKE '%Guanabara%')")
+        elif uf == "MG":
+            conds.append("(nome_orgao ILIKE '%Minas Gerais%' OR nome_orgao ILIKE '%MG%' OR nome_orgao ILIKE '%Cidade Administrativa%')")
+        elif uf == "RS":
+            conds.append("(nome_orgao ILIKE '%Rio Grande do Sul%' OR nome_orgao ILIKE '%RS%' OR nome_orgao ILIKE '%Piratini%')")
+        elif uf == "PR":
+            conds.append("(nome_orgao ILIKE '%Paraná%' OR nome_orgao ILIKE '%PR%' OR nome_orgao ILIKE '%Iguaçu%')")
+        elif uf == "BA":
+            conds.append("(nome_orgao ILIKE '%Bahia%' OR nome_orgao ILIKE '%BA%')")
+        else:
+            conds.append("(nome_orgao ILIKE ? OR nome_orgao ILIKE ?)")
+            params.extend([f"%{uf}%", "%Estado%"])
+    elif esfera == "municipal":
+        conds.append("(nome_orgao ILIKE '%Prefeitura%' OR nome_orgao ILIKE '%Municipal%')")
+    return conds, params
+
+
 @router.get("/api/executivo/municipios")
 def executivo_municipios(uf: str):
     """Municípios de uma UF para o seletor do Poder Executivo."""
@@ -232,17 +261,23 @@ def executivo_municipios(uf: str):
 
 
 @router.get("/api/executivo/mandato")
-def executivo_mandato(esfera: str = "estadual", sigla_uf: str = "SP",
+def executivo_mandato(esfera: str = "geral", sigla_uf: str = "SP",
                       cod_ibge: str | None = None, ano: int | None = None):
-    """Dados consolidados do mandato do Executivo (Presidente, Governador ou Prefeito)."""
+    """Dados consolidados do mandato do Executivo (Geral, Presidente, Governador ou Prefeito)."""
     uf_busca = sigla_uf.upper() if sigla_uf else "SP"
 
-    if esfera == "federal":
+    if esfera == "geral":
+        cod_ibge_busca = "0"
+        uf_busca = "BR"
+        ente_nome = "Poder Executivo (Visão Geral Consolidada)"
+        mandato_sql = "1=1"
+        params_gov: list[Any] = []
+    elif esfera == "federal":
         cod_ibge_busca = "0"
         uf_busca = "BR"
         ente_nome = "Governo Federal (Brasil)"
         mandato_sql = "m.cargo = 'presidente'"
-        params_gov: list[Any] = []
+        params_gov = []
     elif esfera == "estadual":
         ente_res = _consultar("SELECT cod_ibge, nome FROM dim_ente WHERE nivel = 'estado' AND sigla_uf = ?", [uf_busca])
         cod_ibge_busca = ente_res[0]["cod_ibge"] if ente_res else "35"
@@ -263,7 +298,22 @@ def executivo_mandato(esfera: str = "estadual", sigla_uf: str = "SP",
         params_gov = [cod_ibge_busca]
 
     # Série Histórica de Receitas, Despesas e Saldo
-    if esfera == "federal":
+    if esfera == "geral":
+        serie_rows = _consultar("""
+            SELECT a.ano,
+                   r.rec AS receita_total,
+                   d.desp AS despesa_total,
+                   p.pop AS populacao,
+                   (r.rec - d.desp) AS saldo_orcamentario
+              FROM vw_anos a
+              LEFT JOIN (SELECT ano, SUM(receita_total) AS rec FROM vw_receita_total GROUP BY ano) r ON r.ano = a.ano
+              LEFT JOIN (SELECT ano, SUM(despesa_total) AS desp FROM vw_despesa_total GROUP BY ano) d ON d.ano = a.ano
+              LEFT JOIN (SELECT ano, SUM(populacao) AS pop FROM vw_populacao GROUP BY ano) p ON p.ano = a.ano
+             WHERE (r.rec IS NOT NULL OR d.desp IS NOT NULL)
+             ORDER BY a.ano DESC
+        """)
+    elif esfera == "federal":
+
         serie_rows = _consultar("""
             SELECT ano, SUM(valor) AS despesa_total, NULL AS receita_total, NULL AS populacao
               FROM custo_orgao GROUP BY ano ORDER BY ano DESC
@@ -298,55 +348,64 @@ def executivo_mandato(esfera: str = "estadual", sigla_uf: str = "SP",
     item_ano = next((x for x in serie_anual if x["ano"] == ano_alvo), (serie_anual[0] if serie_anual else None))
 
     # Governante ativo no ano solicitado
-    filtro_ano_gov = "AND (m.ano_inicio <= ? AND (m.ano_fim >= ? OR m.ano_fim IS NULL))"
-    params_gov_ano = list(params_gov) + [ano_alvo, ano_alvo]
+    if esfera == "geral":
+        governante = None
+        mandatos_disponiveis = []
+    else:
+        filtro_ano_gov = "AND (m.ano_inicio <= ? AND (m.ano_fim >= ? OR m.ano_fim IS NULL))"
+        params_gov_ano = list(params_gov) + [ano_alvo, ano_alvo]
 
-    gov_rows = _consultar(f"""
-        SELECT m.cargo, m.nome, m.sigla_partido, m.sigla_uf, m.ano_inicio, m.ano_fim, m.data_inicio,
-               COALESCE(s_especifico.valor_mensal, s_geral.valor_mensal) AS salario,
-               COALESCE(s_especifico.norma, s_geral.norma)               AS norma_salario,
-               COALESCE(s_especifico.url_norma, s_geral.url_norma)       AS url_norma_salario,
-               COALESCE(s_especifico.conferido, s_geral.conferido)       AS salario_conferido
-          FROM vw_mandato m
-          LEFT JOIN dim_cargo_publico c_especifico
-                 ON c_especifico.cod_cargo = (m.cargo || '_' || LOWER(COALESCE(m.sigla_uf, '')))
-          LEFT JOIN vw_subsidio_vigente s_especifico
-                 ON s_especifico.cod_cargo = c_especifico.cod_cargo
-          LEFT JOIN dim_cargo_publico c_geral
-                 ON (c_geral.cod_cargo = m.cod_cargo OR c_geral.cod_cargo = m.cargo)
-          LEFT JOIN vw_subsidio_vigente s_geral
-                 ON s_geral.cod_cargo = c_geral.cod_cargo
-         WHERE {mandato_sql} {filtro_ano_gov}
-         ORDER BY m.ano_inicio DESC LIMIT 1
-    """, params_gov_ano)
+        gov_rows = _consultar(f"""
+            SELECT m.cargo, m.nome, m.sigla_partido, m.sigla_uf, m.ano_inicio, m.ano_fim, m.data_inicio,
+                   COALESCE(s_especifico.valor_mensal, s_geral.valor_mensal) AS salario,
+                   COALESCE(s_especifico.norma, s_geral.norma)               AS norma_salario,
+                   COALESCE(s_especifico.url_norma, s_geral.url_norma)       AS url_norma_salario,
+                   COALESCE(s_especifico.conferido, s_geral.conferido)       AS salario_conferido
+              FROM vw_mandato m
+              LEFT JOIN dim_cargo_publico c_especifico
+                     ON c_especifico.cod_cargo = (m.cargo || '_' || LOWER(COALESCE(m.sigla_uf, '')))
+              LEFT JOIN vw_subsidio_vigente s_especifico
+                     ON s_especifico.cod_cargo = c_especifico.cod_cargo
+              LEFT JOIN dim_cargo_publico c_geral
+                     ON (c_geral.cod_cargo = m.cod_cargo OR c_geral.cod_cargo = m.cargo)
+              LEFT JOIN vw_subsidio_vigente s_geral
+                     ON s_geral.cod_cargo = c_geral.cod_cargo
+             WHERE {mandato_sql} {filtro_ano_gov}
+             ORDER BY m.ano_inicio DESC LIMIT 1
+        """, params_gov_ano)
+        governante = gov_rows[0] if gov_rows else None
 
-    governante = gov_rows[0] if gov_rows else None
+        # Mandatos Históricos Disponíveis para este Ente
+        mandatos_hist = _consultar(f"""
+            SELECT DISTINCT m.nome, m.sigla_partido, m.ano_inicio, m.ano_fim, m.data_inicio
+              FROM vw_mandato m
+             WHERE {mandato_sql}
+             ORDER BY m.ano_inicio DESC
+        """, params_gov)
 
-    # Mandatos Históricos Disponíveis para este Ente
-    mandatos_hist = _consultar(f"""
-        SELECT DISTINCT m.nome, m.sigla_partido, m.ano_inicio, m.ano_fim, m.data_inicio
-          FROM vw_mandato m
-         WHERE {mandato_sql}
-         ORDER BY m.ano_inicio DESC
-    """, params_gov)
-
-    mandatos_disponiveis = []
-    for mh in mandatos_hist:
-        ini = int(mh["ano_inicio"]) if mh.get("ano_inicio") else 2023
-        fim = int(mh["ano_fim"]) if mh.get("ano_fim") else (ini + 4)
-        rotulo = f"Mandato {ini}–{fim} ({mh.get('nome', '')})"
-        anos_mandato = [a for a in range(ini, fim) if a in [s["ano"] for s in serie_anual]] or list(range(ini, fim))
-        mandatos_disponiveis.append({
-            "ano_inicio": ini,
-            "ano_fim": fim,
-            "nome": mh.get("nome"),
-            "partido": mh.get("sigla_partido"),
-            "rotulo": rotulo,
-            "anos": sorted(anos_mandato, reverse=True)
-        })
+        mandatos_disponiveis = []
+        for mh in mandatos_hist:
+            ini = int(mh["ano_inicio"]) if mh.get("ano_inicio") else 2023
+            fim = int(mh["ano_fim"]) if mh.get("ano_fim") else (ini + 4)
+            rotulo = f"Mandato {ini}–{fim} ({mh.get('nome', '')})"
+            anos_mandato = [a for a in range(ini, fim) if a in [s["ano"] for s in serie_anual]] or list(range(ini, fim))
+            mandatos_disponiveis.append({
+                "ano_inicio": ini,
+                "ano_fim": fim,
+                "nome": mh.get("nome"),
+                "partido": mh.get("sigla_partido"),
+                "rotulo": rotulo,
+                "anos": sorted(anos_mandato, reverse=True)
+            })
 
     # Funções de Governo no ano
-    if esfera == "federal":
+    if esfera == "geral":
+        funcoes = _consultar("""
+            SELECT cod_funcao, funcao, SUM(valor) AS valor
+              FROM vw_despesa_por_funcao WHERE ano = ?
+             GROUP BY ALL ORDER BY valor DESC LIMIT 15
+        """, [ano_alvo])
+    elif esfera == "federal":
         funcoes = _consultar("""
             SELECT orgao_codigo AS cod_funcao, orgao_nome AS funcao, SUM(valor) AS valor
               FROM custo_orgao WHERE ano = ?
@@ -365,11 +424,21 @@ def executivo_mandato(esfera: str = "estadual", sigla_uf: str = "SP",
         f["percentual"] = round((v / total_funcoes * 100), 2) if total_funcoes else 0
 
     # LRF & Pessoal
-    lrf_res = _consultar("""
-        SELECT percentual_pessoal, limite_maximo, limite_prudencial, limite_alerta,
-               acima_do_limite, acima_do_prudencial
-          FROM vw_lrf_pessoal WHERE cod_ibge = ? AND ano = ? AND poder = 'E'
-    """, [cod_ibge_busca, ano_alvo])
+    if esfera == "geral":
+        lrf_res = _consultar("""
+            SELECT ROUND(AVG(percentual_pessoal), 2) AS percentual_pessoal,
+                   MAX(limite_maximo) AS limite_maximo,
+                   MAX(limite_prudencial) AS limite_prudencial,
+                   MAX(limite_alerta) AS limite_alerta,
+                   false AS acima_do_limite, false AS acima_do_prudencial
+              FROM vw_lrf_pessoal WHERE ano = ? AND poder = 'E'
+        """, [ano_alvo])
+    else:
+        lrf_res = _consultar("""
+            SELECT percentual_pessoal, limite_maximo, limite_prudencial, limite_alerta,
+                   acima_do_limite, acima_do_prudencial
+              FROM vw_lrf_pessoal WHERE cod_ibge = ? AND ano = ? AND poder = 'E'
+        """, [cod_ibge_busca, ano_alvo])
     lrf = lrf_res[0] if lrf_res else None
 
     # Anos disponíveis
@@ -400,8 +469,10 @@ def executivo_mandato(esfera: str = "estadual", sigla_uf: str = "SP",
 
 
 @router.get("/api/executivo/cartoes")
-def executivo_cartoes(ano: int | None = None, orgao: str | None = None, limite: int = 50):
-    """Gastos do Cartão de Pagamento do Governo Federal (CPGF)."""
+def executivo_cartoes(esfera: str | None = None, sigla_uf: str | None = None,
+                      cod_ibge: str | None = None, ano: int | None = None,
+                      orgao: str | None = None, limite: int = 50):
+    """Gastos do Cartão de Pagamento e Suprimentos Governamentais."""
     if ano is None:
         ultimo = _consultar("SELECT MAX(ano) AS ano FROM vw_cartao_corporativo")
         ano = int(ultimo[0]["ano"]) if ultimo and ultimo[0].get("ano") is not None else 2026
@@ -415,6 +486,10 @@ def executivo_cartoes(ano: int | None = None, orgao: str | None = None, limite: 
         condicoes.append("nome_orgao ILIKE ?")
         parametros.append(f"%{orgao}%")
 
+    c_esf, p_esf = _montar_filtro_esfera_orgao(esfera, sigla_uf, cod_ibge)
+    condicoes.extend(c_esf)
+    parametros.extend(p_esf)
+
     onde = f"WHERE {' AND '.join(condicoes)}" if condicoes else ""
 
     totais = _consultar(f"""
@@ -423,8 +498,8 @@ def executivo_cartoes(ano: int | None = None, orgao: str | None = None, limite: 
                COUNT(DISTINCT nome_orgao) AS total_orgaos,
                SUM(valor) FILTER (
                  WHERE nome_orgao ILIKE '%Presidência da República%'
-                    OR nome_orgao ILIKE '%Presidencia da Republica%'
-                    OR nome_orgao ILIKE '%Gabinete de Segurança Institucional%'
+                    OR nome_orgao ILIKE '%Palácio dos Bandeirantes%'
+                    OR nome_orgao ILIKE '%Gabinete%'
                ) AS total_presidencia
           FROM vw_cartao_corporativo {onde}
     """, parametros)
@@ -484,8 +559,10 @@ def executivo_cartoes(ano: int | None = None, orgao: str | None = None, limite: 
 
 
 @router.get("/api/executivo/viagens")
-def executivo_viagens(ano: int | None = None, orgao: str | None = None, limite: int = 50):
-    """Viagens a serviço, diárias e passagens do Governo Federal (PCDP / CGU)."""
+def executivo_viagens(esfera: str | None = None, sigla_uf: str | None = None,
+                      cod_ibge: str | None = None, ano: int | None = None,
+                      orgao: str | None = None, limite: int = 50):
+    """Viagens a serviço, missões e diárias oficiais do Executivo."""
     if ano is None:
         ultimo = _consultar("SELECT MAX(ano) AS ano FROM vw_viagem_servico")
         ano = int(ultimo[0]["ano"]) if ultimo and ultimo[0].get("ano") is not None else 2026
@@ -498,6 +575,10 @@ def executivo_viagens(ano: int | None = None, orgao: str | None = None, limite: 
     if orgao:
         condicoes.append("nome_orgao ILIKE ?")
         parametros.append(f"%{orgao}%")
+
+    c_esf, p_esf = _montar_filtro_esfera_orgao(esfera, sigla_uf, cod_ibge)
+    condicoes.extend(c_esf)
+    parametros.extend(p_esf)
 
     onde = f"WHERE {' AND '.join(condicoes)}" if condicoes else ""
 
@@ -564,8 +645,10 @@ def executivo_viagens(ano: int | None = None, orgao: str | None = None, limite: 
 
 
 @router.get("/api/executivo/contratos")
-def executivo_contratos(esfera: str | None = None, sigla_uf: str | None = None, ano: int | None = None, orgao: str | None = None, limite: int = 50):
-    """Contratos públicos, licitações, dispensas e fornecedores (PNCP / CGU)."""
+def executivo_contratos(esfera: str | None = None, sigla_uf: str | None = None,
+                        cod_ibge: str | None = None, ano: int | None = None,
+                        orgao: str | None = None, limite: int = 50):
+    """Contratos públicos, licitações, dispensas e fornecedores (PNCP / CGU / Estaduais)."""
     if ano is None:
         ultimo = _consultar("SELECT MAX(ano) AS ano FROM vw_contrato_governo")
         ano = int(ultimo[0]["ano"]) if ultimo and ultimo[0].get("ano") is not None else 2026
@@ -578,6 +661,10 @@ def executivo_contratos(esfera: str | None = None, sigla_uf: str | None = None, 
     if orgao:
         condicoes.append("nome_orgao ILIKE ?")
         parametros.append(f"%{orgao}%")
+
+    c_esf, p_esf = _montar_filtro_esfera_orgao(esfera, sigla_uf, cod_ibge)
+    condicoes.extend(c_esf)
+    parametros.extend(p_esf)
 
     onde = f"WHERE {' AND '.join(condicoes)}" if condicoes else ""
 
@@ -642,6 +729,7 @@ def executivo_contratos(esfera: str | None = None, sigla_uf: str | None = None, 
         "maiores_contratos": maiores_contratos,
         "maiores": maiores_contratos,
     }
+
 
 
 

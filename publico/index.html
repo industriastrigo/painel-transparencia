@@ -279,12 +279,13 @@
       <div>
         <label for="executivo-esfera">Esfera / Cargo</label>
         <select id="executivo-esfera">
-          <option value="estadual" selected>Governador (Estadual)</option>
+          <option value="geral" selected>Gastos do Poder Executivo (Visão Geral)</option>
+          <option value="estadual">Governador (Estadual)</option>
           <option value="federal">Presidente da República (Federal)</option>
           <option value="municipal">Prefeito (Municipal)</option>
         </select>
       </div>
-      <div id="bloco-executivo-uf">
+      <div id="bloco-executivo-uf" hidden>
         <label for="executivo-uf">Estado / UF</label>
         <select id="executivo-uf">
           <option value="SP" selected>São Paulo (SP)</option>
@@ -320,7 +321,7 @@
         <label for="executivo-municipio">Município</label>
         <select id="executivo-municipio" style="min-width:200px"></select>
       </div>
-      <div>
+      <div id="bloco-executivo-mandato" hidden>
         <label for="executivo-mandato">Mandato / Período</label>
         <select id="executivo-mandato" style="min-width:220px"></select>
       </div>
@@ -339,7 +340,7 @@
     <div class="painel" style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
       <!-- Card Fiscal: Superávit ou Déficit -->
       <div class="cartao" id="executivo-card-fiscal">
-        <h2>Resultado Fiscal do Exercício</h2>
+        <h2 id="executivo-titulo-fiscal">Resultado Fiscal do Exercício</h2>
         <div id="executivo-resultado-saldo"></div>
       </div>
 
@@ -362,7 +363,7 @@
 
       <!-- Série Histórica Anual do Mandato -->
       <div class="cartao">
-        <h2>Evolução Anual do Mandato</h2>
+        <h2 id="executivo-titulo-evolucao">Evolução Anual das Contas</h2>
         <p class="rodape-mapa" style="margin-top:-6px;margin-bottom:8px">
           Histórico anual de receitas, despesas e saldo orçamentário.
         </p>
@@ -370,14 +371,14 @@
       </div>
     </div>
 
-    <!-- Bloco de Cartões Corporativos do Executivo (CPGF) -->
+    <!-- Bloco de Cartões Corporativos do Executivo -->
     <div class="cartao" style="margin-top:16px" id="executivo-secao-cartoes">
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px">
-        <h2>💳 Cartões Corporativos do Executivo Federal (CPGF)</h2>
-        <span class="badge-metodo">Portal da Transparência / CGU</span>
+        <h2 id="executivo-titulo-cartoes">💳 Gastos com Cartões de Pagamento & Suprimentos</h2>
+        <span class="badge-metodo">Transparência Pública</span>
       </div>
-      <p class="rodape-mapa" style="margin-top:-4px; margin-bottom:12px">
-        Gastos efetuados com o Cartão de Pagamento do Governo Federal pela Presidência da República, Ministérios e órgãos federais.
+      <p id="executivo-subtitulo-cartoes" class="rodape-mapa" style="margin-top:-4px; margin-bottom:12px">
+        Gastos efetuados com cartões de pagamento e suprimentos de fundos no Poder Executivo.
       </p>
       
       <div class="tiras" id="executivo-topo-cartoes"></div>
@@ -385,7 +386,7 @@
       <div class="painel" style="margin-top:14px; display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
         <div class="cartao" style="background:var(--superficie-2)">
           <h3>Maiores Favorecidos / Estabelecimentos</h3>
-          <p class="rodape-mapa">Onde os recursos do cartão corporativo foram mais utilizados.</p>
+          <p class="rodape-mapa">Onde os recursos do cartão foram mais utilizados.</p>
           <div id="executivo-cartoes-favorecidos" class="rolagem"></div>
         </div>
 
@@ -397,19 +398,19 @@
       </div>
 
       <div class="cartao" style="background:var(--superficie-2); margin-top:14px">
-        <h3>Maiores Transações Individuais com Cartão Corporativo</h3>
+        <h3>Maiores Transações Individuais com Cartão</h3>
         <div id="executivo-cartoes-transacoes" class="rolagem"></div>
       </div>
     </div>
 
-    <!-- Bloco de Diárias e Passagens de Viagens a Serviço (PCDP) -->
+    <!-- Bloco de Diárias e Passagens de Viagens a Serviço -->
     <div class="cartao" style="margin-top:16px" id="executivo-secao-viagens">
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px">
-        <h2>✈️ Viagens a Serviço, Diárias & Passagens Aéreas (PCDP)</h2>
-        <span class="badge-metodo">Portal da Transparência / CGU</span>
+        <h2 id="executivo-titulo-viagens">✈️ Viagens a Serviço, Diárias & Passagens Oficiais</h2>
+        <span class="badge-metodo">Transparência Pública</span>
       </div>
-      <p class="rodape-mapa" style="margin-top:-4px; margin-bottom:12px">
-        Custos de passagens aéreas, diárias e hospedagem de comitivas e viagens oficiais de ministros e servidores.
+      <p id="executivo-subtitulo-viagens" class="rodape-mapa" style="margin-top:-4px; margin-bottom:12px">
+        Custos de passagens aéreas, diárias e hospedagem de comitivas e viagens oficiais de gestores públicos.
       </p>
       <div class="tiras" id="executivo-topo-viagens"></div>
 
@@ -419,7 +420,7 @@
           <div id="executivo-viagens-destinos" class="rolagem"></div>
         </div>
         <div class="cartao" style="background:var(--superficie-2)">
-          <h3>Gastos por Ministério / Órgão</h3>
+          <h3>Gastos por Ministério / Secretaria</h3>
           <div id="executivo-viagens-orgaos" class="rolagem"></div>
         </div>
       </div>
@@ -430,13 +431,13 @@
       </div>
     </div>
 
-    <!-- Bloco de Contratos Públicos e Fornecedores (PNCP) -->
+    <!-- Bloco de Contratos Públicos e Fornecedores -->
     <div class="cartao" style="margin-top:16px" id="executivo-secao-contratos">
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px">
-        <h2>📜 Contratos Públicos, Licitações & Fornecedores (PNCP)</h2>
+        <h2 id="executivo-titulo-contratos">📜 Contratos Públicos, Licitações & Fornecedores</h2>
         <span class="badge-metodo">Compras Governamentais</span>
       </div>
-      <p class="rodape-mapa" style="margin-top:-4px; margin-bottom:12px">
+      <p id="executivo-subtitulo-contratos" class="rodape-mapa" style="margin-top:-4px; margin-bottom:12px">
         Contratos administrativos firmados, com destaque para dispensas, inexigibilidades e maiores fornecedores.
       </p>
       <div class="tiras" id="executivo-topo-contratos"></div>
@@ -457,6 +458,7 @@
         <div id="executivo-contratos-maiores" class="rolagem"></div>
       </div>
     </div>
+
   </section>
 
   <!-- -------------------------------------------------------- judiciário -->
