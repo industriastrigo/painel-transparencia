@@ -473,18 +473,18 @@ def executivo_mandato(esfera: str = "geral", sigla_uf: str = "SP",
     # MACROECONOMIA & DEFASAGEM FISCAL (Primário, Nominal, PIB Demanda e Oferta)
     # =========================================================================
     macro_map = {
-        2026: {"pib": 12_100_000_000_000.0, "crescimento": 2.2, "ipca": 3.90, "selic": 10.50, "desemprego": 6.8, "cambio": 5.45, "divida_pib": 77.8, "carga_trib": 32.4},
-        2025: {"pib": 11_750_000_000_000.0, "crescimento": 2.5, "ipca": 4.20, "selic": 11.25, "desemprego": 7.2, "cambio": 5.35, "divida_pib": 76.5, "carga_trib": 32.6},
-        2024: {"pib": 11_100_000_000_000.0, "crescimento": 2.9, "ipca": 4.60, "selic": 12.25, "desemprego": 7.8, "cambio": 5.15, "divida_pib": 75.2, "carga_trib": 32.8},
-        2023: {"pib": 10_856_000_000_000.0, "crescimento": 2.9, "ipca": 4.62, "selic": 13.75, "desemprego": 8.0, "cambio": 4.99, "divida_pib": 74.4, "carga_trib": 32.4},
-        2022: {"pib": 10_080_000_000_000.0, "crescimento": 3.0, "ipca": 5.79, "selic": 13.75, "desemprego": 9.3, "cambio": 5.16, "divida_pib": 71.7, "carga_trib": 33.7},
-        2021: {"pib":  8_899_000_000_000.0, "crescimento": 4.8, "ipca": 10.06, "selic": 9.25, "desemprego": 13.2, "cambio": 5.39, "divida_pib": 77.3, "carga_trib": 33.4},
-        2020: {"pib":  7_610_000_000_000.0, "crescimento": -3.3, "ipca": 4.52, "selic": 2.00, "desemprego": 13.8, "cambio": 5.15, "divida_pib": 86.9, "carga_trib": 31.8},
-        2019: {"pib":  7_390_000_000_000.0, "crescimento": 1.2, "ipca": 4.31, "selic": 4.50, "desemprego": 11.9, "cambio": 3.94, "divida_pib": 74.3, "carga_trib": 32.5},
-        2018: {"pib":  7_004_000_000_000.0, "crescimento": 1.8, "ipca": 3.75, "selic": 6.50, "desemprego": 12.3, "cambio": 3.65, "divida_pib": 75.3, "carga_trib": 32.3},
-        2017: {"pib":  6_583_000_000_000.0, "crescimento": 1.3, "ipca": 2.95, "selic": 7.00, "desemprego": 12.7, "cambio": 3.19, "divida_pib": 73.7, "carga_trib": 32.4},
-        2016: {"pib":  6_267_000_000_000.0, "crescimento": -3.3, "ipca": 6.29, "selic": 13.75, "desemprego": 11.5, "cambio": 3.49, "divida_pib": 69.8, "carga_trib": 32.2},
-        2015: {"pib":  5_996_000_000_000.0, "crescimento": -3.5, "ipca": 10.67, "selic": 14.25, "desemprego": 8.5, "cambio": 3.33, "divida_pib": 65.5, "carga_trib": 32.1},
+        2026: {"pib": 12_100_000_000_000.0, "crescimento": 2.2, "ipca": 3.90, "selic": 10.50, "desemprego": 6.8, "cambio": 5.45, "divida_pib": 77.8, "carga_trib": 32.4, "bolsa_familia_pct": 25.0, "bolsa_familia_familias": 20_500_000, "bolsa_familia_beneficio": 685.0},
+        2025: {"pib": 11_750_000_000_000.0, "crescimento": 2.5, "ipca": 4.20, "selic": 11.25, "desemprego": 7.2, "cambio": 5.35, "divida_pib": 76.5, "carga_trib": 32.6, "bolsa_familia_pct": 25.4, "bolsa_familia_familias": 20_800_000, "bolsa_familia_beneficio": 681.0},
+        2024: {"pib": 11_100_000_000_000.0, "crescimento": 2.9, "ipca": 4.60, "selic": 12.25, "desemprego": 7.8, "cambio": 5.15, "divida_pib": 75.2, "carga_trib": 32.8, "bolsa_familia_pct": 25.7, "bolsa_familia_familias": 21_100_000, "bolsa_familia_beneficio": 680.0},
+        2023: {"pib": 10_856_000_000_000.0, "crescimento": 2.9, "ipca": 4.62, "selic": 13.75, "desemprego": 8.0, "cambio": 4.99, "divida_pib": 74.4, "carga_trib": 32.4, "bolsa_familia_pct": 26.1, "bolsa_familia_familias": 21_300_000, "bolsa_familia_beneficio": 670.0},
+        2022: {"pib": 10_080_000_000_000.0, "crescimento": 3.0, "ipca": 5.79, "selic": 13.75, "desemprego": 9.3, "cambio": 5.16, "divida_pib": 71.7, "carga_trib": 33.7, "bolsa_familia_pct": 26.4, "bolsa_familia_familias": 21_600_000, "bolsa_familia_beneficio": 607.0},
+        2021: {"pib":  8_899_000_000_000.0, "crescimento": 4.8, "ipca": 10.06, "selic": 9.25, "desemprego": 13.2, "cambio": 5.39, "divida_pib": 77.3, "carga_trib": 33.4, "bolsa_familia_pct": 22.5, "bolsa_familia_familias": 17_500_000, "bolsa_familia_beneficio": 375.0},
+        2020: {"pib":  7_610_000_000_000.0, "crescimento": -3.3, "ipca": 4.52, "selic": 2.00, "desemprego": 13.8, "cambio": 5.15, "divida_pib": 86.9, "carga_trib": 31.8, "bolsa_familia_pct": 31.8, "bolsa_familia_familias": 28_400_000, "bolsa_familia_beneficio": 600.0},
+        2019: {"pib":  7_390_000_000_000.0, "crescimento": 1.2, "ipca": 4.31, "selic": 4.50, "desemprego": 11.9, "cambio": 3.94, "divida_pib": 74.3, "carga_trib": 32.5, "bolsa_familia_pct": 20.6, "bolsa_familia_familias": 14_300_000, "bolsa_familia_beneficio": 189.0},
+        2018: {"pib":  7_004_000_000_000.0, "crescimento": 1.8, "ipca": 3.75, "selic": 6.50, "desemprego": 12.3, "cambio": 3.65, "divida_pib": 75.3, "carga_trib": 32.3, "bolsa_familia_pct": 20.4, "bolsa_familia_familias": 14_100_000, "bolsa_familia_beneficio": 186.0},
+        2017: {"pib":  6_583_000_000_000.0, "crescimento": 1.3, "ipca": 2.95, "selic": 7.00, "desemprego": 12.7, "cambio": 3.19, "divida_pib": 73.7, "carga_trib": 32.4, "bolsa_familia_pct": 20.1, "bolsa_familia_familias": 13_800_000, "bolsa_familia_beneficio": 182.0},
+        2016: {"pib":  6_267_000_000_000.0, "crescimento": -3.3, "ipca": 6.29, "selic": 13.75, "desemprego": 11.5, "cambio": 3.49, "divida_pib": 69.8, "carga_trib": 32.2, "bolsa_familia_pct": 19.9, "bolsa_familia_familias": 13_600_000, "bolsa_familia_beneficio": 180.0},
+        2015: {"pib":  5_996_000_000_000.0, "crescimento": -3.5, "ipca": 10.67, "selic": 14.25, "desemprego": 8.5, "cambio": 3.33, "divida_pib": 65.5, "carga_trib": 32.1, "bolsa_familia_pct": 20.5, "bolsa_familia_familias": 13_900_000, "bolsa_familia_beneficio": 175.0},
     }
     macro_br = macro_map.get(ano_alvo, macro_map[2025])
 
@@ -506,7 +506,16 @@ def executivo_mandato(esfera: str = "geral", sigla_uf: str = "SP",
 
     pib_per_capita_ente = (pib_ente / populacao_ente) if populacao_ente else 0.0
 
+    # Bolsa Família no Ente
+    pct_bf = macro_br.get("bolsa_familia_pct", 25.4)
+    if esfera == "estadual":
+        fatores_bf_uf = {"SP": 13.8, "RJ": 21.5, "MG": 17.2, "RS": 12.4, "PR": 11.8, "BA": 36.2, "SC": 8.5, "GO": 16.4, "PE": 37.8, "MA": 48.2, "CE": 38.5, "PA": 39.1}
+        pct_bf = fatores_bf_uf.get(uf_busca, 22.0)
+    elif esfera == "municipal":
+        pct_bf = 14.2 if cod_ibge_busca == "3550308" else 18.5
 
+    familias_bf = int(populacao_ente * (pct_bf / 100.0) / 2.7)
+    pessoas_bf = int(populacao_ente * (pct_bf / 100.0))
 
     # Ótica da Demanda (Despesa): PIB = C + I + G + (X - M)
     c_familias = pib_ente * 0.632
@@ -569,6 +578,10 @@ def executivo_mandato(esfera: str = "geral", sigla_uf: str = "SP",
         "cambio_dolar": macro_br["cambio"],
         "carga_tributaria": macro_br["carga_trib"],
         "divida_pib": macro_br["divida_pib"],
+        "bolsa_familia_pct": pct_bf,
+        "bolsa_familia_familias": familias_bf,
+        "bolsa_familia_pessoas": pessoas_bf,
+        "bolsa_familia_beneficio": macro_br.get("bolsa_familia_beneficio", 680.0),
         "otica_demanda": {
             "consumo_familias": c_familias,
             "pct_consumo": 63.2,

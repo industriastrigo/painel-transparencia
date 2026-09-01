@@ -245,6 +245,10 @@ export async function carregarExecutivo() {
           <strong>${porcentoExato.format(m.desemprego)}%</strong>
         </div>
         <div class="tira">
+          <span>População no Bolsa Família</span>
+          <strong style="color:var(--alerta, #f59e0b)">${porcentoExato.format(m.bolsa_familia_pct)}% (${numero.format(m.bolsa_familia_familias)} famílias)</strong>
+        </div>
+        <div class="tira">
           <span>Câmbio Médio (USD / BRL)</span>
           <strong>R$ ${m.cambio_dolar.toFixed(2)}</strong>
         </div>
