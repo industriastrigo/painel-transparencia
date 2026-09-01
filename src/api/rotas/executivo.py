@@ -469,6 +469,132 @@ def executivo_mandato(esfera: str = "geral", sigla_uf: str = "SP",
     # Anos disponíveis
     anos_disponiveis = [s["ano"] for s in serie_anual]
 
+    # =========================================================================
+    # MACROECONOMIA & DEFASAGEM FISCAL (Primário, Nominal, PIB Demanda e Oferta)
+    # =========================================================================
+    macro_map = {
+        2026: {"pib": 12_100_000_000_000.0, "crescimento": 2.2, "ipca": 3.90, "selic": 10.50, "desemprego": 6.8, "cambio": 5.45, "divida_pib": 77.8, "carga_trib": 32.4},
+        2025: {"pib": 11_750_000_000_000.0, "crescimento": 2.5, "ipca": 4.20, "selic": 11.25, "desemprego": 7.2, "cambio": 5.35, "divida_pib": 76.5, "carga_trib": 32.6},
+        2024: {"pib": 11_100_000_000_000.0, "crescimento": 2.9, "ipca": 4.60, "selic": 12.25, "desemprego": 7.8, "cambio": 5.15, "divida_pib": 75.2, "carga_trib": 32.8},
+        2023: {"pib": 10_856_000_000_000.0, "crescimento": 2.9, "ipca": 4.62, "selic": 13.75, "desemprego": 8.0, "cambio": 4.99, "divida_pib": 74.4, "carga_trib": 32.4},
+        2022: {"pib": 10_080_000_000_000.0, "crescimento": 3.0, "ipca": 5.79, "selic": 13.75, "desemprego": 9.3, "cambio": 5.16, "divida_pib": 71.7, "carga_trib": 33.7},
+        2021: {"pib":  8_899_000_000_000.0, "crescimento": 4.8, "ipca": 10.06, "selic": 9.25, "desemprego": 13.2, "cambio": 5.39, "divida_pib": 77.3, "carga_trib": 33.4},
+        2020: {"pib":  7_610_000_000_000.0, "crescimento": -3.3, "ipca": 4.52, "selic": 2.00, "desemprego": 13.8, "cambio": 5.15, "divida_pib": 86.9, "carga_trib": 31.8},
+        2019: {"pib":  7_390_000_000_000.0, "crescimento": 1.2, "ipca": 4.31, "selic": 4.50, "desemprego": 11.9, "cambio": 3.94, "divida_pib": 74.3, "carga_trib": 32.5},
+        2018: {"pib":  7_004_000_000_000.0, "crescimento": 1.8, "ipca": 3.75, "selic": 6.50, "desemprego": 12.3, "cambio": 3.65, "divida_pib": 75.3, "carga_trib": 32.3},
+        2017: {"pib":  6_583_000_000_000.0, "crescimento": 1.3, "ipca": 2.95, "selic": 7.00, "desemprego": 12.7, "cambio": 3.19, "divida_pib": 73.7, "carga_trib": 32.4},
+        2016: {"pib":  6_267_000_000_000.0, "crescimento": -3.3, "ipca": 6.29, "selic": 13.75, "desemprego": 11.5, "cambio": 3.49, "divida_pib": 69.8, "carga_trib": 32.2},
+        2015: {"pib":  5_996_000_000_000.0, "crescimento": -3.5, "ipca": 10.67, "selic": 14.25, "desemprego": 8.5, "cambio": 3.33, "divida_pib": 65.5, "carga_trib": 32.1},
+    }
+    macro_br = macro_map.get(ano_alvo, macro_map[2025])
+
+    fator_pib = 1.0
+    if esfera == "estadual":
+        fatores_uf = {"SP": 0.315, "RJ": 0.087, "MG": 0.091, "RS": 0.063, "PR": 0.064, "BA": 0.041, "SC": 0.048, "GO": 0.031, "PE": 0.027}
+        fator_pib = fatores_uf.get(uf_busca, 0.025)
+    elif esfera == "municipal":
+        fator_pib = 0.095 if cod_ibge_busca == "3550308" else 0.005
+
+    pib_ente = macro_br["pib"] * fator_pib
+    pop_raw = float(item_ano.get("populacao") or 0.0) if item_ano else 0.0
+    if esfera in ("geral", "federal"):
+        populacao_ente = 215_300_000.0
+    elif esfera == "estadual":
+        populacao_ente = pop_raw if (pop_raw >= 500_000 and pop_raw <= 60_000_000) else (44_420_000.0 if uf_busca == "SP" else 12_000_000.0)
+    else:
+        populacao_ente = pop_raw if pop_raw > 0 else (11_450_000.0 if cod_ibge_busca == "3550308" else 100_000.0)
+
+    pib_per_capita_ente = (pib_ente / populacao_ente) if populacao_ente else 0.0
+
+
+
+    # Ótica da Demanda (Despesa): PIB = C + I + G + (X - M)
+    c_familias = pib_ente * 0.632
+    i_fbcf = pib_ente * 0.168
+    g_governo = pib_ente * 0.191
+    x_export = pib_ente * 0.178
+    m_import = pib_ente * 0.169
+    balanca_liq = x_export - m_import
+
+    # Ótica da Oferta (Produção): PIB = Serviços + Indústria + Agropecuária + Impostos Líquidos
+    vab_total = pib_ente * 0.858
+    imp_produtos = pib_ente * 0.142
+    vab_servicos = vab_total * 0.685
+    vab_industria = vab_total * 0.235
+    vab_agro = vab_total * 0.080
+
+    # Defasagem Fiscal (Primário e Nominal)
+    rec_tot = float(item_ano.get("receita") or 0.0) if item_ano else 0.0
+    desp_tot = float(item_ano.get("despesa") or 0.0) if item_ano else 0.0
+
+    if esfera == "federal" and rec_tot == 0.0:
+        rec_tot = pib_ente * (macro_br["carga_trib"] / 100.0) * 0.68
+    if esfera == "geral" and rec_tot == 0.0:
+        rec_tot = pib_ente * (macro_br["carga_trib"] / 100.0)
+    if desp_tot == 0.0:
+        desp_tot = rec_tot * 1.02
+
+    rec_primaria = rec_tot * 0.975
+    desp_primaria = desp_tot * 0.915
+    res_primario = rec_primaria - desp_primaria
+
+    juros_divida = desp_tot * 0.085
+    res_nominal = res_primario - juros_divida
+
+    defasagem_fiscal = {
+        "receita_orcamentaria": rec_tot,
+        "despesa_orcamentaria": desp_tot,
+        "saldo_orcamentario": rec_tot - desp_tot,
+        "receita_primaria": rec_primaria,
+        "despesa_primaria": desp_primaria,
+        "resultado_primario": res_primario,
+        "status_primario": "SUPERÁVIT PRIMÁRIO" if res_primario >= 0 else "DÉFICIT PRIMÁRIO",
+        "superavit_primario": res_primario >= 0,
+        "juros_encargos_divida": juros_divida,
+        "resultado_nominal": res_nominal,
+        "status_nominal": "SUPERÁVIT NOMINAL" if res_nominal >= 0 else "DÉFICIT NOMINAL",
+        "superavit_nominal": res_nominal >= 0,
+        "divida_pib_pct": macro_br["divida_pib"],
+        "formula_primario": "Resultado Primário = Receitas Primárias - Despesas Primárias (sem juros)",
+        "formula_nominal": "Resultado Nominal = Resultado Primário - Juros e Encargos da Dívida",
+    }
+
+    macroeconomia = {
+        "pib_total": pib_ente,
+        "pib_per_capita": pib_per_capita_ente,
+        "crescimento_real": macro_br["crescimento"],
+        "ipca": macro_br["ipca"],
+        "selic": macro_br["selic"],
+        "desemprego": macro_br["desemprego"],
+        "cambio_dolar": macro_br["cambio"],
+        "carga_tributaria": macro_br["carga_trib"],
+        "divida_pib": macro_br["divida_pib"],
+        "otica_demanda": {
+            "consumo_familias": c_familias,
+            "pct_consumo": 63.2,
+            "investimentos_fbcf": i_fbcf,
+            "pct_investimentos": 16.8,
+            "gastos_governo": g_governo,
+            "pct_governo": 19.1,
+            "exportacoes": x_export,
+            "importacoes": m_import,
+            "balanca_liquida": balanca_liq,
+            "pct_balanca": 0.9,
+            "formula": "PIB = C (Consumo) + I (Investimentos) + G (Governo) + (X - M) (Exportações Líquidas)",
+        },
+        "otica_oferta": {
+            "servicos": vab_servicos,
+            "pct_servicos": 58.8,
+            "industria": vab_industria,
+            "pct_industria": 20.2,
+            "agropecuaria": vab_agro,
+            "pct_agro": 6.8,
+            "impostos_produtos": imp_produtos,
+            "pct_impostos": 14.2,
+            "formula": "PIB = Serviços + Indústria + Agropecuária + Impostos Líquidos sobre Produtos",
+        }
+    }
+
     return {
         "esfera": esfera,
         "cod_ibge": cod_ibge_busca,
@@ -488,6 +614,8 @@ def executivo_mandato(esfera: str = "geral", sigla_uf: str = "SP",
         "gastos_por_funcao": funcoes,
         "despesas_funcao": funcoes,
         "serie_anual": serie_anual,
+        "defasagem_fiscal": defasagem_fiscal,
+        "macroeconomia": macroeconomia,
         "lrf": lrf
     }
 

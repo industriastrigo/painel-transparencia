@@ -31,6 +31,9 @@ export async function carregarExecutivo() {
   const ano = $('#executivo-ano')?.value ? Number($('#executivo-ano').value) : null;
 
   const alvoGov = $('#executivo-governante');
+  const alvoMacro = $('#executivo-termometro-macro');
+  const alvoDefasagem = $('#executivo-conteudo-defasagem');
+  const alvoPib = $('#executivo-conteudo-pib');
   const alvoSaldo = $('#executivo-resultado-saldo');
   const alvoLrf = $('#executivo-conteudo-lrf');
   const alvoFuncao = $('#executivo-gastos-funcao');
@@ -45,6 +48,9 @@ export async function carregarExecutivo() {
   const subContratos = $('#executivo-subtitulo-contratos');
 
   if (alvoGov) alvoGov.innerHTML = esqueleto(3);
+  if (alvoMacro) alvoMacro.innerHTML = esqueleto(2);
+  if (alvoDefasagem) alvoDefasagem.innerHTML = esqueleto(3);
+  if (alvoPib) alvoPib.innerHTML = esqueleto(3);
   if (alvoSaldo) alvoSaldo.innerHTML = esqueleto(3);
   if (alvoLrf) alvoLrf.innerHTML = esqueleto(3);
   if (alvoFuncao) alvoFuncao.innerHTML = esqueleto(4);
@@ -105,6 +111,193 @@ export async function carregarExecutivo() {
           </div>`;
       }
     }
+
+    // 2. Renderizar Termômetro Macroeconômico
+    if (alvoMacro && d.macroeconomia) {
+      const m = d.macroeconomia;
+      alvoMacro.innerHTML = `
+        <div class="tira">
+          <span>IPCA (Inflação no Ano)</span>
+          <strong style="color:var(--realce, #38bdf8)">${porcentoExato.format(m.ipca)}%</strong>
+        </div>
+        <div class="tira">
+          <span>Taxa Selic (Juros Copom)</span>
+          <strong style="color:var(--realce, #38bdf8)">${porcentoExato.format(m.selic)}%</strong>
+        </div>
+        <div class="tira">
+          <span>Taxa de Desemprego (PNAD)</span>
+          <strong>${porcentoExato.format(m.desemprego)}%</strong>
+        </div>
+        <div class="tira">
+          <span>Câmbio Médio (USD / BRL)</span>
+          <strong>R$ ${m.cambio_dolar.toFixed(2)}</strong>
+        </div>
+        <div class="tira">
+          <span>Carga Tributária Bruta</span>
+          <strong>${porcentoExato.format(m.carga_tributaria)}% do PIB</strong>
+        </div>
+        <div class="tira">
+          <span>Dívida Bruta do Governo</span>
+          <strong>${porcentoExato.format(m.divida_pib)}% do PIB</strong>
+        </div>
+      `;
+    }
+
+    // 3. Renderizar Defasagem Fiscal (Resultado Primário vs Nominal)
+    if (alvoDefasagem && d.defasagem_fiscal) {
+      const f = d.defasagem_fiscal;
+      const supPrim = f.superavit_primario;
+      const supNom = f.superavit_nominal;
+      alvoDefasagem.innerHTML = `
+        <div class="painel" style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+          <!-- Resultado Primário -->
+          <div class="cartao" style="background:var(--superficie-2); border-left:4px solid ${supPrim ? '#10b981' : '#ef4444'}">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start">
+              <div>
+                <span class="selo ${supPrim ? 'calmo' : 'risco'}" style="font-weight:bold; font-size:11px">
+                  ${supPrim ? '✅ SUPERÁVIT PRIMÁRIO' : '⚠️ DÉFICIT PRIMÁRIO'}
+                </span>
+                <h3 style="margin:6px 0 2px 0; font-size:1.35rem; color:var(--texto)">
+                  ${dinheiro.format(f.resultado_primario)}
+                </h3>
+              </div>
+              <span class="badge-metodo" style="font-size:10px">Sem juros</span>
+            </div>
+            <p class="pe" style="margin:4px 0 10px 0; color:var(--texto-fraco)">
+              <strong>Fórmula:</strong> Receitas Primárias (R$ ${dinheiroCurto.format(f.receita_primaria)}) − Despesas Primárias (R$ ${dinheiroCurto.format(f.despesa_primaria)}).
+            </p>
+            <div class="tiras" style="margin-bottom:8px">
+              <div class="tira"><span>Receita Primária</span><strong>${dinheiro.format(f.receita_primaria)}</strong></div>
+              <div class="tira"><span>Despesa Primária (Custeio)</span><strong>${dinheiro.format(f.despesa_primaria)}</strong></div>
+            </div>
+            <p class="pe" style="margin:0; font-size:0.82rem; color:var(--texto-sutil)">
+              💡 <em>Mede se o governo arrecada o suficiente para custear a máquina pública (saúde, educação, segurança e funcionalismo) antes de pagar os juros da dívida.</em>
+            </p>
+          </div>
+
+          <!-- Resultado Nominal -->
+          <div class="cartao" style="background:var(--superficie-2); border-left:4px solid ${supNom ? '#10b981' : '#ef4444'}">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start">
+              <div>
+                <span class="selo ${supNom ? 'calmo' : 'risco'}" style="font-weight:bold; font-size:11px">
+                  ${supNom ? '✅ SUPERÁVIT NOMINAL' : '⚠️ DÉFICIT NOMINAL'}
+                </span>
+                <h3 style="margin:6px 0 2px 0; font-size:1.35rem; color:var(--texto)">
+                  ${dinheiro.format(f.resultado_nominal)}
+                </h3>
+              </div>
+              <span class="badge-metodo" style="font-size:10px">Com juros da dívida</span>
+            </div>
+            <p class="pe" style="margin:4px 0 10px 0; color:var(--texto-fraco)">
+              <strong>Fórmula:</strong> Resultado Primário − Juros & Encargos da Dívida Pública (R$ ${dinheiroCurto.format(f.juros_encargos_divida)}).
+            </p>
+            <div class="tiras" style="margin-bottom:8px">
+              <div class="tira"><span>Resultado Primário Base</span><strong>${dinheiro.format(f.resultado_primario)}</strong></div>
+              <div class="tira"><span>Juros Nominais da Dívida</span><strong style="color:var(--risco, #ef4444)">− ${dinheiro.format(f.juros_encargos_divida)}</strong></div>
+            </div>
+            <p class="pe" style="margin:0; font-size:0.82rem; color:var(--texto-sutil)">
+              💡 <em>Mede o fechamento contábil global. Quando negativo, o Estado precisou emitir novos títulos da dívida pública para cobrir o custo dos juros.</em>
+            </p>
+          </div>
+        </div>
+      `;
+    }
+
+    // 4. Renderizar PIB & Contas Nacionais (Demanda e Oferta)
+    if (alvoPib && d.macroeconomia) {
+      const p = d.macroeconomia;
+      const dem = p.otica_demanda;
+      const ofe = p.otica_oferta;
+      alvoPib.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; margin-bottom:16px; padding:12px 18px; background:var(--superficie-2); border-radius:8px">
+          <div>
+            <span class="pe" style="color:var(--texto-fraco)">Produto Interno Bruto (PIB Total do Ente)</span>
+            <h3 style="margin:2px 0 0 0; font-size:1.6rem; color:var(--realce, #38bdf8)">${dinheiro.format(p.pib_total)}</h3>
+          </div>
+          <div>
+            <span class="pe" style="color:var(--texto-fraco)">PIB per Capita</span>
+            <strong style="font-size:1.2rem; display:block">${dinheiro.format(p.pib_per_capita)} / hab.</strong>
+          </div>
+          <div>
+            <span class="pe" style="color:var(--texto-fraco)">Crescimento Real do PIB</span>
+            <strong style="font-size:1.2rem; display:block; color:${p.crescimento_real >= 0 ? 'var(--calmo, #10b981)' : 'var(--risco, #ef4444)'}">
+              ${p.crescimento_real >= 0 ? '+' : ''}${porcentoExato.format(p.crescimento_real)}%
+            </strong>
+          </div>
+        </div>
+
+        <div class="painel" style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+          <!-- Ótica da Demanda -->
+          <div class="cartao" style="background:var(--superficie-2)">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px">
+              <h3 style="margin:0; font-size:1.15rem">🛒 Ótica da Demanda (Despesa)</h3>
+              <span class="badge-metodo" style="font-size:10px">PIB = C + I + G + (X − M)</span>
+            </div>
+            <p class="pe" style="color:var(--texto-fraco); margin-top:0">Quem comprou o que foi produzido na economia:</p>
+            <table style="width:100%">
+              <thead><tr><th>Componente da Demanda</th><th>Valor</th><th>% do PIB</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td><strong>(C) Consumo das Famílias</strong><br><small style="color:var(--texto-fraco)">Bens de consumo, comércio e serviços</small></td>
+                  <td class="valor">${dinheiro.format(dem.consumo_familias)}</td>
+                  <td class="valor">${dem.pct_consumo}%</td>
+                </tr>
+                <tr>
+                  <td><strong>(G) Gastos do Governo</strong><br><small style="color:var(--texto-fraco)">Serviços públicos e administração</small></td>
+                  <td class="valor">${dinheiro.format(dem.gastos_governo)}</td>
+                  <td class="valor">${dem.pct_governo}%</td>
+                </tr>
+                <tr>
+                  <td><strong>(I) Investimentos (FBCF)</strong><br><small style="color:var(--texto-fraco)">Máquinas, infraestrutura e construção</small></td>
+                  <td class="valor">${dinheiro.format(dem.investimentos_fbcf)}</td>
+                  <td class="valor">${dem.pct_investimentos}%</td>
+                </tr>
+                <tr>
+                  <td><strong>(X − M) Balança Líquida</strong><br><small style="color:var(--texto-fraco)">Exportações (${dinheiroCurto.format(dem.exportacoes)}) − Importações (${dinheiroCurto.format(dem.importacoes)})</small></td>
+                  <td class="valor">${dinheiro.format(dem.balanca_liquida)}</td>
+                  <td class="valor">${dem.pct_balanca}%</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Ótica da Oferta -->
+          <div class="cartao" style="background:var(--superficie-2)">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px">
+              <h3 style="margin:0; font-size:1.15rem">🏭 Ótica da Oferta (Produção / VAB)</h3>
+              <span class="badge-metodo" style="font-size:10px">VAB + Impostos Líquidos</span>
+            </div>
+            <p class="pe" style="color:var(--texto-fraco); margin-top:0">Valor Adicionado Bruto gerado por cada setor produtivo:</p>
+            <table style="width:100%">
+              <thead><tr><th>Setor Econômico</th><th>Valor</th><th>% do PIB</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td><strong>Setor de Serviços</strong><br><small style="color:var(--texto-fraco)">Comércio, finanças, tecnologia e transporte</small></td>
+                  <td class="valor">${dinheiro.format(ofe.servicos)}</td>
+                  <td class="valor">${ofe.pct_servicos}%</td>
+                </tr>
+                <tr>
+                  <td><strong>Setor Industrial</strong><br><small style="color:var(--texto-fraco)">Manufatura, construção civil e energia</small></td>
+                  <td class="valor">${dinheiro.format(ofe.industria)}</td>
+                  <td class="valor">${ofe.pct_industria}%</td>
+                </tr>
+                <tr>
+                  <td><strong>Agropecuária</strong><br><small style="color:var(--texto-fraco)">Agricultura, pecuária e silvicultura</small></td>
+                  <td class="valor">${dinheiro.format(ofe.agropecuaria)}</td>
+                  <td class="valor">${ofe.pct_agro}%</td>
+                </tr>
+                <tr>
+                  <td><strong>Impostos Líquidos s/ Produtos</strong><br><small style="color:var(--texto-fraco)">ICMS, IPI, PIS/Cofins deduzidos de subsídios</small></td>
+                  <td class="valor">${dinheiro.format(ofe.impostos_produtos)}</td>
+                  <td class="valor">${ofe.pct_impostos}%</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
 
     // Atualização dinâmica dos títulos das seções
     if (titFiscal) {

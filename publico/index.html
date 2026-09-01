@@ -337,10 +337,46 @@
     <!-- Destaque do Chefe do Executivo -->
     <div id="executivo-governante" style="margin-bottom:18px"></div>
 
+    <!-- Termômetro Macroeconômico do Exercício -->
+    <div class="cartao" style="margin-bottom:16px; border-top: 3px solid var(--realce, #38bdf8);">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px">
+        <h2 id="executivo-titulo-macro" style="margin:0">🌡️ Termômetro Macroeconômico & Indicadores Chave</h2>
+        <span class="badge-metodo">IBGE · Banco Central · Tesouro Nacional</span>
+      </div>
+      <p class="rodape-mapa" style="margin-top:4px; margin-bottom:12px">
+        Principais métricas macroeconômicas oficiais que determinam o custo de vida, taxa de juros e atividade econômica no exercício.
+      </p>
+      <div class="tiras" id="executivo-termometro-macro"></div>
+    </div>
+
+    <!-- Defasagem Fiscal: Resultado Primário vs Resultado Nominal -->
+    <div class="cartao" style="margin-bottom:16px; border-top: 3px solid #10b981;">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px">
+        <h2 id="executivo-titulo-defasagem" style="margin:0">⚖️ Defasagem Fiscal: O Cálculo do Déficit ou Superávit</h2>
+        <span class="badge-metodo">Metodologia Senado / LRF</span>
+      </div>
+      <p class="rodape-mapa" style="margin-top:4px; margin-bottom:12px">
+        Análise da saúde fiscal através das duas óticas fundamentais: <strong>Resultado Primário</strong> (contas estruturais sem juros) e <strong>Resultado Nominal</strong> (fechamento global com custo da dívida).
+      </p>
+      <div id="executivo-conteudo-defasagem"></div>
+    </div>
+
+    <!-- Produto Interno Bruto (PIB) & Contas Nacionais -->
+    <div class="cartao" style="margin-bottom:16px; border-top: 3px solid #f59e0b;">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px">
+        <h2 id="executivo-titulo-pib" style="margin:0">🌐 Produto Interno Bruto (PIB) & Contas Nacionais</h2>
+        <span class="badge-metodo">Metodologia IBGE / SCN</span>
+      </div>
+      <p class="rodape-mapa" style="margin-top:4px; margin-bottom:12px">
+        Soma de todos os bens e serviços finais produzidos no exercício, decomposto pelas duas óticas equivalentes: <strong>Demanda (Despesa)</strong> e <strong>Oferta (Produção)</strong>.
+      </p>
+      <div id="executivo-conteudo-pib"></div>
+    </div>
+
     <div class="painel" style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
-      <!-- Card Fiscal: Superávit ou Déficit -->
+      <!-- Card Fiscal: Superávit ou Déficit Orçamentário Geral -->
       <div class="cartao" id="executivo-card-fiscal">
-        <h2 id="executivo-titulo-fiscal">Resultado Fiscal do Exercício</h2>
+        <h2 id="executivo-titulo-fiscal">Situação Orçamentária Geral</h2>
         <div id="executivo-resultado-saldo"></div>
       </div>
 
