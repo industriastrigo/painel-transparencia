@@ -137,66 +137,93 @@ def gerar_dados_executivo():
     # ================================================================== 2. Viagens a Serviço (PCDP)
     linhas_viagens = []
     
-    viagens_config = [
-        # Federal
-        ("Presidência da República", "LUIZ INÁCIO LULA DA SILVA", "Presidente da República", "Brasília/DF", "Nova York - Estados Unidos", "Assembleia Geral da ONU e Cúpula do Clima", 18500.0, 32000.0),
-        ("Presidência da República", "LUIZ INÁCIO LULA DA SILVA", "Presidente da República", "Brasília/DF", "Rio de Janeiro/RJ", "Cúpula de Líderes do G20 Brasil", 9500.0, 7800.0),
-        ("Ministério da Fazenda", "FERNANDO HADDAD", "Ministro de Estado da Fazenda", "Brasília/DF", "Londres - Reino Unido", "Reuniões com Investidores e Transição Ecológica", 14200.0, 24500.0),
-        ("Ministério da Justiça", "RICARDO LEWANDOWSKI", "Ministro de Estado da Justiça", "Brasília/DF", "Buenos Aires - Argentina", "Cúpula de Segurança Pública do Mercosul", 7800.0, 9200.0),
-        ("Ministério do Meio Ambiente", "MARINA SILVA", "Ministra de Estado do Meio Ambiente", "Brasília/DF", "Belém/PA", "Preparação e Infraestrutura para a COP30", 5400.0, 6800.0),
-        
-        # Estadual SP (Tarcísio Gomes de Freitas e Secretários)
-        ("Governo do Estado de São Paulo - Palácio dos Bandeirantes", "TARCÍSIO GOMES DE FREITAS", "Governador do Estado de São Paulo", "São Paulo/SP", "Nova York - Estados Unidos", "Roadshow Internacional de Desestatização e Infraestrutura SP", 16500.0, 28000.0),
-        ("Governo do Estado de São Paulo - Palácio dos Bandeirantes", "TARCÍSIO GOMES DE FREITAS", "Governador do Estado de São Paulo", "São Paulo/SP", "Londres - Reino Unido", "Atração de Parcerias Privadas para o Trem Intercidades (TIC)", 15000.0, 25000.0),
-        ("Governo do Estado de São Paulo - Palácio dos Bandeirantes", "TARCÍSIO GOMES DE FREITAS", "Governador do Estado de São Paulo", "São Paulo/SP", "Brasília/DF", "Negociação da Dívida dos Estados com a Fazenda Nacional", 4200.0, 3800.0),
-        ("Governo do Estado de São Paulo - Palácio dos Bandeirantes", "TARCÍSIO GOMES DE FREITAS", "Governador do Estado de São Paulo", "São Paulo/SP", "Ribeirão Preto/SP", "Abertura Oficial da Agrishow e Anúncio de Crédito Rural", 2800.0, 1800.0),
-        ("Governo do Estado de São Paulo - Palácio dos Bandeirantes", "TARCÍSIO GOMES DE FREITAS", "Governador do Estado de São Paulo", "São Paulo/SP", "São Sebastião/SP", "Vistoria e Entrega de Obras Habitacionais de Reconstrução", 2400.0, 1200.0),
-        ("Secretaria da Segurança Pública do Estado de SP", "GUILHERME DERRITE", "Secretário de Estado da Segurança Pública", "São Paulo/SP", "Washington DC - Estados Unidos", "Cooperação Internacional em Inteligência Policial e Combate ao Crime", 11200.0, 19500.0),
-        ("Secretaria da Saúde do Estado de São Paulo", "ELEUSES PAIVA", "Secretário de Estado da Saúde", "São Paulo/SP", "Genebra - Suíça", "Assembleia Mundial da Saúde da OMS", 12500.0, 21000.0),
-        ("Secretaria da Casa Civil do Estado de SP", "ARTHUR LIMA", "Secretário-Chefe da Casa Civil", "São Paulo/SP", "Brasília/DF", "Articulação Institucional e Recursos Federais", 3800.0, 3200.0),
+    viagens_detalhadas = [
+        # --- Federal: Presidente da República
+        ("Presidência da República - Gabinete Pessoal", "LUIZ INÁCIO LULA DA SILVA", "Presidente da República", "Brasília/DF", "Davos - Suíça", "Fórum Econômico Mundial e Reuniões de Cooperação Bilateral", 1, 20, 1, 24, 14800.0, 28500.0),
+        ("Presidência da República - Gabinete Pessoal", "LUIZ INÁCIO LULA DA SILVA", "Presidente da República", "Brasília/DF", "Montevidéu - Uruguai", "Cúpula Extraordinária do Mercosul e Integração Regional", 3, 12, 3, 15, 6200.0, 9800.0),
+        ("Presidência da República - Gabinete Pessoal", "LUIZ INÁCIO LULA DA SILVA", "Presidente da República", "Brasília/DF", "Pequim e Xangai - China", "Visita de Estado e Assinatura de Acordos Comerciais e Tecnológicos", 4, 10, 4, 16, 22400.0, 41200.0),
+        ("Presidência da República - Gabinete Pessoal", "LUIZ INÁCIO LULA DA SILVA", "Presidente da República", "Brasília/DF", "Apúlia - Itália", "Cúpula de Líderes do G7 e Transição Energética Justa", 5, 18, 5, 22, 18200.0, 37500.0),
+        ("Presidência da República - Gabinete Pessoal", "LUIZ INÁCIO LULA DA SILVA", "Presidente da República", "Brasília/DF", "Bruxelas - Bélgica", "Cúpula União Europeia - CELAC sobre Investimentos Estruturantes", 7, 15, 7, 18, 13500.0, 26800.0),
+        ("Presidência da República - Gabinete Pessoal", "LUIZ INÁCIO LULA DA SILVA", "Presidente da República", "Brasília/DF", "Joanesburgo - África do Sul", "Cúpula de Chefes de Estado dos BRICS e Moedas Locais", 8, 20, 8, 25, 17600.0, 33400.0),
+        ("Presidência da República - Gabinete Pessoal", "LUIZ INÁCIO LULA DA SILVA", "Presidente da República", "Brasília/DF", "Nova York - Estados Unidos", "Abertura da 80ª Assembleia Geral da ONU e Cúpula do Clima", 9, 20, 9, 25, 19500.0, 34000.0),
+        ("Presidência da República - Gabinete Pessoal", "LUIZ INÁCIO LULA DA SILVA", "Presidente da República", "Brasília/DF", "Roma e Vaticano - Itália", "Visita Oficial à FAO e Audiência com o Papa", 10, 18, 10, 22, 15200.0, 27900.0),
+        ("Presidência da República - Gabinete Pessoal", "LUIZ INÁCIO LULA DA SILVA", "Presidente da República", "Brasília/DF", "Rio de Janeiro/RJ", "Reunião de Cúpula de Líderes do G20 Brasil", 11, 17, 11, 20, 5800.0, 4200.0),
+        ("Presidência da República - Gabinete Pessoal", "LUIZ INÁCIO LULA DA SILVA", "Presidente da República", "Brasília/DF", "Belém/PA", "Vistoria e Abertura dos Trabalhos Preparatórios da COP30", 12, 8, 12, 12, 4200.0, 3800.0),
 
-        # Outros Estados
-        ("Governo do Estado do Rio de Janeiro", "CLÁUDIO CASTRO", "Governador do Estado do Rio de Janeiro", "Rio de Janeiro/RJ", "Brasília/DF", "Regime de Recuperação Fiscal do Estado do Rio", 4500.0, 3600.0),
-        ("Governo do Estado de Minas Gerais", "ROMEU ZEMA", "Governador do Estado de Minas Gerais", "Belo Horizonte/MG", "Milão - Itália", "Missão Comercial de Atração de Indústrias Automotivas", 13800.0, 22500.0),
-        ("Governo do Estado do Rio Grande do Sul", "EDUARDO LEITE", "Governador do Estado do Rio Grande do Sul", "Porto Alegre/RS", "Berlim - Alemanha", "Financiamento para Reconstrução e Resiliência Climática", 14500.0, 24000.0),
-        ("Governo do Estado do Paraná", "RATINHO JÚNIOR", "Governador do Estado do Paraná", "Curitiba/PR", "Tóquio - Japão", "Exportações do Agronegócio Paranaense", 17500.0, 31000.0),
+        # --- Federal: Ministros de Estado
+        ("Ministério da Fazenda", "FERNANDO HADDAD", "Ministro de Estado da Fazenda", "Brasília/DF", "Londres - Reino Unido", "Roadshow com Investidores e Fundos Soberanos Verdes", 2, 14, 2, 18, 12800.0, 22400.0),
+        ("Ministério da Fazenda", "FERNANDO HADDAD", "Ministro de Estado da Fazenda", "Brasília/DF", "Washington DC - EUA", "Reuniões de Primavera do FMI e Banco Mundial", 4, 22, 4, 26, 14100.0, 24600.0),
+        ("Ministério da Fazenda", "FERNANDO HADDAD", "Ministro de Estado da Fazenda", "Brasília/DF", "Tóquio - Japão", "Encontro com Agências de Crédito e Mercado Asiático", 10, 8, 10, 12, 16400.0, 32500.0),
+        ("Ministério da Justiça e Segurança Pública", "RICARDO LEWANDOWSKI", "Ministro de Estado da Justiça", "Brasília/DF", "Assunção - Paraguai", "Reunião de Ministros do Interior do Mercosul sobre Fronteiras", 3, 5, 3, 8, 6800.0, 8400.0),
+        ("Ministério da Justiça e Segurança Pública", "RICARDO LEWANDOWSKI", "Ministro de Estado da Justiça", "Brasília/DF", "Lyon - França", "Cooperação Técnica Internacional na Sede da Interpol", 5, 20, 5, 24, 10900.0, 19800.0),
+        ("Ministério do Meio Ambiente e Mudança do Clima", "MARINA SILVA", "Ministra de Estado do Meio Ambiente", "Brasília/DF", "Nairóbi - Quênia", "Assembleia das Nações Unidas para o Meio Ambiente (UNEA)", 3, 24, 3, 28, 11200.0, 23500.0),
+        ("Ministério do Meio Ambiente e Mudança do Clima", "MARINA SILVA", "Ministra de Estado do Meio Ambiente", "Brasília/DF", "Oslo - Noruega", "Reunião do Comitê Orientador do Fundo Amazônia", 6, 25, 6, 29, 12600.0, 24100.0),
+        ("Ministério das Relações Exteriores", "MAURO VIEIRA", "Ministro das Relações Exteriores", "Brasília/DF", "Nova Délhi - Índia", "Reunião Ministerial de Chanceleres do G20", 2, 26, 3, 2, 13900.0, 29800.0),
 
-        # Municipal SP
-        ("Prefeitura Municipal de São Paulo", "RICARDO NUNES", "Prefeito de São Paulo", "São Paulo/SP", "Paris - França", "Cúpula de Prefeitos do C40 para Cidades Sustentáveis", 12000.0, 18500.0),
+        # --- Estadual SP: Governador e Secretários de Estado
+        ("Governo do Estado de São Paulo - Palácio dos Bandeirantes", "TARCÍSIO GOMES DE FREITAS", "Governador do Estado de São Paulo", "São Paulo/SP", "São Sebastião e Ubatuba/SP", "Vistoria de Obras de Contenção e Encostas no Litoral Norte", 2, 18, 2, 21, 2400.0, 1100.0),
+        ("Governo do Estado de São Paulo - Palácio dos Bandeirantes", "TARCÍSIO GOMES DE FREITAS", "Governador do Estado de São Paulo", "São Paulo/SP", "Brasília/DF", "Negociação da Dívida dos Estados e PPI na Fazenda Nacional", 3, 11, 3, 14, 3800.0, 3200.0),
+        ("Governo do Estado de São Paulo - Palácio dos Bandeirantes", "TARCÍSIO GOMES DE FREITAS", "Governador do Estado de São Paulo", "São Paulo/SP", "Ribeirão Preto e Franca/SP", "Abertura Oficial da Agrishow e Linhas de Crédito Agro SP", 4, 28, 5, 2, 2800.0, 1600.0),
+        ("Governo do Estado de São Paulo - Palácio dos Bandeirantes", "TARCÍSIO GOMES DE FREITAS", "Governador do Estado de São Paulo", "São Paulo/SP", "Nova York - Estados Unidos", "Roadshow Internacional de Desestatizações e Linhas de Metrô SP", 5, 12, 5, 18, 15800.0, 27400.0),
+        ("Governo do Estado de São Paulo - Palácio dos Bandeirantes", "TARCÍSIO GOMES DE FREITAS", "Governador do Estado de São Paulo", "São Paulo/SP", "Londres - Reino Unido", "Atração de Parcerias Privadas para o Trem Intercidades (TIC)", 7, 7, 7, 13, 14200.0, 25100.0),
+        ("Governo do Estado de São Paulo - Palácio dos Bandeirantes", "TARCÍSIO GOMES DE FREITAS", "Governador do Estado de São Paulo", "São Paulo/SP", "Presidente Prudente/SP", "Inauguração de Centros de Oncologia e Hospitais Regionais", 8, 19, 8, 22, 2600.0, 1400.0),
+        ("Governo do Estado de São Paulo - Palácio dos Bandeirantes", "TARCÍSIO GOMES DE FREITAS", "Governador do Estado de São Paulo", "São Paulo/SP", "Brasília/DF", "Audiência com o STF e Ministério dos Transportes", 9, 15, 9, 18, 3600.0, 3100.0),
+        ("Governo do Estado de São Paulo - Palácio dos Bandeirantes", "TARCÍSIO GOMES DE FREITAS", "Governador do Estado de São Paulo", "São Paulo/SP", "Frankfurt e Munique - Alemanha", "Atração de Indústrias de Mobilidade Sustentável e Hidrogênio", 11, 10, 11, 15, 13900.0, 24800.0),
+        ("Secretaria da Segurança Pública do Estado de SP", "GUILHERME DERRITE", "Secretário de Estado da Segurança Pública", "São Paulo/SP", "Washington DC - Estados Unidos", "Cooperação Internacional com DEA e FBI contra Facções Criminosas", 3, 20, 3, 24, 11800.0, 19500.0),
+        ("Secretaria da Saúde do Estado de São Paulo", "ELEUSES PAIVA", "Secretário de Estado da Saúde", "São Paulo/SP", "Genebra - Suíça", "78ª Assembleia Mundial da Saúde da OMS e Vacinas Butantan", 5, 19, 5, 24, 12900.0, 22800.0),
+        ("Secretaria da Educação do Estado de São Paulo", "RENATO FEDER", "Secretário de Estado da Educação", "São Paulo/SP", "Helsinque - Finlândia", "Missão Técnica de Avaliação de Modelos de Formação Docente", 9, 2, 9, 6, 11400.0, 21600.0),
+        ("Secretaria de Parcerias em Investimentos do Estado de SP", "RAFAEL BENINI", "Secretário de Parcerias em Investimentos", "São Paulo/SP", "Seul - Coreia do Sul", "Visita Técnica ao Sistema Ferroviário de Alta Velocidade KTX", 7, 22, 7, 27, 15200.0, 31400.0),
+        ("Secretaria da Casa Civil do Estado de SP", "ARTHUR LIMA", "Secretário-Chefe da Casa Civil", "São Paulo/SP", "Brasília/DF", "Articulação Legislativa de Convênios Federais para SP", 6, 3, 6, 5, 3200.0, 2700.0),
+
+        # --- Outros Estados e Municípios
+        ("Governo do Estado do Rio de Janeiro", "CLÁUDIO CASTRO", "Governador do Estado do Rio de Janeiro", "Rio de Janeiro/RJ", "Lisboa - Portugal", "Fórum Jurídico e Atração de Investimentos Portuários no RJ", 6, 12, 6, 16, 12800.0, 23700.0),
+        ("Governo do Estado de Minas Gerais", "ROMEU ZEMA", "Governador do Estado de Minas Gerais", "Belo Horizonte/MG", "Milão e Turim - Itália", "Missão Comercial de Atração de Indústrias Automotivas em MG", 4, 8, 4, 13, 14200.0, 25600.0),
+        ("Governo do Estado do Rio Grande do Sul", "EDUARDO LEITE", "Governador do Estado do Rio Grande do Sul", "Porto Alegre/RS", "Berlim e Hamburgo - Alemanha", "Captação de Fundos e Tecnologias de Resiliência Climática", 5, 5, 5, 11, 14800.0, 27300.0),
+        ("Governo do Estado do Paraná", "RATINHO JÚNIOR", "Governador do Estado do Paraná", "Curitiba/PR", "Tóquio e Osaka - Japão", "Abertura de Mercado para o Agronegócio Paranaense", 4, 14, 4, 20, 16500.0, 32000.0),
+        ("Governo do Estado da Bahia", "JERÔNIMO RODRIGUES", "Governador do Estado da Bahia", "Salvador/BA", "Shenzhen e Pequim - China", "Instalação da Fábrica de Veículos Elétricos BYD na Bahia", 6, 2, 6, 8, 18400.0, 38400.0),
+        ("Prefeitura Municipal de São Paulo", "RICARDO NUNES", "Prefeito de São Paulo", "São Paulo/SP", "Paris - França", "Cúpula de Prefeitos do C40 para Cidades Sustentáveis", 5, 25, 5, 29, 12400.0, 20000.0),
     ]
 
     for ano in [2024, 2025, 2026]:
-        meses_max = 8 if ano == 2026 else 12
-        for mes in range(1, meses_max + 1):
-            for i, (orgao, viajante, cargo, origem, destino, motivo, diarias, passagens) in enumerate(viagens_config):
-                total = diarias + passagens
-                sk = _gerar_sk("viagem", str(ano), str(mes), viajante, destino, str(i))
-                
-                linhas_viagens.append({
-                    "sk": sk,
-                    "ano": ano,
-                    "mes": mes,
-                    "id_viagem": f"PCDP-{ano}-{mes:02d}-{i:03d}",
-                    "codigo_orgao": f"ORG-{i+1:03d}",
-                    "nome_orgao": orgao,
-                    "nome_viajante": viajante,
-                    "cpf_viajante": f"***.{300 + (i*12)%600:03d}.{400 + (i*18)%500:03d}-**",
-                    "cargo_viajante": cargo,
-                    "origem": origem,
-                    "destino": destino,
-                    "motivo": motivo,
-                    "data_inicio": f"{ano}-{mes:02d}-05",
-                    "data_fim": f"{ano}-{mes:02d}-10",
-                    "valor_diarias": round(diarias, 2),
-                    "valor_passagens": round(passagens, 2),
-                    "valor_outros": 0.0,
-                    "valor_total": round(total, 2),
-                    "data_referencia": f"{ano}-{mes:02d}-01",
-                    "_hash_registro": sk,
-                    "_fonte": "portal_transparencia",
-                    "_criado_em": agora_iso,
-                    "_atualizado_em": agora_iso,
-                })
+        for i, (orgao, viajante, cargo, origem, destino, motivo, m_ini, d_ini, m_fim, d_fim, diarias, passagens) in enumerate(viagens_detalhadas):
+            if ano == 2026 and m_ini > 8:
+                continue
+            # Ajuste de inflação/ano
+            fator_ano = 1.0 if ano == 2025 else (0.95 if ano == 2024 else 1.05)
+            v_diarias = round(diarias * fator_ano, 2)
+            v_passagens = round(passagens * fator_ano, 2)
+            v_total = round(v_diarias + v_passagens, 2)
+
+            data_ini_str = f"{ano}-{m_ini:02d}-{d_ini:02d}"
+            data_fim_str = f"{ano}-{m_fim:02d}-{d_fim:02d}"
+
+            sk = _gerar_sk("viagem", str(ano), viajante, destino, data_ini_str, str(i))
+            
+            linhas_viagens.append({
+                "sk": sk,
+                "ano": ano,
+                "mes": m_ini,
+                "id_viagem": f"PCDP-{ano}-{m_ini:02d}-{i+101:03d}",
+                "codigo_orgao": f"ORG-{i+1:03d}",
+                "nome_orgao": orgao,
+                "nome_viajante": viajante,
+                "cpf_viajante": f"***.{300 + (i*12)%600:03d}.{400 + (i*18)%500:03d}-**",
+                "cargo_viajante": cargo,
+                "origem": origem,
+                "destino": destino,
+                "motivo": motivo,
+                "data_inicio": data_ini_str,
+                "data_fim": data_fim_str,
+                "valor_diarias": v_diarias,
+                "valor_passagens": v_passagens,
+                "valor_outros": 0.0,
+                "valor_total": v_total,
+                "data_referencia": f"{ano}-{m_ini:02d}-01",
+                "_hash_registro": sk[:16],
+                "_fonte": "portal_transparencia",
+                "_criado_em": agora_iso,
+                "_atualizado_em": agora_iso,
+            })
 
     for ano in [2024, 2025, 2026]:
         dir_ano = dir_fato / "viagem_servico" / f"ano={ano}"
@@ -204,34 +231,36 @@ def gerar_dados_executivo():
         sub_df = pd.DataFrame([r for r in linhas_viagens if r["ano"] == ano])
         sub_df.to_parquet(dir_ano / "part-000.parquet", index=False)
 
-    print(f"[OK] Viagens a Serviço gravadas: {len(linhas_viagens)} registros")
+    print(f"[OK] Viagens a Serviço gravadas: {len(linhas_viagens)} missões registradas")
 
     # ================================================================== 3. Contratos Públicos (PNCP)
     linhas_contratos = []
     
     contratos_config = [
         # Federal
-        ("Ministério da Gestão e da Inovação", "EMPRESA BRASILEIRA DE TECNOLOGIA E NUVEM S.A.", "01.888.999/0001-22", "Pregão Eletrônico", "Prestação de serviços continuados de nuvem governamental e cibersegurança", 125000000.0, 142000000.0),
-        ("Ministério dos Transportes - DNIT", "CONSTRUTORA E ENGENHARIA INFRAESTRUTURA S.A.", "02.333.444/0001-55", "Concorrência Pública", "Obras de duplicação e manutenção de rodovias federais estruturantes", 350000000.0, 385000000.0),
-        ("Ministério da Saúde", "LABORATORIOS FARMACEUTICOS DO BRASIL S.A.", "04.555.666/0001-99", "Inexigibilidade", "Aquisição emergencial de imunobiológicos e medicamentos de alta complexidade SUS", 210000000.0, 210000000.0),
+        ("Ministério da Gestão e da Inovação", "EMPRESA BRASILEIRA DE TECNOLOGIA E NUVEM S.A.", "01.888.999/0001-22", "Pregão Eletrônico", "Prestação de serviços continuados de nuvem governamental e cibersegurança", "01-15", "12-31", 125000000.0, 142000000.0),
+        ("Ministério dos Transportes - DNIT", "CONSTRUTORA E ENGENHARIA INFRAESTRUTURA S.A.", "02.333.444/0001-55", "Concorrência Pública", "Obras de duplicação e manutenção de rodovias federais estruturantes", "02-10", "12-31", 350000000.0, 385000000.0),
+        ("Ministério da Saúde", "LABORATORIOS FARMACEUTICOS DO BRASIL S.A.", "04.555.666/0001-99", "Inexigibilidade", "Aquisição emergencial de imunobiológicos e medicamentos de alta complexidade SUS", "03-05", "12-31", 210000000.0, 210000000.0),
         
         # Estadual SP (Governo de São Paulo - Tarcísio Gomes de Freitas)
-        ("Companhia do Metropolitano de São Paulo - METRÔ SP", "CONSORCIO LINHA 6 LARANJA METRO SP", "11.222.333/0001-44", "Concorrência Pública / PPP", "Concessão e implantação das obras estruturantes da Linha 6-Laranja do Metrô de SP", 850000000.0, 920000000.0),
-        ("Secretaria de Parcerias em Investimentos do Estado de SP", "CONCESSIONARIA TREM INTERCIDADES SP-CAMPINAS", "22.333.444/0001-55", "Leilão / Concorrência Internacional", "Implantação e operação do Trem Intercidades Eixo Norte (São Paulo a Campinas)", 1200000000.0, 1350000000.0),
-        ("Secretaria da Saúde do Estado de São Paulo", "ORGANIZACOES SOCIAIS DE SAUDE DE SAO PAULO S.A.", "33.444.555/0001-66", "Gestão Compartilhada / Chamamento", "Gestão e atendimento hospitalar de alta complexidade nos Hospitais Regionais de SP", 450000000.0, 480000000.0),
-        ("Secretaria da Educação do Estado de São Paulo", "TECNOLOGIA E PROCESSAMENTO DE DADOS DE SP (PRODESP)", "62.577.929/0001-35", "Dispensa de Licitação (Órgão Público)", "Plataforma digital integrada e infraestrutura de conectividade das escolas estaduais paulistas", 180000000.0, 195000000.0),
-        ("Secretaria da Segurança Pública do Estado de SP", "SOLUCOES INTEGRADAS DE SEGURANCA E MONITORAMENTO LTDA", "44.555.666/0001-77", "Pregão Eletrônico", "Monitoramento por câmeras corporais, radiocomunicação digital e viaturas policiais da PMESP", 120000000.0, 130000000.0),
-        ("Departamento de Estradas de Rodagem de SP (DER-SP)", "CONSTRUTORA E PAVIMENTACAO BANDEIRANTES LTDA", "55.666.777/0001-88", "Concorrência Pública", "Recapeamento asfáltico e duplicação da malha rodoviária vicinal do interior de SP", 240000000.0, 260000000.0),
+        ("Companhia do Metropolitano de São Paulo - METRÔ SP", "CONSORCIO LINHA 6 LARANJA METRO SP", "11.222.333/0001-44", "Concorrência Pública / PPP", "Concessão e implantação das obras estruturantes da Linha 6-Laranja do Metrô de SP", "01-20", "12-31", 850000000.0, 920000000.0),
+        ("Secretaria de Parcerias em Investimentos do Estado de SP", "CONCESSIONARIA TREM INTERCIDADES SP-CAMPINAS", "22.333.444/0001-55", "Leilão / Concorrência Internacional", "Implantação e operação do Trem Intercidades Eixo Norte (São Paulo a Campinas)", "02-28", "12-31", 1200000000.0, 1350000000.0),
+        ("Secretaria da Saúde do Estado de São Paulo", "ORGANIZACOES SOCIAIS DE SAUDE DE SAO PAULO S.A.", "33.444.555/0001-66", "Gestão Compartilhada / Chamamento", "Gestão e atendimento hospitalar de alta complexidade nos Hospitais Regionais de SP", "03-15", "12-31", 450000000.0, 480000000.0),
+        ("Secretaria da Educação do Estado de São Paulo", "TECNOLOGIA E PROCESSAMENTO DE DADOS DE SP (PRODESP)", "62.577.929/0001-35", "Dispensa de Licitação (Órgão Público)", "Plataforma digital integrada e conectividade das escolas estaduais paulistas", "04-10", "12-31", 180000000.0, 195000000.0),
+        ("Secretaria da Segurança Pública do Estado de SP", "SOLUCOES INTEGRADAS DE SEGURANCA E MONITORAMENTO LTDA", "44.555.666/0001-77", "Pregão Eletrônico", "Monitoramento por câmeras corporais, radiocomunicação digital e viaturas da PMESP", "05-05", "12-31", 120000000.0, 130000000.0),
+        ("Departamento de Estradas de Rodagem de SP (DER-SP)", "CONSTRUTORA E PAVIMENTACAO BANDEIRANTES LTDA", "55.666.777/0001-88", "Concorrência Pública", "Recapeamento asfáltico e duplicação da malha rodoviária vicinal do interior de SP", "06-01", "12-31", 240000000.0, 260000000.0),
 
         # Outros Estados e Municípios
-        ("Governo do Estado do Rio de Janeiro", "CONSORCIO OPERACIONAL DE TRANSPORTES RJ", "66.777.888/0001-99", "Concorrência Pública", "Obras de saneamento e infraestrutura metropolitana do Rio de Janeiro", 320000000.0, 340000000.0),
-        ("Governo do Estado de Minas Gerais", "MINAS INFRAESTRUTURA E RODOVIAS S.A.", "77.888.999/0001-00", "Concessão Pública", "Lote rodoviário Triângulo Mineiro e manutenção viária", 280000000.0, 295000000.0),
-        ("Prefeitura Municipal de São Paulo", "CONSTRUTORA URBANA PAULISTANA S.A.", "88.999.000/0001-11", "Pregão Eletrônico", "Obras de contenção de enchentes e drenagem na capital de SP", 190000000.0, 210000000.0),
+        ("Governo do Estado do Rio de Janeiro", "CONSORCIO OPERACIONAL DE TRANSPORTES RJ", "66.777.888/0001-99", "Concorrência Pública", "Obras de saneamento e infraestrutura metropolitana do Rio de Janeiro", "03-12", "12-31", 320000000.0, 340000000.0),
+        ("Governo do Estado de Minas Gerais", "MINAS INFRAESTRUTURA E RODOVIAS S.A.", "77.888.999/0001-00", "Concessão Pública", "Lote rodoviário Triângulo Mineiro e manutenção viária", "04-18", "12-31", 280000000.0, 295000000.0),
+        ("Prefeitura Municipal de São Paulo", "CONSTRUTORA URBANA PAULISTANA S.A.", "88.999.000/0001-11", "Pregão Eletrônico", "Obras de contenção de enchentes e drenagem na capital de SP", "05-15", "12-31", 190000000.0, 210000000.0),
     ]
 
     for ano in [2024, 2025, 2026]:
-        for i, (orgao, forn, cnpj, mod, obj, v_ini, v_atu) in enumerate(contratos_config):
+        for i, (orgao, forn, cnpj, mod, obj, d_ini_mes, d_fim_mes, v_ini, v_atu) in enumerate(contratos_config):
             sk = _gerar_sk("contrato", str(ano), forn, str(i))
+            d_ini = f"{ano}-{d_ini_mes}"
+            d_fim = f"{ano + 2}-{d_fim_mes}"
             linhas_contratos.append({
                 "sk": sk,
                 "ano": ano,
@@ -245,10 +274,10 @@ def gerar_dados_executivo():
                 "objeto": obj,
                 "valor_inicial": float(v_ini),
                 "valor_atualizado": float(v_atu),
-                "data_inicio_vigencia": f"{ano}-01-15",
-                "data_fim_vigencia": f"{ano + 2}-01-14",
+                "data_inicio_vigencia": d_ini,
+                "data_fim_vigencia": d_fim,
                 "data_referencia": f"{ano}-12-31",
-                "_hash_registro": sk,
+                "_hash_registro": sk[:16],
                 "_fonte": "compras_governamentais",
                 "_criado_em": agora_iso,
                 "_atualizado_em": agora_iso,
@@ -265,4 +294,5 @@ def gerar_dados_executivo():
 
 if __name__ == "__main__":
     gerar_dados_executivo()
+
 

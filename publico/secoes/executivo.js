@@ -373,8 +373,14 @@ export async function carregarCartoesExecutivo(esfera, uf, codIbge, ano) {
     }
     if (alvoTrans) {
       alvoTrans.innerHTML = listaTrans.length ? `
-        <table><thead><tr><th>Data</th><th>Órgão</th><th>Favorecido</th><th>Valor</th></tr></thead><tbody>
-        ${listaTrans.slice(0, 10).map((t) => `<tr><td>${formatarData(t.data || t.data_transacao)}</td><td>${txt(t.orgao || t.nome_orgao)}</td><td>${txt(t.favorecido || t.nome_favorecido)}</td><td class="valor">${dinheiro.format(t.valor || 0)}</td></tr>`).join('')}
+        <table><thead><tr><th>Data</th><th>Órgão</th><th>Favorecido / Estabelecimento</th><th>Portador</th><th>Valor</th></tr></thead><tbody>
+        ${listaTrans.slice(0, 15).map((t) => `<tr>
+          <td style="white-space:nowrap">${formatarData(t.data || t.data_transacao)}</td>
+          <td>${txt(t.orgao || t.nome_orgao)}</td>
+          <td><strong>${txt(t.favorecido || t.nome_favorecido)}</strong></td>
+          <td>${txt(t.portador || t.nome_portador || '—')}</td>
+          <td class="valor">${dinheiro.format(t.valor || 0)}</td>
+        </tr>`).join('')}
         </tbody></table>` : '<p class="vazio">Sem dados de transações no recorte selecionado.</p>';
     }
   } catch (e) {
@@ -425,8 +431,15 @@ export async function carregarViagensExecutivo(esfera, uf, codIbge, ano) {
     }
     if (alvoMaior) {
       alvoMaior.innerHTML = listaMaior.length ? `
-        <table><thead><tr><th>Beneficiário</th><th>Destino</th><th>Motivo</th><th>Total</th></tr></thead><tbody>
-        ${listaMaior.slice(0, 10).map((m) => `<tr><td>${txt(m.nome || m.nome_viajante)}</td><td>${txt(m.destino)}</td><td>${txt(m.motivo)}</td><td class="valor">${dinheiro.format(m.valor || m.valor_total || 0)}</td></tr>`).join('')}
+        <table><thead><tr><th>Data / Período</th><th>Beneficiário</th><th>Órgão / Cargo</th><th>Destino</th><th>Motivo</th><th>Total</th></tr></thead><tbody>
+        ${listaMaior.slice(0, 15).map((m) => `<tr>
+          <td style="white-space:nowrap">${m.data_inicio ? (m.data_fim && m.data_fim !== m.data_inicio ? `${formatarData(m.data_inicio)} a ${formatarData(m.data_fim)}` : formatarData(m.data_inicio)) : '—'}</td>
+          <td><strong>${txt(m.nome || m.nome_viajante)}</strong></td>
+          <td>${txt(m.cargo || m.orgao || 'Servidor')}</td>
+          <td>${txt(m.destino)}</td>
+          <td>${txt(m.motivo)}</td>
+          <td class="valor">${dinheiro.format(m.valor || m.valor_total || 0)}</td>
+        </tr>`).join('')}
         </tbody></table>` : '<p class="vazio">Sem viagens registradas no recorte selecionado.</p>';
     }
   } catch (e) {
@@ -477,14 +490,21 @@ export async function carregarContratosExecutivo(esfera, uf, codIbge, ano) {
     }
     if (alvoMaior) {
       alvoMaior.innerHTML = listaMaior.length ? `
-        <table><thead><tr><th>Objeto</th><th>Fornecedor</th><th>Vigência</th><th>Valor</th></tr></thead><tbody>
-        ${listaMaior.slice(0, 10).map((c) => `<tr><td>${txt(c.objeto)}</td><td>${txt(c.fornecedor || c.nome_fornecedor)}</td><td>${formatarData(c.data_inicio || c.data_inicio_vigencia)} a ${formatarData(c.data_fim || c.data_fim_vigencia)}</td><td class="valor">${dinheiro.format(c.valor || c.valor_atualizado || 0)}</td></tr>`).join('')}
+        <table><thead><tr><th>Data / Vigência</th><th>Objeto</th><th>Fornecedor</th><th>Modalidade</th><th>Valor</th></tr></thead><tbody>
+        ${listaMaior.slice(0, 15).map((c) => `<tr>
+          <td style="white-space:nowrap">${c.data_inicio || c.data_inicio_vigencia ? `${formatarData(c.data_inicio || c.data_inicio_vigencia)} a ${formatarData(c.data_fim || c.data_fim_vigencia)}` : '—'}</td>
+          <td><strong>${txt(c.objeto)}</strong></td>
+          <td>${txt(c.fornecedor || c.nome_fornecedor)}</td>
+          <td><span class="selo neutro" style="font-size:11px">${txt(c.modalidade || c.modalidade_licitacao || 'Contrato')}</span></td>
+          <td class="valor">${dinheiro.format(c.valor || c.valor_atualizado || 0)}</td>
+        </tr>`).join('')}
         </tbody></table>` : '<p class="vazio">Sem contratos registrados no recorte selecionado.</p>';
     }
   } catch (e) {
     if (alvoTopo) alvoTopo.innerHTML = falha(e.message);
   }
 }
+
 
 export function configurarEventosExecutivo() {
   $('#executivo-esfera')?.addEventListener('change', (e) => {
