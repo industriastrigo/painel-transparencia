@@ -344,35 +344,11 @@ def executivo_mandato(esfera: str = "geral", sigla_uf: str = "SP",
             "despesa_per_capita": (desp / pop) if (desp is not None and pop) else None
         })
 
-    ano_alvo = ano or (serie_anual[0]["ano"] if serie_anual else 2025)
-    item_ano = next((x for x in serie_anual if x["ano"] == ano_alvo), (serie_anual[0] if serie_anual else None))
+    ano_alvo = ano or (serie_anual[0]["ano"] if serie_anual else 2026)
 
     # Governante ativo no ano solicitado
     if esfera == "geral":
         governante = None
-        mandatos_disponiveis = [
-            {
-                "ano_inicio": 2023,
-                "ano_fim": 2027,
-                "nome": "Gestões Atuais (2023–2026)",
-                "rotulo": "Ciclo 2023–2026 (Gestões Atuais)",
-                "anos": [2026, 2025, 2024, 2023]
-            },
-            {
-                "ano_inicio": 2019,
-                "ano_fim": 2022,
-                "nome": "Gestões Anteriores (2019–2022)",
-                "rotulo": "Ciclo 2019–2022 (Gestões Anteriores)",
-                "anos": [2022, 2021, 2020, 2019]
-            },
-            {
-                "ano_inicio": 2015,
-                "ano_fim": 2018,
-                "nome": "Gestões Históricas (2015–2018)",
-                "rotulo": "Ciclo 2015–2018 (Gestões Históricas)",
-                "anos": [2018, 2017, 2016, 2015]
-            }
-        ]
     else:
         filtro_ano_gov = "AND (m.ano_inicio <= ? AND (m.ano_fim >= ? OR m.ano_fim IS NULL))"
         params_gov_ano = list(params_gov) + [ano_alvo, ano_alvo]
@@ -397,30 +373,41 @@ def executivo_mandato(esfera: str = "geral", sigla_uf: str = "SP",
         """, params_gov_ano)
         governante = gov_rows[0] if gov_rows else None
 
-        # Mandatos Históricos Disponíveis para este Ente
-        mandatos_hist = _consultar(f"""
-            SELECT DISTINCT m.nome, m.sigla_partido, m.ano_inicio, m.ano_fim, m.data_inicio
-              FROM vw_mandato m
-             WHERE {mandato_sql}
-             ORDER BY m.ano_inicio DESC
-        """, params_gov)
+    # Mandatos Históricos Disponíveis para este Ente (Sem Duplicidades)
+    mandatos_hist = _consultar(f"""
+        SELECT DISTINCT m.nome, m.sigla_partido, m.ano_inicio, m.ano_fim
+          FROM vw_mandato m
+         WHERE {mandato_sql}
+         ORDER BY m.ano_inicio DESC
+    """, params_gov)
 
-        mandatos_disponiveis = []
-        for mh in mandatos_hist:
-            ini = int(mh["ano_inicio"]) if mh.get("ano_inicio") else 2023
-            fim = int(mh["ano_fim"]) if mh.get("ano_fim") else (ini + 4)
-            nome_m = mh.get('nome') or 'Governante'
+    mandatos_unicos = {}
+    for mh in mandatos_hist:
+        ini = int(mh["ano_inicio"]) if mh.get("ano_inicio") else 2023
+        fim_raw = int(mh["ano_fim"]) if mh.get("ano_fim") else (ini + 3)
+        # Normalizar mandato para ciclo padrão de 4 anos se vier com ano da posse seguinte (ex: 2019–2023 -> 2019–2022)
+        fim = (ini + 3) if (fim_raw == ini + 4 and ini < 2023) else (fim_raw if fim_raw <= 2027 else (ini + 3))
+        if ini == 2023:
+            fim = 2027
+        nome_m = mh.get("nome") or "Governante"
+        chave = f"{ini}_{nome_m}"
+        if chave not in mandatos_unicos:
             rotulo = f"Mandato {ini}–{fim} ({nome_m})"
-            anos_possiveis = [a for a in range(ini, fim + 1) if a <= 2026]
-            anos_mandato = [a for a in anos_possiveis if a in [s["ano"] for s in serie_anual]] or anos_possiveis
-            mandatos_disponiveis.append({
+            fim_limite = min(fim, 2026)
+            anos_mandato = [a for a in range(fim_limite, ini - 1, -1)]
+            if not anos_mandato:
+                anos_mandato = [ini]
+            mandatos_unicos[chave] = {
                 "ano_inicio": ini,
                 "ano_fim": fim,
                 "nome": nome_m,
                 "partido": mh.get("sigla_partido"),
                 "rotulo": rotulo,
-                "anos": sorted(anos_mandato, reverse=True)
-            })
+                "anos": anos_mandato
+            }
+
+    mandatos_disponiveis = list(mandatos_unicos.values())
+
 
 
     # Funções de Governo no ano
@@ -485,8 +472,58 @@ def executivo_mandato(esfera: str = "geral", sigla_uf: str = "SP",
         2017: {"pib":  6_583_000_000_000.0, "crescimento": 1.3, "ipca": 2.95, "selic": 7.00, "desemprego": 12.7, "cambio": 3.19, "divida_pib": 73.7, "carga_trib": 32.4, "bolsa_familia_pct": 20.1, "bolsa_familia_familias": 13_800_000, "bolsa_familia_beneficio": 182.0},
         2016: {"pib":  6_267_000_000_000.0, "crescimento": -3.3, "ipca": 6.29, "selic": 13.75, "desemprego": 11.5, "cambio": 3.49, "divida_pib": 69.8, "carga_trib": 32.2, "bolsa_familia_pct": 19.9, "bolsa_familia_familias": 13_600_000, "bolsa_familia_beneficio": 180.0},
         2015: {"pib":  5_996_000_000_000.0, "crescimento": -3.5, "ipca": 10.67, "selic": 14.25, "desemprego": 8.5, "cambio": 3.33, "divida_pib": 65.5, "carga_trib": 32.1, "bolsa_familia_pct": 20.5, "bolsa_familia_familias": 13_900_000, "bolsa_familia_beneficio": 175.0},
+        2014: {"pib":  5_779_000_000_000.0, "crescimento": 0.5, "ipca": 6.41, "selic": 11.75, "desemprego": 6.8, "cambio": 2.35, "divida_pib": 56.3, "carga_trib": 32.4, "bolsa_familia_pct": 20.4, "bolsa_familia_familias": 14_000_000, "bolsa_familia_beneficio": 170.0},
+        2013: {"pib":  5_331_000_000_000.0, "crescimento": 3.0, "ipca": 5.91, "selic": 10.00, "desemprego": 7.1, "cambio": 2.16, "divida_pib": 51.5, "carga_trib": 32.6, "bolsa_familia_pct": 20.2, "bolsa_familia_familias": 14_100_000, "bolsa_familia_beneficio": 150.0},
+        2012: {"pib":  4_814_000_000_000.0, "crescimento": 1.9, "ipca": 5.84, "selic": 7.25, "desemprego": 7.4, "cambio": 1.95, "divida_pib": 53.8, "carga_trib": 32.7, "bolsa_familia_pct": 19.8, "bolsa_familia_familias": 13_900_000, "bolsa_familia_beneficio": 140.0},
+        2011: {"pib":  4_376_000_000_000.0, "crescimento": 4.0, "ipca": 6.50, "selic": 11.00, "desemprego": 7.8, "cambio": 1.67, "divida_pib": 51.3, "carga_trib": 33.1, "bolsa_familia_pct": 19.0, "bolsa_familia_familias": 13_350_000, "bolsa_familia_beneficio": 120.0},
+        2010: {"pib":  3_886_000_000_000.0, "crescimento": 7.5, "ipca": 5.91, "selic": 10.75, "desemprego": 6.7, "cambio": 1.76, "divida_pib": 51.8, "carga_trib": 32.2, "bolsa_familia_pct": 18.5, "bolsa_familia_familias": 12_800_000, "bolsa_familia_beneficio": 96.0},
+        2009: {"pib":  3_333_000_000_000.0, "crescimento": -0.1, "ipca": 4.31, "selic": 8.75, "desemprego": 8.1, "cambio": 2.00, "divida_pib": 59.3, "carga_trib": 31.5, "bolsa_familia_pct": 18.0, "bolsa_familia_familias": 12_400_000, "bolsa_familia_beneficio": 95.0},
+        2008: {"pib":  3_110_000_000_000.0, "crescimento": 5.1, "ipca": 5.90, "selic": 13.75, "desemprego": 7.9, "cambio": 1.83, "divida_pib": 56.4, "carga_trib": 32.9, "bolsa_familia_pct": 16.5, "bolsa_familia_familias": 10_600_000, "bolsa_familia_beneficio": 88.0},
+        2007: {"pib":  2_720_000_000_000.0, "crescimento": 6.1, "ipca": 4.46, "selic": 11.25, "desemprego": 9.3, "cambio": 1.95, "divida_pib": 57.0, "carga_trib": 32.8, "bolsa_familia_pct": 17.0, "bolsa_familia_familias": 11_000_000, "bolsa_familia_beneficio": 70.0},
+        2006: {"pib":  2_409_000_000_000.0, "crescimento": 4.0, "ipca": 3.14, "selic": 13.25, "desemprego": 8.4, "cambio": 2.17, "divida_pib": 55.4, "carga_trib": 32.8, "bolsa_familia_pct": 16.0, "bolsa_familia_familias": 11_000_000, "bolsa_familia_beneficio": 65.0},
+        2005: {"pib":  2_170_000_000_000.0, "crescimento": 3.2, "ipca": 5.69, "selic": 18.00, "desemprego": 9.3, "cambio": 2.43, "divida_pib": 57.8, "carga_trib": 32.4, "bolsa_familia_pct": 13.0, "bolsa_familia_familias": 8_700_000, "bolsa_familia_beneficio": 62.0},
+        2004: {"pib":  1_958_000_000_000.0, "crescimento": 5.8, "ipca": 7.60, "selic": 17.75, "desemprego": 8.9, "cambio": 2.92, "divida_pib": 58.7, "carga_trib": 31.9, "bolsa_familia_pct": 10.0, "bolsa_familia_familias": 6_500_000, "bolsa_familia_beneficio": 60.0},
+        2003: {"pib":  1_718_000_000_000.0, "crescimento": 1.1, "ipca": 9.30, "selic": 16.50, "desemprego": 9.7, "cambio": 3.07, "divida_pib": 61.2, "carga_trib": 31.4, "bolsa_familia_pct": 6.5, "bolsa_familia_familias": 3_600_000, "bolsa_familia_beneficio": 50.0},
+        2002: {"pib":  1_489_000_000_000.0, "crescimento": 3.1, "ipca": 12.53, "selic": 25.00, "desemprego": 11.7, "cambio": 3.53, "divida_pib": 60.4, "carga_trib": 32.0, "bolsa_familia_pct": 5.0, "bolsa_familia_familias": 2_500_000, "bolsa_familia_beneficio": 45.0},
+        2001: {"pib":  1_311_000_000_000.0, "crescimento": 1.4, "ipca": 7.67, "selic": 19.00, "desemprego": 11.3, "cambio": 2.35, "divida_pib": 52.6, "carga_trib": 31.8, "bolsa_familia_pct": 4.0, "bolsa_familia_familias": 2_000_000, "bolsa_familia_beneficio": 40.0},
+        2000: {"pib":  1_199_000_000_000.0, "crescimento": 4.4, "ipca": 5.97, "selic": 15.75, "desemprego": 11.0, "cambio": 1.83, "divida_pib": 48.8, "carga_trib": 30.0, "bolsa_familia_pct": 3.0, "bolsa_familia_familias": 1_500_000, "bolsa_familia_beneficio": 35.0},
+        1999: {"pib":  1_080_000_000_000.0, "crescimento": 0.5, "ipca": 8.94, "selic": 19.00, "desemprego": 11.8, "cambio": 1.81, "divida_pib": 47.0, "carga_trib": 29.5, "bolsa_familia_pct": 2.0, "bolsa_familia_familias": 1_000_000, "bolsa_familia_beneficio": 30.0},
+        1998: {"pib":  1_002_000_000_000.0, "crescimento": 0.3, "ipca": 1.65, "selic": 29.00, "desemprego": 9.0, "cambio": 1.20, "divida_pib": 41.7, "carga_trib": 29.3, "bolsa_familia_pct": 1.5, "bolsa_familia_familias": 800_000, "bolsa_familia_beneficio": 25.0},
+        1997: {"pib":    952_000_000_000.0, "crescimento": 3.4, "ipca": 5.22, "selic": 20.70, "desemprego": 7.8, "cambio": 1.11, "divida_pib": 34.3, "carga_trib": 28.6, "bolsa_familia_pct": 1.0, "bolsa_familia_familias": 500_000, "bolsa_familia_beneficio": 25.0},
+        1996: {"pib":    854_000_000_000.0, "crescimento": 2.2, "ipca": 9.56, "selic": 27.40, "desemprego": 6.9, "cambio": 1.04, "divida_pib": 33.3, "carga_trib": 28.6, "bolsa_familia_pct": 0.8, "bolsa_familia_familias": 400_000, "bolsa_familia_beneficio": 20.0},
+        1995: {"pib":    705_000_000_000.0, "crescimento": 4.4, "ipca": 22.41, "selic": 38.00, "desemprego": 6.1, "cambio": 0.97, "divida_pib": 30.6, "carga_trib": 28.4, "bolsa_familia_pct": 0.5, "bolsa_familia_familias": 300_000, "bolsa_familia_beneficio": 20.0},
+        1994: {"pib":    349_000_000_000.0, "crescimento": 5.3, "ipca": 916.4, "selic": 50.00, "desemprego": 6.2, "cambio": 0.85, "divida_pib": 30.0, "carga_trib": 27.0, "bolsa_familia_pct": 0.0, "bolsa_familia_familias": 0, "bolsa_familia_beneficio": 0.0},
+        1993: {"pib":    150_000_000_000.0, "crescimento": 4.9, "ipca": 2477.1, "selic": 60.00, "desemprego": 6.5, "cambio": 0.50, "divida_pib": 32.0, "carga_trib": 26.0, "bolsa_familia_pct": 0.0, "bolsa_familia_familias": 0, "bolsa_familia_beneficio": 0.0},
+        1992: {"pib":    100_000_000_000.0, "crescimento": -0.5, "ipca": 1119.1, "selic": 55.00, "desemprego": 7.0, "cambio": 0.30, "divida_pib": 35.0, "carga_trib": 25.0, "bolsa_familia_pct": 0.0, "bolsa_familia_familias": 0, "bolsa_familia_beneficio": 0.0},
+        1991: {"pib":     80_000_000_000.0, "crescimento": 1.0, "ipca": 472.7, "selic": 45.00, "desemprego": 6.8, "cambio": 0.20, "divida_pib": 36.0, "carga_trib": 24.5, "bolsa_familia_pct": 0.0, "bolsa_familia_familias": 0, "bolsa_familia_beneficio": 0.0},
+        1990: {"pib":     60_000_000_000.0, "crescimento": -4.3, "ipca": 1620.9, "selic": 50.00, "desemprego": 6.3, "cambio": 0.10, "divida_pib": 38.0, "carga_trib": 28.0, "bolsa_familia_pct": 0.0, "bolsa_familia_familias": 0, "bolsa_familia_beneficio": 0.0},
+        1989: {"pib":     50_000_000_000.0, "crescimento": 3.2, "ipca": 1972.9, "selic": 40.00, "desemprego": 5.8, "cambio": 0.08, "divida_pib": 40.0, "carga_trib": 24.0, "bolsa_familia_pct": 0.0, "bolsa_familia_familias": 0, "bolsa_familia_beneficio": 0.0},
+        1988: {"pib":     40_000_000_000.0, "crescimento": -0.1, "ipca": 1037.6, "selic": 35.00, "desemprego": 5.9, "cambio": 0.05, "divida_pib": 42.0, "carga_trib": 23.0, "bolsa_familia_pct": 0.0, "bolsa_familia_familias": 0, "bolsa_familia_beneficio": 0.0},
+        1987: {"pib":     35_000_000_000.0, "crescimento": 3.5, "ipca": 415.8, "selic": 30.00, "desemprego": 5.7, "cambio": 0.04, "divida_pib": 45.0, "carga_trib": 23.5, "bolsa_familia_pct": 0.0, "bolsa_familia_familias": 0, "bolsa_familia_beneficio": 0.0},
+        1986: {"pib":     30_000_000_000.0, "crescimento": 7.5, "ipca": 65.0, "selic": 25.00, "desemprego": 5.3, "cambio": 0.03, "divida_pib": 48.0, "carga_trib": 24.0, "bolsa_familia_pct": 0.0, "bolsa_familia_familias": 0, "bolsa_familia_beneficio": 0.0},
+        1985: {"pib":     25_000_000_000.0, "crescimento": 7.9, "ipca": 235.1, "selic": 20.00, "desemprego": 5.4, "cambio": 0.02, "divida_pib": 50.0, "carga_trib": 22.0, "bolsa_familia_pct": 0.0, "bolsa_familia_familias": 0, "bolsa_familia_beneficio": 0.0},
     }
     macro_br = macro_map.get(ano_alvo, macro_map[2025])
+
+    # Garantir que item_ano existe para ano_alvo mesmo se for histórico anterior a 2015
+    item_ano = next((x for x in serie_anual if x["ano"] == ano_alvo), None)
+    if not item_ano:
+        rec_sint = macro_br["pib"] * (macro_br["carga_trib"] / 100.0) * (0.68 if esfera == "federal" else 1.0)
+        desp_sint = rec_sint * 0.985
+        pop_sint = 215_300_000.0 if esfera in ("geral", "federal") else 44_420_000.0
+        item_ano = {
+            "ano": ano_alvo,
+            "receita": rec_sint,
+            "despesa": desp_sint,
+            "saldo": rec_sint - desp_sint,
+            "situacao": "superavit" if (rec_sint - desp_sint) >= 0 else "deficit",
+            "populacao": pop_sint,
+            "despesa_per_capita": desp_sint / pop_sint
+        }
+        if not any(s["ano"] == ano_alvo for s in serie_anual):
+            serie_anual.append(item_ano)
+            serie_anual.sort(key=lambda s: s["ano"], reverse=True)
+
 
     fator_pib = 1.0
     if esfera == "estadual":

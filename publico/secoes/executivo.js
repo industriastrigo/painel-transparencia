@@ -484,49 +484,31 @@ export async function carregarExecutivo() {
     const mandatos = d.mandatos_disponiveis || [];
 
     if (blocoMandato) {
-      blocoMandato.hidden = (esfera === 'geral');
+      blocoMandato.hidden = false;
     }
 
-    if (seletorMandato) {
-      if (!mandatos.length) {
-        seletorMandato.innerHTML = '<option value="todos">Todos os Períodos</option>';
-      } else {
-        const anoAlvo = Number(d.ano_selecionado);
-        const valorAtual = seletorMandato.value;
-        const mandatoAtivo = mandatos.find((m) => m.ano_inicio <= anoAlvo && m.ano_fim >= anoAlvo) || mandatos[0];
-        const chaveAtiva = `${mandatoAtivo.ano_inicio}_${mandatoAtivo.ano_fim}`;
-        const chaveEscolhida = (valorAtual && (valorAtual === 'todos' || mandatos.some(m => `${m.ano_inicio}_${m.ano_fim}` === valorAtual)))
-          ? valorAtual
-          : chaveAtiva;
+    if (seletorMandato && mandatos.length) {
+      const anoAlvo = Number(d.ano_selecionado);
+      const mandatoAtivo = mandatos.find((m) => (m.anos && m.anos.includes(anoAlvo)) || (m.ano_inicio <= anoAlvo && m.ano_fim >= anoAlvo)) || mandatos[0];
+      const chaveAtiva = `${mandatoAtivo.ano_inicio}_${mandatoAtivo.ano_fim}`;
 
-        seletorMandato.innerHTML = mandatos.map((m) => {
-          const chave = `${m.ano_inicio}_${m.ano_fim}`;
-          const sel = (chave === chaveEscolhida) ? 'selected' : '';
-          const anosStr = (m.anos || []).join(',');
-          return `<option value="${chave}" data-anos="${anosStr}" ${sel}>${escapar(m.rotulo || m.nome)}</option>`;
-        }).join('') + `<option value="todos" data-anos="${(d.serie_anual || []).map(s => s.ano).join(',')}" ${chaveEscolhida === 'todos' ? 'selected' : ''}>Todos os Anos (${d.serie_anual?.[d.serie_anual.length - 1]?.ano || ''}–${d.serie_anual?.[0]?.ano || ''})</option>`;
+      seletorMandato.innerHTML = mandatos.map((m) => {
+        const chave = `${m.ano_inicio}_${m.ano_fim}`;
+        const sel = (chave === chaveAtiva) ? 'selected' : '';
+        const anosStr = (m.anos || []).join(',');
+        return `<option value="${chave}" data-anos="${anosStr}" ${sel}>${escapar(m.rotulo || m.nome)}</option>`;
+      }).join('');
+
+      // 3. Popular Anos de Competência (estritamente os anos do mandato selecionado)
+      const seletorAno = $('#executivo-ano');
+      if (seletorAno) {
+        const anosMandato = mandatoAtivo.anos && mandatoAtivo.anos.length ? mandatoAtivo.anos : [anoAlvo];
+        seletorAno.innerHTML = anosMandato.map((a) =>
+          `<option value="${a}" ${a === anoAlvo ? 'selected' : ''}>${a}</option>`
+        ).join('');
       }
     }
 
-    // 3. Popular Anos de Competência
-    const seletorAno = $('#executivo-ano');
-    if (seletorAno && d.serie_anual?.length) {
-      const optMandato = seletorMandato?.selectedOptions?.[0];
-      const anosPermitidos = (optMandato && optMandato.dataset?.anos)
-        ? optMandato.dataset.anos.split(',').map(Number).filter(Boolean)
-        : null;
-
-      const anosLista = (anosPermitidos && anosPermitidos.length > 0)
-        ? d.serie_anual.filter((s) => anosPermitidos.includes(s.ano))
-        : d.serie_anual;
-
-      const listaFinal = anosLista.length ? anosLista : d.serie_anual;
-      const anoSelecionado = d.ano_selecionado || listaFinal[0]?.ano;
-
-      seletorAno.innerHTML = listaFinal.map((s) =>
-        `<option value="${s.ano}" ${s.ano === Number(anoSelecionado) ? 'selected' : ''}>${s.ano}</option>`
-      ).join('');
-    }
 
 
     // 3. Resultado Fiscal (Superávit / Déficit)
@@ -894,6 +876,7 @@ export function configurarEventosExecutivo() {
     const anos = opt?.dataset?.anos ? opt.dataset.anos.split(',').map(Number).filter(Boolean) : null;
     const seletorAno = $('#executivo-ano');
     if (seletorAno && anos && anos.length) {
+      seletorAno.innerHTML = anos.map(a => `<option value="${a}">${a}</option>`).join('');
       seletorAno.value = String(anos[0]);
     }
     carregarExecutivo();
