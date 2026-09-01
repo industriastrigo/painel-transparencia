@@ -86,6 +86,10 @@ def listar_magistrados(
 
     return _consultar(f"""
         SELECT m.sk,
+               m.cod_magistrado_interno,
+               m.cod_cargo_interno,
+               m.nome_extraido,
+               m.nome_formatado,
                m.nome,
                m.cargo,
                m.cargo_descricao,
@@ -98,7 +102,7 @@ def listar_magistrados(
                m.situacao,
                m.url_foto,
                COALESCE(r.ano, 2026) AS ano_ref,
-               COALESCE(r.mes, 8) AS mes_ref,
+               COALESCE(r.mes, 1) AS mes_ref,
                COALESCE(r.subsidio, 0) AS subsidio,
                COALESCE(r.vantagens_pessoais, 0) AS vantagens_pessoais,
                COALESCE(r.indenizacoes, 0) AS indenizacoes,
@@ -106,13 +110,15 @@ def listar_magistrados(
                COALESCE(r.total_bruto, 0) AS total_bruto,
                COALESCE(r.retencao_teto, 0) AS retencao_teto,
                COALESCE(r.descontos_legais, 0) AS descontos_legais,
-               COALESCE(r.total_liquido, 0) AS total_liquido
-          FROM dim_magistrado m
+               COALESCE(r.total_liquido, 0) AS total_liquido,
+               COALESCE(r.total_penduricalhos, (COALESCE(r.indenizacoes, 0) + COALESCE(r.gratificacoes, 0))) AS total_penduricalhos
+          FROM vw_magistrado m
           LEFT JOIN (
               SELECT DISTINCT ON (sk_magistrado)
                      sk_magistrado, ano, mes, subsidio, vantagens_pessoais,
                      indenizacoes, gratificacoes, total_bruto, retencao_teto,
-                     descontos_legais, total_liquido
+                     descontos_legais, total_liquido,
+                     (indenizacoes + gratificacoes) AS total_penduricalhos
                 FROM fato_remuneracao_magistrado
                ORDER BY sk_magistrado, ano DESC, mes DESC
           ) r ON r.sk_magistrado = m.sk

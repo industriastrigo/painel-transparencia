@@ -11,6 +11,14 @@ import duckdb
 
 from ..nucleo import armazem
 from ..nucleo.esquema import TABELAS, selecao_vazia
+from ..nucleo.normalizadores import (
+    normalizar_nome_proprio,
+    gerar_slug_codigo,
+    gerar_cod_politico_interno,
+    gerar_cod_magistrado_interno,
+    gerar_cod_cargo_interno,
+    gerar_cod_ministro_estado_interno,
+)
 from ..nucleo.registro import obter as obter_log
 
 log = obter_log("api.vistas")
@@ -530,7 +538,10 @@ DERIVADAS = {
     """,
     # ----------------------------------------------- emendas parlamentares
     "vw_emenda_parlamentar": """
-        SELECT ano, codigo_emenda, tipo_emenda, autor,
+        SELECT ano, codigo_emenda, tipo_emenda,
+               autor AS autor_extraido,
+               normalizar_nome(autor) AS autor_formatado,
+               normalizar_nome(autor) AS autor,
                funcao,
                COALESCE(
                    TRY_CAST(valor_empenhado AS DOUBLE),
@@ -558,7 +569,7 @@ DERIVADAS = {
                    TRY_CAST(REPLACE(REPLACE(CAST(valor_pago AS VARCHAR), '.', ''), ',', '.') AS DOUBLE),
                    0.0
                )) AS valor_pago
-          FROM emenda_parlamentar
+          FROM vw_emenda_parlamentar
          GROUP BY ALL
     """,
     "vw_emenda_por_municipio": """
@@ -574,14 +585,20 @@ DERIVADAS = {
                    TRY_CAST(REPLACE(REPLACE(CAST(valor_pago AS VARCHAR), '.', ''), ',', '.') AS DOUBLE),
                    0.0
                )) AS valor_pago
-          FROM emenda_parlamentar
+          FROM vw_emenda_parlamentar
          GROUP BY ALL
     """,
     # ------------------------------------------------- cartões corporativos
     "vw_cartao_corporativo": """
         SELECT ano, mes, codigo_orgao, nome_orgao,
-               nome_portador, cpf_portador,
-               nome_favorecido, cnpj_cpf_favorecido,
+               nome_portador AS nome_portador_extraido,
+               normalizar_nome(nome_portador) AS nome_portador_formatado,
+               normalizar_nome(nome_portador) AS nome_portador,
+               cpf_portador,
+               nome_favorecido AS nome_favorecido_extraido,
+               normalizar_nome(nome_favorecido) AS nome_favorecido_formatado,
+               normalizar_nome(nome_favorecido) AS nome_favorecido,
+               cnpj_cpf_favorecido,
                tipo_cartao, data_transacao,
                COALESCE(
                    TRY_CAST(valor AS DOUBLE),
@@ -610,7 +627,7 @@ DERIVADAS = {
                    TRY_CAST(REPLACE(REPLACE(CAST(valor AS VARCHAR), '.', ''), ',', '.') AS DOUBLE),
                    0.0
                )) AS total_gasto
-          FROM cartao_corporativo
+          FROM vw_cartao_corporativo
          GROUP BY ALL
     """,
     "vw_cartao_serie_anual": """
@@ -628,7 +645,13 @@ DERIVADAS = {
     # ----------------------------------------------- viagens e diárias PCDP
     "vw_viagem_servico": """
         SELECT ano, mes, id_viagem, codigo_orgao, nome_orgao,
-               nome_viajante, cpf_viajante, cargo_viajante,
+               nome_viajante AS nome_viajante_extraido,
+               normalizar_nome(nome_viajante) AS nome_viajante_formatado,
+               normalizar_nome(nome_viajante) AS nome_viajante,
+               cpf_viajante,
+               cargo_viajante AS cargo_viajante_extraido,
+               normalizar_nome(cargo_viajante) AS cargo_viajante_formatado,
+               normalizar_nome(cargo_viajante) AS cargo_viajante,
                origem, destino, motivo, data_inicio, data_fim,
                COALESCE(TRY_CAST(valor_diarias AS DOUBLE), 0.0)    AS valor_diarias,
                COALESCE(TRY_CAST(valor_passagens AS DOUBLE), 0.0)  AS valor_passagens,
@@ -680,7 +703,11 @@ DERIVADAS = {
     # --------------------------------- contratos públicos e licitações (PNCP)
     "vw_contrato_governo": """
         SELECT ano, id_contrato, numero_contrato, codigo_orgao, nome_orgao,
-               cnpj_fornecedor, nome_fornecedor, modalidade_licitacao, objeto,
+               cnpj_fornecedor,
+               nome_fornecedor AS nome_fornecedor_extraido,
+               normalizar_nome(nome_fornecedor) AS nome_fornecedor_formatado,
+               normalizar_nome(nome_fornecedor) AS nome_fornecedor,
+               modalidade_licitacao, objeto,
                COALESCE(TRY_CAST(valor_inicial AS DOUBLE), 0.0)    AS valor_inicial,
                COALESCE(TRY_CAST(valor_atualizado AS DOUBLE), 0.0) AS valor_atualizado,
                data_inicio_vigencia, data_fim_vigencia, data_referencia
@@ -690,14 +717,14 @@ DERIVADAS = {
         SELECT ano, cnpj_fornecedor, nome_fornecedor,
                COUNT(*)                                                AS contratos,
                SUM(COALESCE(TRY_CAST(valor_atualizado AS DOUBLE), 0.0)) AS total_contratado
-          FROM contrato_governo
+          FROM vw_contrato_governo
          GROUP BY ALL
     """,
     "vw_contrato_por_modalidade": """
         SELECT ano, modalidade_licitacao,
                COUNT(*)                                                AS contratos,
                SUM(COALESCE(TRY_CAST(valor_atualizado AS DOUBLE), 0.0)) AS total_contratado
-          FROM contrato_governo
+          FROM vw_contrato_governo
          GROUP BY ALL
     """,
     # ------------------------------------------------ operações de crédito
@@ -833,8 +860,19 @@ DERIVADAS = {
     # existe — o painel precisa distinguir "não tem prefeito" de "não
     # consegui casar o nome da cidade".
     "vw_mandato": """
-        SELECT m.sk, m.sk_politico, m.cod_cargo, m.cargo, m.cod_ue,
-               m.cod_ibge, m.sigla_uf, m.nome, m.sigla_partido,
+        SELECT m.sk,
+               COALESCE(m.sk_politico, gerar_cod_politico(m.nome)) AS cod_politico_interno,
+               m.sk_politico,
+               COALESCE(m.cod_cargo, gerar_cod_cargo(m.cargo)) AS cod_cargo_interno,
+               m.cod_cargo,
+               m.cargo,
+               m.cod_ue,
+               m.cod_ibge,
+               m.sigla_uf,
+               m.nome AS nome_extraido,
+               normalizar_nome(m.nome) AS nome_formatado,
+               normalizar_nome(m.nome) AS nome,
+               m.sigla_partido,
                m.nome_ente AS nome_ente_tse,
                e.nome      AS nome_ente_ibge,
                e.nivel     AS nivel_ente,
@@ -845,11 +883,33 @@ DERIVADAS = {
     """,
     # Quem governa cada ente hoje, um por cargo executivo.
     "vw_executivo": """
-        SELECT cod_ibge, sigla_uf, cargo, nome, sigla_partido,
-               ano_inicio, ano_fim
+        SELECT cod_ibge, sigla_uf, cargo, cod_cargo_interno, cod_politico_interno,
+               nome_extraido, nome_formatado, nome,
+               sigla_partido, ano_inicio, ano_fim
           FROM vw_mandato
          WHERE cargo IN ('presidente', 'governador', 'prefeito')
            AND cod_ibge IS NOT NULL
+    """,
+    # Magistrados e Ministros dos Tribunais Brasileiros (Painel CNJ)
+    "vw_magistrado": """
+        SELECT m.sk,
+               COALESCE(gerar_cod_magistrado(m.nome, m.tribunal), m.sk) AS cod_magistrado_interno,
+               COALESCE(gerar_cod_cargo(m.cargo), m.cargo) AS cod_cargo_interno,
+               m.id_origem,
+               m.nome AS nome_extraido,
+               normalizar_nome(m.nome) AS nome_formatado,
+               normalizar_nome(m.nome) AS nome,
+               m.cargo,
+               normalizar_nome(m.cargo_descricao) AS cargo_descricao,
+               m.tribunal,
+               m.ramo,
+               m.grau,
+               m.sigla_uf,
+               normalizar_nome(m.orgao_lotacao) AS orgao_lotacao,
+               m.data_posse,
+               m.situacao,
+               m.url_foto
+          FROM dim_magistrado m
     """,
     # Subsídio vigente = a linha de vigência mais recente de cada cargo.
     "vw_subsidio_vigente": """
@@ -962,8 +1022,43 @@ def _completar_colunas(con: duckdb.DuckDBPyConnection, tabela,
                             for nome, tipo in faltando)
 
 
+def _udf_normalizar_nome(texto: str) -> str:
+    return normalizar_nome_proprio(texto)
+
+
+def _udf_gerar_slug(texto: str) -> str:
+    return gerar_slug_codigo(texto)
+
+
+def _udf_gerar_cod_politico(nome: str) -> str:
+    return gerar_cod_politico_interno(nome)
+
+
+def _udf_gerar_cod_magistrado(nome: str, tribunal: str) -> str:
+    return gerar_cod_magistrado_interno(nome, tribunal)
+
+
+def _udf_gerar_cod_cargo(cargo: str) -> str:
+    return gerar_cod_cargo_interno(cargo)
+
+
+def _udf_gerar_cod_ministro(pasta: str, nome: str) -> str:
+    return gerar_cod_ministro_estado_interno(pasta, nome)
+
+
 def criar(con: duckdb.DuckDBPyConnection) -> list[str]:
     criadas = []
+
+    # Registrar UDFs de normalização de texto e códigos internos
+    try:
+        con.create_function("normalizar_nome", _udf_normalizar_nome)
+        con.create_function("gerar_slug_codigo", _udf_gerar_slug)
+        con.create_function("gerar_cod_politico", _udf_gerar_cod_politico)
+        con.create_function("gerar_cod_magistrado", _udf_gerar_cod_magistrado)
+        con.create_function("gerar_cod_cargo", _udf_gerar_cod_cargo)
+        con.create_function("gerar_cod_ministro", _udf_gerar_cod_ministro)
+    except Exception as erro_udf:
+        log.debug("UDFs já registradas ou aviso: %s", erro_udf)
 
     for nome, tabela in TABELAS.items():
         if tabela.camada == "_ctl":

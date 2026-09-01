@@ -194,6 +194,26 @@ const PERCENTUAIS = new Set(['dependencia_transferencia', 'percentual_pessoal'])
 // existe para não cometer.
 const CONTAGENS = new Set(['quantidade', 'contagem', 'sessoes', 'notas']);
 
+const PREPOSICOES_NOMES = new Set(['de', 'da', 'do', 'das', 'dos', 'e', 'em', 'para', 'com', 'por', 'del', "d'"]);
+const ROMANOS_NOMES = new Set(['i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x', 'xi', 'xii']);
+
+/** Formata nome próprio em Title Case elegante segundo a norma culta (PT-BR). */
+const formatarNomeProprio = (v) => {
+  if (!v) return '—';
+  const texto = String(v).trim();
+  if (!texto) return '—';
+  const palavras = texto.split(/\s+/);
+  return palavras.map((p, i) => {
+    const pl = p.toLowerCase();
+    if (ROMANOS_NOMES.has(pl)) return pl.toUpperCase();
+    if (i > 0 && PREPOSICOES_NOMES.has(pl)) return pl;
+    if (p.includes("'")) {
+      return p.split("'").map((pt, j) => (j === 0 || !PREPOSICOES_NOMES.has(pt.toLowerCase()) ? (pt.charAt(0).toUpperCase() + pt.slice(1).toLowerCase()) : pt.toLowerCase())).join("'");
+    }
+    return p.charAt(0).toUpperCase() + p.slice(1).toLowerCase();
+  }).join(' ');
+};
+
 /** Data da fonte → dd/mm/aaaa, sem perder um dia no caminho.
  *
  *  `new Date("2024-05-01")` é meia-noite **UTC** pela especificação. Em
@@ -219,6 +239,7 @@ export {
   escapar, atributo, txt, endereco,
   numero, dinheiro, dinheiroExato, dinheiroCurto, data, dataHora,
   aNumero, porcento, porcentoExato, contagem, _compacto,
-  formatar, exato, fatia, somar, formatarIndicador, formatarData,
+  formatar, exato, fatia, somar, formatarIndicador, formatarData, formatarNomeProprio,
   ROTULO_METRICA, PERCENTUAIS, CONTAGENS, LIMITE_CONSULTA, SELO_SITUACAO
 };
+

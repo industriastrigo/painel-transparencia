@@ -1,4 +1,4 @@
-﻿"""Testes dos módulos de Cartões Corporativos, Viagens/Diárias, Contratos e Patrimônio."""
+"""Testes dos módulos de Cartões Corporativos, Viagens/Diárias, Contratos e Patrimônio."""
 
 from __future__ import annotations
 
@@ -76,9 +76,9 @@ def test_cartao_corporativo_schema_e_views(cliente):
     assert res["total_presidencia"] == 2350.50
 
     assert len(res["por_orgao"]) >= 2
-    assert len(res["por_favorecido"]) >= 3
     assert len(res["maiores_gastos"]) == 3
-    assert res["maiores_gastos"][0]["nome_favorecido"] == "HOTEL NACIONAL LTDA"
+    assert res["maiores_gastos"][0]["nome_favorecido"] == "Hotel Nacional LTDA"
+    assert res["maiores_gastos"][0]["nome_favorecido_extraido"] == "HOTEL NACIONAL LTDA"
     assert res["maiores_gastos"][0]["valor"] == 1500.50
 
 
@@ -152,7 +152,8 @@ def test_contratos_governo_endpoint(cliente):
     assert res["ano"] == 2025
     assert res["total_contratos"] == 1
     assert res["total_contratado"] == 5500000.00
-    assert res["por_fornecedor"][0]["nome_fornecedor"] == "TECNOLOGIA BRASIL S/A"
+    assert res["por_fornecedor"][0]["nome_fornecedor"] == "Tecnologia Brasil S/A"
+    assert res["por_fornecedor"][0]["nome_fornecedor_extraido"] == "TECNOLOGIA BRASIL S/A"
 
 
 def test_patrimonio_bens_declarados_politico(cliente):

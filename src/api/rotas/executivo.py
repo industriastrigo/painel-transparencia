@@ -354,7 +354,8 @@ def executivo_mandato(esfera: str = "geral", sigla_uf: str = "SP",
         params_gov_ano = list(params_gov) + [ano_alvo, ano_alvo]
 
         gov_rows = _consultar(f"""
-            SELECT m.cargo, m.nome, m.sigla_partido, m.sigla_uf, m.ano_inicio, m.ano_fim, m.data_inicio,
+            SELECT m.cod_politico_interno, m.cod_cargo_interno, m.nome_extraido, m.nome_formatado,
+                   m.cargo, m.nome, m.sigla_partido, m.sigla_uf, m.ano_inicio, m.ano_fim, m.data_inicio,
                    COALESCE(s_especifico.valor_mensal, s_geral.valor_mensal) AS salario,
                    COALESCE(s_especifico.norma, s_geral.norma)               AS norma_salario,
                    COALESCE(s_especifico.url_norma, s_geral.url_norma)       AS url_norma_salario,
@@ -649,7 +650,8 @@ def executivo_mandato(esfera: str = "geral", sigla_uf: str = "SP",
     # EXERCÍCIO DO PRESIDENTE DA REPÚBLICA & COMPARATIVO FEDERATIVO
     # =========================================================================
     pres_rows = _consultar("""
-        SELECT m.cargo, m.nome, m.sigla_partido, m.ano_inicio, m.ano_fim,
+        SELECT m.cod_politico_interno, m.cod_cargo_interno, m.nome_extraido, m.nome_formatado,
+               m.cargo, m.nome, m.sigla_partido, m.ano_inicio, m.ano_fim,
                COALESCE(s_especifico.valor_mensal, s_geral.valor_mensal) AS salario,
                COALESCE(s_especifico.norma, s_geral.norma)               AS norma_salario
           FROM vw_mandato m
@@ -848,10 +850,11 @@ def executivo_cartoes(esfera: str | None = None, sigla_uf: str | None = None,
 
     por_favorecido = _consultar(f"""
         SELECT nome_favorecido, nome_favorecido AS nome,
+               nome_favorecido_extraido, nome_favorecido_formatado,
                cnpj_cpf_favorecido, cnpj_cpf_favorecido AS cnpj_cpf,
                COUNT(*) AS transacoes, SUM(valor) AS total_gasto, SUM(valor) AS valor
           FROM vw_cartao_corporativo {onde}
-         GROUP BY nome_favorecido, cnpj_cpf_favorecido
+         GROUP BY nome_favorecido, nome_favorecido_extraido, nome_favorecido_formatado, cnpj_cpf_favorecido
          ORDER BY total_gasto DESC LIMIT 20
     """, parametros)
 
@@ -859,7 +862,9 @@ def executivo_cartoes(esfera: str | None = None, sigla_uf: str | None = None,
         SELECT data_transacao, data_transacao AS data,
                nome_orgao, nome_orgao AS orgao,
                nome_portador, nome_portador AS portador,
+               nome_portador_extraido, nome_portador_formatado,
                nome_favorecido, nome_favorecido AS favorecido,
+               nome_favorecido_extraido, nome_favorecido_formatado,
                cnpj_cpf_favorecido, tipo_cartao, tipo_cartao AS tipo, valor
           FROM vw_cartao_corporativo {onde}
          ORDER BY valor DESC LIMIT {int(limite)}
@@ -1023,10 +1028,11 @@ def executivo_contratos(esfera: str | None = None, sigla_uf: str | None = None,
 
     por_fornecedor = _consultar(f"""
         SELECT nome_fornecedor, nome_fornecedor AS fornecedor,
+               nome_fornecedor_extraido, nome_fornecedor_formatado,
                cnpj_fornecedor, cnpj_fornecedor AS cnpj, COUNT(*) AS contratos,
                SUM(valor_atualizado) AS total_contratado, SUM(valor_atualizado) AS valor
           FROM vw_contrato_governo {onde}
-         GROUP BY nome_fornecedor, cnpj_fornecedor ORDER BY total_contratado DESC LIMIT 20
+         GROUP BY nome_fornecedor, nome_fornecedor_extraido, nome_fornecedor_formatado, cnpj_fornecedor ORDER BY total_contratado DESC LIMIT 20
     """, parametros)
 
     maiores_contratos = _consultar(f"""
@@ -1034,6 +1040,7 @@ def executivo_contratos(esfera: str | None = None, sigla_uf: str | None = None,
                numero_contrato, numero_contrato AS numero,
                nome_orgao, nome_orgao AS orgao,
                nome_fornecedor, nome_fornecedor AS fornecedor,
+               nome_fornecedor_extraido, nome_fornecedor_formatado,
                cnpj_fornecedor, cnpj_fornecedor AS cnpj,
                modalidade_licitacao, modalidade_licitacao AS modalidade,
                objeto, valor_inicial,
