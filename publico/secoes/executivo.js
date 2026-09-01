@@ -100,11 +100,17 @@ export async function carregarExecutivo() {
             <div class="tiras" style="margin-top:16px">
               <div class="tira">
                 <span>Arrecadação Federal (União)</span>
-                <strong>${dinheiro.format(pres?.receita_uniao || 0)}</strong>
+                <div style="display:flex; flex-direction:column; align-items:flex-end">
+                  <strong style="font-size:1.15rem">${dinheiro.format(pres?.receita_uniao || 0)}</strong>
+                  <span style="font-size:0.82rem; color:var(--texto-fraco); margin-top:2px">receitas totais do ano</span>
+                </div>
               </div>
               <div class="tira">
                 <span>Despesa Federal Executada</span>
-                <strong>${dinheiro.format(pres?.despesa_uniao || 0)}</strong>
+                <div style="display:flex; flex-direction:column; align-items:flex-end">
+                  <strong style="font-size:1.15rem">${dinheiro.format(pres?.despesa_uniao || 0)}</strong>
+                  <span style="font-size:0.82rem; color:var(--texto-fraco); margin-top:2px">orçamento executado</span>
+                </div>
               </div>
               <div class="tira">
                 <span>Resultado Primário da União</span>
@@ -112,14 +118,17 @@ export async function carregarExecutivo() {
                   <strong style="color:${(pres?.resultado_primario || 0) >= 0 ? 'var(--calmo, #10b981)' : 'var(--risco, #ef4444)'}; font-size:1.15rem">
                     ${(pres?.resultado_primario || 0) >= 0 ? '✅ +' : '⚠️ '}${porcentoExato.format((pres?.receita_uniao ? ((pres?.resultado_primario || 0) / pres.receita_uniao * 100) : 0))}% (${(pres?.resultado_primario || 0) >= 0 ? 'SUPERÁVIT' : 'DÉFICIT'})
                   </strong>
-                  <span style="font-size:0.85rem; color:var(--texto-fraco); margin-top:2px">
+                  <span style="font-size:0.82rem; color:var(--texto-fraco); margin-top:2px">
                     ${dinheiro.format(pres?.resultado_primario || 0)} (${porcentoExato.format(pres?.pib_brasil ? ((pres?.resultado_primario || 0) / pres.pib_brasil * 100) : 0)}% do PIB)
                   </span>
                 </div>
               </div>
               <div class="tira">
                 <span>Gasto Federal per capita</span>
-                <strong>${dinheiro.format(pres?.despesa_per_capita || 0)} / hab.</strong>
+                <div style="display:flex; flex-direction:column; align-items:flex-end">
+                  <strong style="font-size:1.15rem">${dinheiro.format(pres?.despesa_per_capita || 0)} / hab.</strong>
+                  <span style="font-size:0.82rem; color:var(--texto-fraco); margin-top:2px">média por habitante</span>
+                </div>
               </div>
             </div>
           </div>`;
@@ -239,31 +248,52 @@ export async function carregarExecutivo() {
       alvoMacro.innerHTML = `
         <div class="tira">
           <span>IPCA (Inflação no Ano)</span>
-          <strong style="color:var(--realce, #38bdf8)">${porcentoExato.format(m.ipca)}%</strong>
+          <div style="display:flex; flex-direction:column; align-items:flex-end">
+            <strong style="color:var(--realce, #38bdf8); font-size:1.15rem">${porcentoExato.format(m.ipca)}%</strong>
+            <span style="font-size:0.82rem; color:var(--texto-fraco); margin-top:2px">ao ano (IBGE)</span>
+          </div>
         </div>
         <div class="tira">
           <span>Taxa Selic (Juros Copom)</span>
-          <strong style="color:var(--realce, #38bdf8)">${porcentoExato.format(m.selic)}%</strong>
+          <div style="display:flex; flex-direction:column; align-items:flex-end">
+            <strong style="color:var(--realce, #38bdf8); font-size:1.15rem">${porcentoExato.format(m.selic)}%</strong>
+            <span style="font-size:0.82rem; color:var(--texto-fraco); margin-top:2px">meta anual (Bacen)</span>
+          </div>
         </div>
         <div class="tira">
           <span>Taxa de Desemprego (PNAD)</span>
-          <strong>${porcentoExato.format(m.desemprego)}%</strong>
+          <div style="display:flex; flex-direction:column; align-items:flex-end">
+            <strong style="font-size:1.15rem">${porcentoExato.format(m.desemprego)}%</strong>
+            <span style="font-size:0.82rem; color:var(--texto-fraco); margin-top:2px">desocupação (IBGE)</span>
+          </div>
         </div>
         <div class="tira">
           <span>População no Bolsa Família</span>
-          <strong style="color:var(--alerta, #f59e0b)">${porcentoExato.format(m.bolsa_familia_pct)}% (${numero.format(m.bolsa_familia_familias)} famílias)</strong>
+          <div style="display:flex; flex-direction:column; align-items:flex-end">
+            <strong style="color:var(--alerta, #f59e0b); font-size:1.15rem">${porcentoExato.format(m.bolsa_familia_pct)}%</strong>
+            <span style="font-size:0.82rem; color:var(--texto-fraco); margin-top:2px">${numero.format(m.bolsa_familia_familias)} famílias</span>
+          </div>
         </div>
         <div class="tira">
           <span>Câmbio Médio (USD / BRL)</span>
-          <strong>R$ ${m.cambio_dolar.toFixed(2)}</strong>
+          <div style="display:flex; flex-direction:column; align-items:flex-end">
+            <strong style="font-size:1.15rem">R$ ${m.cambio_dolar.toFixed(2)}</strong>
+            <span style="font-size:0.82rem; color:var(--texto-fraco); margin-top:2px">cotação média anual</span>
+          </div>
         </div>
         <div class="tira">
           <span>Carga Tributária Bruta</span>
-          <strong>${porcentoExato.format(m.carga_tributaria)}% do PIB</strong>
+          <div style="display:flex; flex-direction:column; align-items:flex-end">
+            <strong style="font-size:1.15rem">${porcentoExato.format(m.carga_tributaria)}%</strong>
+            <span style="font-size:0.82rem; color:var(--texto-fraco); margin-top:2px">do PIB nacional</span>
+          </div>
         </div>
         <div class="tira">
           <span>Dívida Bruta do Governo</span>
-          <strong>${porcentoExato.format(m.divida_pib)}% do PIB</strong>
+          <div style="display:flex; flex-direction:column; align-items:flex-end">
+            <strong style="font-size:1.15rem">${porcentoExato.format(m.divida_pib)}%</strong>
+            <span style="font-size:0.82rem; color:var(--texto-fraco); margin-top:2px">do PIB (DBGG)</span>
+          </div>
         </div>
       `;
     }
@@ -538,15 +568,24 @@ export async function carregarExecutivo() {
             <div class="tiras">
               <div class="tira">
                 <span>Arrecadação Total</span>
-                <strong>${Number.isFinite(receita) ? dinheiro.format(receita) : '—'}</strong>
+                <div style="display:flex; flex-direction:column; align-items:flex-end">
+                  <strong style="font-size:1.15rem">${Number.isFinite(receita) ? dinheiro.format(receita) : '—'}</strong>
+                  <span style="font-size:0.82rem; color:var(--texto-fraco); margin-top:2px">receita arrecadada</span>
+                </div>
               </div>
               <div class="tira">
                 <span>Despesa Executada</span>
-                <strong>${Number.isFinite(despesa) ? dinheiro.format(despesa) : '—'}</strong>
+                <div style="display:flex; flex-direction:column; align-items:flex-end">
+                  <strong style="font-size:1.15rem">${Number.isFinite(despesa) ? dinheiro.format(despesa) : '—'}</strong>
+                  <span style="font-size:0.82rem; color:var(--texto-fraco); margin-top:2px">orçamento liquidado</span>
+                </div>
               </div>
               <div class="tira">
                 <span>Despesa por habitante</span>
-                <strong>${Number.isFinite(atual.despesa_per_capita) ? dinheiro.format(atual.despesa_per_capita) : '—'}</strong>
+                <div style="display:flex; flex-direction:column; align-items:flex-end">
+                  <strong style="font-size:1.15rem">${Number.isFinite(atual.despesa_per_capita) ? dinheiro.format(atual.despesa_per_capita) : '—'}</strong>
+                  <span style="font-size:0.82rem; color:var(--texto-fraco); margin-top:2px">média per capita</span>
+                </div>
               </div>
             </div>
           </div>`;
