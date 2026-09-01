@@ -97,9 +97,9 @@ def gerar_dados_executivo():
                     "_atualizado_em": agora_iso,
                 })
 
-    # Gravação fato_cartao_corporativo particionada por ano
+    # Gravação cartao_corporativo particionada por ano
     for ano in [2024, 2025, 2026]:
-        dir_ano = dir_fato / "fato_cartao_corporativo" / f"ano={ano}"
+        dir_ano = dir_fato / "cartao_corporativo" / f"ano={ano}"
         dir_ano.mkdir(parents=True, exist_ok=True)
         sub_df = pd.DataFrame([r for r in linhas_cartao if r["ano"] == ano])
         sub_df.to_parquet(dir_ano / "part-000.parquet", index=False)
@@ -167,7 +167,7 @@ def gerar_dados_executivo():
                 })
 
     for ano in [2024, 2025, 2026]:
-        dir_ano = dir_fato / "fato_viagem_servico" / f"ano={ano}"
+        dir_ano = dir_fato / "viagem_servico" / f"ano={ano}"
         dir_ano.mkdir(parents=True, exist_ok=True)
         sub_df = pd.DataFrame([r for r in linhas_viagens if r["ano"] == ano])
         sub_df.to_parquet(dir_ano / "part-000.parquet", index=False)
@@ -213,12 +213,13 @@ def gerar_dados_executivo():
             })
 
     for ano in [2024, 2025, 2026]:
-        dir_ano = dir_fato / "fato_contrato_governo" / f"ano={ano}"
+        dir_ano = dir_fato / "contrato_governo" / f"ano={ano}"
         dir_ano.mkdir(parents=True, exist_ok=True)
         sub_df = pd.DataFrame([r for r in linhas_contratos if r["ano"] == ano])
         sub_df.to_parquet(dir_ano / "part-000.parquet", index=False)
 
     print(f"[OK] Contratos Públicos gravados: {len(linhas_contratos)} contratos")
+
 
 
 if __name__ == "__main__":
