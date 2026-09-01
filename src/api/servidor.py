@@ -18,7 +18,8 @@ from ..nucleo import config
 from ..nucleo.registro import obter as obter_log
 from .auth import router as auth_router
 from .db import _consultar, _registros, con, marcar_dados_alterados, recarregar_views, reiniciar_conexao
-from .rotas import controle, entes, executivo, legislativo, politicos, explorador
+from .rotas import controle, entes, executivo, legislativo, politicos, explorador, judiciario
+
 
 log = obter_log("api.servidor")
 
@@ -106,6 +107,8 @@ app.include_router(politicos.router)
 app.include_router(legislativo.router)
 app.include_router(entes.router)
 app.include_router(explorador.router)
+app.include_router(judiciario.router)
+
 
 # 7. Arquivos estáticos do frontend
 PUBLICO = Path(config.RAIZ) / "publico"

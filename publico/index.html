@@ -23,7 +23,10 @@
             aria-controls="aba-politicos" aria-selected="false" tabindex="-1">Políticos</button>
     <button role="tab" id="aba-btn-executivo" data-aba="executivo"
             aria-controls="aba-executivo" aria-selected="false" tabindex="-1">Poder Executivo</button>
+    <button role="tab" id="aba-btn-judiciario" data-aba="judiciario"
+            aria-controls="aba-judiciario" aria-selected="false" tabindex="-1">Poder Judiciário</button>
     <button role="tab" id="aba-btn-proposicoes" data-aba="proposicoes"
+
             aria-controls="aba-proposicoes" aria-selected="false" tabindex="-1">Projetos de lei</button>
     <button role="tab" id="aba-btn-custo" data-aba="custo"
             aria-controls="aba-custo" aria-selected="false" tabindex="-1">Custo do Estado</button>
@@ -456,8 +459,124 @@
     </div>
   </section>
 
+  <!-- -------------------------------------------------------- judiciário -->
+  <section id="aba-judiciario" role="tabpanel" tabindex="-1"
+           aria-labelledby="aba-btn-judiciario" hidden>
+    
+    <!-- Barra de Filtros -->
+    <div class="barra">
+      <div style="flex:1; min-width:200px">
+        <label for="filtro-jud-busca">Buscar Magistrado / Ministro</label>
+        <input id="filtro-jud-busca" type="search" placeholder="Nome, tribunal ou vara...">
+      </div>
+      <div>
+        <label for="filtro-jud-ramo">Ramo da Justiça</label>
+        <select id="filtro-jud-ramo">
+          <option value="">Todos os ramos</option>
+          <option value="Supremo">Supremo Tribunal (STF)</option>
+          <option value="Superior">Tribunais Superiores (STJ, TST)</option>
+          <option value="Federal">Justiça Federal (TRFs)</option>
+          <option value="Estadual">Justiça Estadual (TJs)</option>
+          <option value="Trabalho">Justiça do Trabalho</option>
+        </select>
+      </div>
+      <div>
+        <label for="filtro-jud-tribunal">Tribunal</label>
+        <select id="filtro-jud-tribunal">
+          <option value="">Todos os tribunais</option>
+          <option value="STF">STF</option>
+          <option value="STJ">STJ</option>
+          <option value="TST">TST</option>
+          <option value="TJSP">TJSP</option>
+          <option value="TJRJ">TJRJ</option>
+          <option value="TJMG">TJMG</option>
+          <option value="TRF1">TRF1</option>
+          <option value="TRF3">TRF3</option>
+        </select>
+      </div>
+      <div>
+        <label for="filtro-jud-cargo">Cargo</label>
+        <select id="filtro-jud-cargo">
+          <option value="">Todos os cargos</option>
+          <option value="ministro_stf">Ministro do STF</option>
+          <option value="ministro_stj">Ministro do STJ</option>
+          <option value="ministro_tst">Ministro do TST</option>
+          <option value="desembargador">Desembargador Estadual</option>
+          <option value="desembargador_federal">Desembargador Federal</option>
+          <option value="juiz_direito">Juiz de Direito (Estadual)</option>
+          <option value="juiz_federal">Juiz Federal</option>
+        </select>
+      </div>
+      <div>
+        <label for="filtro-jud-ordem">Ordenar por</label>
+        <select id="filtro-jud-ordem">
+          <option value="remuneracao">Maior Remuneração Líquida</option>
+          <option value="nome">Nome (A - Z)</option>
+        </select>
+      </div>
+      <div class="acao">
+        <button id="filtro-jud-limpar" class="discreto">Limpar</button>
+      </div>
+    </div>
+
+    <!-- KPIs do Judiciário -->
+    <div class="tiras" id="jud-kpis" style="margin-top: 14px;">
+      <div class="tira">
+        <span class="rotulo">Magistrados Mapeados</span>
+        <span class="valor" id="jud-kpi-total">—</span>
+        <span class="detalhe">Composição nominal e folhas ativas</span>
+      </div>
+      <div class="tira">
+        <span class="rotulo">Folha Mensal Estimada</span>
+        <span class="valor" id="jud-kpi-folha">—</span>
+        <span class="detalhe">Soma de subsídios e benefícios</span>
+      </div>
+      <div class="tira">
+        <span class="rotulo">Remuneração Líquida Média</span>
+        <span class="valor" id="jud-kpi-media">—</span>
+        <span class="detalhe">Média apurada por magistrado</span>
+      </div>
+      <div class="tira">
+        <span class="rotulo">Tribunais Monitorados</span>
+        <span class="valor" id="jud-kpi-tribunais">—</span>
+        <span class="detalhe">Superiores, Federais e Estaduais</span>
+      </div>
+    </div>
+
+    <!-- Tabela de Magistrados -->
+    <div class="cartao" style="margin-top: 16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px">
+        <h2>⚖️ Ministros, Desembargadores e Juízes</h2>
+        <span class="badge-metodo" id="jud-total-filtrado">Carregando...</span>
+      </div>
+      <p class="rodape-mapa" style="margin-top:-4px; margin-bottom:12px">
+        Dados consolidados a partir do Painel de Remuneração dos Magistrados do CNJ e das composições oficiais dos Tribunais. Clique em um magistrado para ver a decomposição salarial completa.
+      </p>
+
+      <div class="rolagem">
+        <table class="tabela-dados" id="tabela-magistrados">
+          <thead>
+            <tr>
+              <th style="width:40px"></th>
+              <th>Nome & Lotação</th>
+              <th>Cargo & Grau</th>
+              <th>Tribunal</th>
+              <th class="num">Subsídio Base</th>
+              <th class="num">Penduricalhos (Auxílios)</th>
+              <th class="num">Remuneração Líquida</th>
+            </tr>
+          </thead>
+          <tbody id="tabela-magistrados-corpo">
+            <tr><td colspan="7" class="carregando">Carregando dados...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
   <!-- ------------------------------------------------------ proposições -->
   <section id="aba-proposicoes" role="tabpanel" tabindex="-1"
+
            aria-labelledby="aba-btn-proposicoes" hidden>
     <div class="barra">
       <div><label for="filtro-proposicao">Texto</label>

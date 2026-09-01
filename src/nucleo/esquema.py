@@ -122,7 +122,53 @@ dim_cargo = _registrar(Tabela(
     cadencia="manual",
 ))
 
+dim_magistrado = _registrar(Tabela(
+    nome="dim_magistrado",
+    camada="dim",
+    campos_pk=("sk",),
+    descricao="Juízes, desembargadores e ministros dos tribunais brasileiros (CNJ/STF/STJ/TST).",
+    cadencia="mensal",
+    colunas=(
+        ("sk", "VARCHAR"),
+        ("id_origem", "VARCHAR"),
+        ("nome", "VARCHAR"),
+        ("cargo", "VARCHAR"),
+        ("cargo_descricao", "VARCHAR"),
+        ("tribunal", "VARCHAR"),
+        ("ramo", "VARCHAR"),
+        ("grau", "VARCHAR"),
+        ("sigla_uf", "VARCHAR"),
+        ("orgao_lotacao", "VARCHAR"),
+        ("data_posse", "VARCHAR"),
+        ("situacao", "VARCHAR"),
+        ("url_foto", "VARCHAR"),
+    ),
+))
+
 # --------------------------------------------------------------- fatos
+
+fato_remuneracao_magistrado = _registrar(Tabela(
+    nome="fato_remuneracao_magistrado",
+    camada="fato",
+    campos_pk=("sk_magistrado", "ano", "mes"),
+    particoes=("ano",),
+    descricao="Folha de pagamento detalhada dos magistrados e ministros (Painel CNJ).",
+    cadencia="mensal",
+    colunas=(
+        ("sk", "VARCHAR"),
+        ("sk_magistrado", "VARCHAR"),
+        ("ano", "INTEGER"),
+        ("mes", "INTEGER"),
+        ("subsidio", "DOUBLE"),
+        ("vantagens_pessoais", "DOUBLE"),
+        ("indenizacoes", "DOUBLE"),
+        ("gratificacoes", "DOUBLE"),
+        ("total_bruto", "DOUBLE"),
+        ("retencao_teto", "DOUBLE"),
+        ("descontos_legais", "DOUBLE"),
+        ("total_liquido", "DOUBLE"),
+    ),
+))
 
 indicador_ente = _registrar(Tabela(
     nome="indicador_ente",
@@ -133,6 +179,7 @@ indicador_ente = _registrar(Tabela(
     descricao="Um valor por ente × métrica × ano. Formato longo.",
     cadencia="anual",
 ))
+
 
 financas_ente = _registrar(Tabela(
     nome="financas_ente",

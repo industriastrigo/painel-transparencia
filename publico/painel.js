@@ -19,6 +19,10 @@ import {
 } from './secoes/executivo.js';
 
 import {
+  carregarJudiciario, configurarEventosJudiciario
+} from './secoes/judiciario.js';
+
+import {
   montarFiltrosDeProposicao, carregarProposicoes
 } from './secoes/proposicoes.js';
 
@@ -42,11 +46,13 @@ import {
 // Registro dos ganchos de carregamento preguiçoso por aba
 registrarGanchoAba('politicos', carregarPoliticos);
 registrarGanchoAba('executivo', carregarExecutivo);
+registrarGanchoAba('judiciario', carregarJudiciario);
 registrarGanchoAba('proposicoes', () => montarFiltrosDeProposicao().then(carregarProposicoes));
 registrarGanchoAba('custo', carregarCusto);
 registrarGanchoAba('atualizar', () => Promise.all([montarCatalogo(), mostrarEstadoDaChave()]));
 registrarGanchoAba('fontes', carregarSituacao);
 registrarGanchoAba('explorador', carregarExplorador);
+
 
 async function iniciar() {
   const botoesAbas = $$('header nav button[data-aba]');
@@ -97,6 +103,8 @@ async function iniciar() {
     carregarProposicoes();
   });
   configurarEventosExecutivo();
+  configurarEventosJudiciario();
+
 
   $('#fechar-detalhe').addEventListener('click', () => $('#detalhe').close());
   $('#botao-atualizar').addEventListener('click', dispararColeta);
