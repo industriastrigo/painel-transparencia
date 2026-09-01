@@ -108,9 +108,14 @@ export async function carregarExecutivo() {
               </div>
               <div class="tira">
                 <span>Resultado Primário da União</span>
-                <strong style="color:${(pres?.resultado_primario || 0) >= 0 ? 'var(--calmo, #10b981)' : 'var(--risco, #ef4444)'}">
-                  ${(pres?.resultado_primario || 0) >= 0 ? '✅' : '⚠️'} ${dinheiro.format(pres?.resultado_primario || 0)}
-                </strong>
+                <div style="display:flex; flex-direction:column; align-items:flex-end">
+                  <strong style="color:${(pres?.resultado_primario || 0) >= 0 ? 'var(--calmo, #10b981)' : 'var(--risco, #ef4444)'}; font-size:1.15rem">
+                    ${(pres?.resultado_primario || 0) >= 0 ? '✅ +' : '⚠️ '}${porcentoExato.format((pres?.receita_uniao ? ((pres?.resultado_primario || 0) / pres.receita_uniao * 100) : 0))}% (${(pres?.resultado_primario || 0) >= 0 ? 'SUPERÁVIT' : 'DÉFICIT'})
+                  </strong>
+                  <span style="font-size:0.85rem; color:var(--texto-fraco); margin-top:2px">
+                    ${dinheiro.format(pres?.resultado_primario || 0)} (${porcentoExato.format(pres?.pib_brasil ? ((pres?.resultado_primario || 0) / pres.pib_brasil * 100) : 0)}% do PIB)
+                  </span>
+                </div>
               </div>
               <div class="tira">
                 <span>Gasto Federal per capita</span>
@@ -268,6 +273,8 @@ export async function carregarExecutivo() {
       const f = d.defasagem_fiscal;
       const supPrim = f.superavit_primario;
       const supNom = f.superavit_nominal;
+      const pctPrim = (f.receita_primaria && f.receita_primaria > 0) ? (f.resultado_primario / f.receita_primaria * 100) : 0;
+      const pctNom = (f.receita_primaria && f.receita_primaria > 0) ? (f.resultado_nominal / f.receita_primaria * 100) : 0;
       alvoDefasagem.innerHTML = `
         <div class="painel" style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
           <!-- Resultado Primário -->
@@ -277,13 +284,16 @@ export async function carregarExecutivo() {
                 <span class="selo ${supPrim ? 'calmo' : 'risco'}" style="font-weight:bold; font-size:11px">
                   ${supPrim ? '✅ SUPERÁVIT PRIMÁRIO' : '⚠️ DÉFICIT PRIMÁRIO'}
                 </span>
-                <h3 style="margin:6px 0 2px 0; font-size:1.35rem; color:var(--texto)">
-                  ${dinheiro.format(f.resultado_primario)}
+                <h3 style="margin:6px 0 0 0; font-size:1.6rem; color:${supPrim ? 'var(--calmo, #10b981)' : 'var(--risco, #ef4444)'}">
+                  ${supPrim ? '+' : ''}${porcentoExato.format(pctPrim)}%
                 </h3>
+                <div style="font-size:1.15rem; font-weight:bold; color:var(--texto); margin-top:2px">
+                  ${dinheiro.format(f.resultado_primario)}
+                </div>
               </div>
               <span class="badge-metodo" style="font-size:10px">Sem juros</span>
             </div>
-            <p class="pe" style="margin:4px 0 10px 0; color:var(--texto-fraco)">
+            <p class="pe" style="margin:6px 0 10px 0; color:var(--texto-fraco)">
               <strong>Fórmula:</strong> Receitas Primárias (R$ ${dinheiroCurto.format(f.receita_primaria)}) − Despesas Primárias (R$ ${dinheiroCurto.format(f.despesa_primaria)}).
             </p>
             <div class="tiras" style="margin-bottom:8px">
@@ -302,13 +312,16 @@ export async function carregarExecutivo() {
                 <span class="selo ${supNom ? 'calmo' : 'risco'}" style="font-weight:bold; font-size:11px">
                   ${supNom ? '✅ SUPERÁVIT NOMINAL' : '⚠️ DÉFICIT NOMINAL'}
                 </span>
-                <h3 style="margin:6px 0 2px 0; font-size:1.35rem; color:var(--texto)">
-                  ${dinheiro.format(f.resultado_nominal)}
+                <h3 style="margin:6px 0 0 0; font-size:1.6rem; color:${supNom ? 'var(--calmo, #10b981)' : 'var(--risco, #ef4444)'}">
+                  ${supNom ? '+' : ''}${porcentoExato.format(pctNom)}%
                 </h3>
+                <div style="font-size:1.15rem; font-weight:bold; color:var(--texto); margin-top:2px">
+                  ${dinheiro.format(f.resultado_nominal)}
+                </div>
               </div>
               <span class="badge-metodo" style="font-size:10px">Com juros da dívida</span>
             </div>
-            <p class="pe" style="margin:4px 0 10px 0; color:var(--texto-fraco)">
+            <p class="pe" style="margin:6px 0 10px 0; color:var(--texto-fraco)">
               <strong>Fórmula:</strong> Resultado Primário − Juros & Encargos da Dívida Pública (R$ ${dinheiroCurto.format(f.juros_encargos_divida)}).
             </p>
             <div class="tiras" style="margin-bottom:8px">
@@ -526,13 +539,19 @@ export async function carregarExecutivo() {
         const superavit = saldo >= 0;
         const receita = aNumero(atual.receita);
         const despesa = aNumero(atual.despesa);
+        const pctSaldo = (receita && receita > 0) ? (saldo / receita * 100) : 0;
         alvoSaldo.innerHTML = `
           <div style="display:flex; flex-direction:column; gap:12px;">
             <div style="display:flex; align-items:center; justify-content:space-between;">
               <span style="font-size:1.1rem">Situação Orçamentária (${escapar(d.ano_selecionado)}):</span>
-              <span class="selo ${superavit ? 'calmo' : 'risco'}" style="font-size:1rem; font-weight:bold">
-                ${superavit ? '✅ SUPERÁVIT' : '⚠️ DÉFICIT'} ${Number.isFinite(saldo) ? dinheiro.format(Math.abs(saldo)) : ''}
-              </span>
+              <div style="display:flex; flex-direction:column; align-items:flex-end">
+                <span class="selo ${superavit ? 'calmo' : 'risco'}" style="font-size:1.05rem; font-weight:bold">
+                  ${superavit ? '✅ +' : '⚠️ '}${porcentoExato.format(pctSaldo)}% (${superavit ? 'SUPERÁVIT' : 'DÉFICIT'})
+                </span>
+                <span style="font-size:0.95rem; color:var(--texto); font-weight:600; margin-top:3px">
+                  ${Number.isFinite(saldo) ? dinheiro.format(Math.abs(saldo)) : ''}
+                </span>
+              </div>
             </div>
             <div class="tiras">
               <div class="tira">
