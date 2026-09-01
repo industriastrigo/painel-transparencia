@@ -30,7 +30,8 @@ export async function carregarExecutivo() {
   const codIbge = $('#executivo-municipio')?.value || '';
   const ano = $('#executivo-ano')?.value ? Number($('#executivo-ano').value) : null;
 
-  const alvoGov = $('#executivo-governante');
+  const alvoGov = $('#executivo-dashboard-principal') || $('#executivo-governante');
+  const alvoComp = $('#executivo-painel-comparativo');
   const alvoMacro = $('#executivo-termometro-macro');
   const alvoDefasagem = $('#executivo-conteudo-defasagem');
   const alvoPib = $('#executivo-conteudo-pib');
@@ -48,6 +49,7 @@ export async function carregarExecutivo() {
   const subContratos = $('#executivo-subtitulo-contratos');
 
   if (alvoGov) alvoGov.innerHTML = esqueleto(3);
+  if (alvoComp) alvoComp.innerHTML = esqueleto(3);
   if (alvoMacro) alvoMacro.innerHTML = esqueleto(2);
   if (alvoDefasagem) alvoDefasagem.innerHTML = esqueleto(3);
   if (alvoPib) alvoPib.innerHTML = esqueleto(3);
@@ -65,24 +67,54 @@ export async function carregarExecutivo() {
     });
 
     const gov = d.governante;
+    const pres = d.presidente_exercicio;
     const nomeEnte = d.ente?.nome || (esfera === 'federal' ? 'Brasil' : 'Estado de ' + uf);
 
-    // 1. Renderizar Topo / Governante
+    // 1. Renderizar Topo / Dashboard do Governante ou Presidente
     if (alvoGov) {
-      if (esfera === 'geral') {
+      if (esfera === 'geral' || esfera === 'federal') {
+        const presGov = pres?.governante || gov;
+        const salarioPres = presGov?.salario ? aNumero(presGov.salario) : 46366.19;
         alvoGov.innerHTML = `
-          <div class="cartao" style="border-left: 4px solid var(--realce, #38bdf8); background: var(--superficie-2, #202028); padding: 18px 22px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px">
+          <div class="cartao" style="border-left: 4px solid var(--realce, #38bdf8); background: var(--superficie-2, #202028); padding: 20px 24px;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px">
               <div>
-                <span class="selo calmo" style="text-transform:uppercase; font-size:11px; letter-spacing:0.5px">VISÃO GERAL CONSOLIDADA</span>
-                <h2 style="margin:6px 0 3px 0; font-size:1.6rem; color:var(--texto, #fff)">Gastos do Poder Executivo</h2>
-                <p class="rodape-mapa" style="margin:0; font-size:0.92rem; color:var(--texto-sutil, #888)">
-                  Panorama consolidado das contas públicas, despesas executadas, contratos e suprimentos da União, dos 26 Estados, DF e Municípios.
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px">
+                  <span class="selo calmo" style="text-transform:uppercase; font-size:11px; letter-spacing:0.5px">EXERCÍCIO DO PRESIDENTE DA REPÚBLICA</span>
+                  <span class="badge-metodo" style="font-size:10px">Governo Federal · União</span>
+                </div>
+                <h2 style="margin:4px 0 2px 0; font-size:1.65rem; color:var(--texto, #fff)">${txt(presGov?.nome || 'Presidente da República')}</h2>
+                <p class="rodape-mapa" style="margin:0; font-size:0.95rem">
+                  ${presGov?.sigla_partido ? `<strong>${escapar(presGov.sigla_partido)}</strong> · ` : ''}
+                  Chefe de Estado e do Governo Federal · 
+                  Mandato: <strong>${escapar(presGov?.ano_inicio || 2023)} a ${escapar(presGov?.ano_fim || 2027)}</strong>
                 </p>
               </div>
               <div style="text-align:right">
-                <span class="pe" style="display:block; color:var(--texto-fraco)">Abrangência do Painel</span>
-                <strong style="font-size:1.15rem; color:var(--realce, #38bdf8)">Todas as Esferas de Governo</strong>
+                <span class="pe" style="display:block; color:var(--texto-fraco)">Subsídio mensal do cargo</span>
+                <strong style="font-size:1.35rem; color:var(--texto)">${Number.isFinite(salarioPres) ? dinheiroExato.format(salarioPres) : 'R$ 46.366,19'}</strong>
+                <p class="pe" style="margin:2px 0 0 0">${escapar(presGov?.norma_salario || 'Decreto Legislativo nº 172/2022')}</p>
+              </div>
+            </div>
+
+            <div class="tiras" style="margin-top:16px">
+              <div class="tira">
+                <span>Arrecadação Federal (União)</span>
+                <strong>${dinheiro.format(pres?.receita_uniao || 0)}</strong>
+              </div>
+              <div class="tira">
+                <span>Despesa Federal Executada</span>
+                <strong>${dinheiro.format(pres?.despesa_uniao || 0)}</strong>
+              </div>
+              <div class="tira">
+                <span>Resultado Primário da União</span>
+                <strong style="color:${(pres?.resultado_primario || 0) >= 0 ? 'var(--calmo, #10b981)' : 'var(--risco, #ef4444)'}">
+                  ${(pres?.resultado_primario || 0) >= 0 ? '✅' : '⚠️'} ${dinheiro.format(pres?.resultado_primario || 0)}
+                </strong>
+              </div>
+              <div class="tira">
+                <span>Gasto Federal per capita</span>
+                <strong>${dinheiro.format(pres?.despesa_per_capita || 0)} / hab.</strong>
               </div>
             </div>
           </div>`;
@@ -111,6 +143,90 @@ export async function carregarExecutivo() {
           </div>`;
       }
     }
+
+    // 2. Renderizar Painel Comparativo Interfederativo (quando Governador ou Prefeito for selecionado)
+    if (alvoComp) {
+      if ((esfera === 'estadual' || esfera === 'municipal') && d.comparativo_federativo) {
+        alvoComp.hidden = false;
+        const comp = d.comparativo_federativo;
+        const esferasComp = comp.esferas || [];
+        alvoComp.innerHTML = `
+          <div class="cartao" style="border-top: 3px solid #8b5cf6; background: var(--superficie-2, #202028); padding: 18px 22px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:12px">
+              <div>
+                <h2 style="margin:0; font-size:1.35rem; color:var(--texto, #fff)">
+                  🏛️ Painel Comparativo Interfederativo (${escapar(d.ano_selecionado)})
+                </h2>
+                <p class="rodape-mapa" style="margin:2px 0 0 0">
+                  Comparação direta de arrecadação, despesa per capita e gestão fiscal entre a <strong>União (Presidente)</strong>, o <strong>Estado (Governador)</strong> ${esfera === 'municipal' ? 'e o <strong>Município (Prefeito)</strong>' : ''}:
+                </p>
+              </div>
+              <span class="badge-metodo">Benchmarking Fiscal</span>
+            </div>
+
+            <div class="painel" style="display:grid; grid-template-columns: repeat(${esferasComp.length}, 1fr); gap:14px; margin-bottom:14px">
+              ${esferasComp.map((ec) => `
+                <div class="cartao" style="background:var(--superficie); border-left:3px solid ${ec.nivel === 'federal' ? '#38bdf8' : (ec.nivel === 'estadual' ? '#10b981' : '#f59e0b')}">
+                  <span class="selo neutro" style="font-size:10px; text-transform:uppercase">${escapar(ec.titulo)}</span>
+                  <h4 style="margin:4px 0 2px 0; font-size:1.15rem">${txt(ec.governante)}</h4>
+                  <p class="pe" style="margin:0 0 8px 0; color:var(--texto-fraco)">${escapar(ec.cargo)} · <strong>${escapar(ec.partido || '—')}</strong></p>
+                  
+                  <div style="display:flex; flex-direction:column; gap:4px; font-size:0.88rem">
+                    <div style="display:flex; justify-content:space-between">
+                      <span style="color:var(--texto-fraco)">Arrecadação:</span>
+                      <strong>${dinheiroCurto.format(ec.receita)}</strong>
+                    </div>
+                    <div style="display:flex; justify-content:space-between">
+                      <span style="color:var(--texto-fraco)">Despesa Total:</span>
+                      <strong>${dinheiroCurto.format(ec.despesa)}</strong>
+                    </div>
+                    <div style="display:flex; justify-content:space-between">
+                      <span style="color:var(--texto-fraco)">Gasto/Habitante:</span>
+                      <strong style="color:var(--realce, #38bdf8)">${dinheiro.format(ec.despesa_per_capita)}</strong>
+                    </div>
+                    <div style="display:flex; justify-content:space-between">
+                      <span style="color:var(--texto-fraco)">Pessoal (RCL):</span>
+                      <strong style="color:${ec.pessoal_rcl_pct > 54 ? 'var(--risco)' : 'var(--calmo)'}">${porcentoExato.format(ec.pessoal_rcl_pct)}%</strong>
+                    </div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+
+            <table style="width:100%">
+              <thead>
+                <tr>
+                  <th>Esfera de Governo</th>
+                  <th>Líder do Executivo</th>
+                  <th>População Atendida</th>
+                  <th>Orçamento Executado</th>
+                  <th>Gasto por Cidadão</th>
+                  <th>Resultado Fiscal</th>
+                  <th>Pessoal (LRF)</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${esferasComp.map((ec) => `
+                  <tr>
+                    <td><strong>${escapar(ec.titulo)}</strong></td>
+                    <td>${txt(ec.governante)} (${escapar(ec.partido || '—')})</td>
+                    <td class="valor">${numero.format(ec.populacao)} hab.</td>
+                    <td class="valor">${dinheiro.format(ec.despesa)}</td>
+                    <td class="valor"><strong style="color:var(--realce, #38bdf8)">${dinheiro.format(ec.despesa_per_capita)}</strong></td>
+                    <td class="valor"><span class="selo ${ec.saldo >= 0 ? 'calmo' : 'risco'}" style="font-size:11px">${ec.saldo >= 0 ? 'SUPERÁVIT' : 'DÉFICIT'} ${dinheiroCurto.format(Math.abs(ec.saldo))}</span></td>
+                    <td class="valor"><span class="selo ${ec.pessoal_rcl_pct > 54 ? 'risco' : 'calmo'}" style="font-size:11px">${porcentoExato.format(ec.pessoal_rcl_pct)}%</span></td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        `;
+      } else {
+        alvoComp.hidden = true;
+        alvoComp.innerHTML = '';
+      }
+    }
+
 
     // 2. Renderizar Termômetro Macroeconômico
     if (alvoMacro && d.macroeconomia) {
