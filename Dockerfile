@@ -22,8 +22,8 @@ RUN pip install --no-cache-dir --upgrade pip && \
 COPY src/ ./src/
 COPY publico/ ./publico/
 
-# Copia os dados processados e malhas (Parquet tratado)
-COPY dados/ ./dados/
+# Cria diretório de dados para inicialização em nuvem
+RUN mkdir -p dados
 
 
 # Porta dinâmica do Cloud Run (padrão 8080)
