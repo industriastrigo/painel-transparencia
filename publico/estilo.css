@@ -2805,3 +2805,250 @@ a:hover { color: var(--realce-vivo); }
   color: var(--texto-fraco);
 }
 
+/* ==================================================================
+   RESPONSIVIDADE COMPLETA PARA DISPOSITIVOS MÓVEIS (SMARTPHONES & TABLETS)
+   ================================================================== */
+
+@media (max-width: 992px) {
+  .hero-inicio {
+    padding: var(--e6) var(--e5);
+  }
+  .pilares-inicio-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .glossario-inicio-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  /* 1. TOPBAR COMPACTA */
+  .topbar-trigo {
+    height: 58px;
+    padding: 0 var(--e3);
+  }
+
+  .topbar-centro {
+    display: none; /* Oculta indicador central em telas pequenas para não estrangular os botões */
+  }
+
+  .brand-subtitle {
+    display: none; /* Oculta subtítulo longo no mobile */
+  }
+
+  .brand-title {
+    font-size: 0.88rem;
+  }
+
+  .topbar-logo {
+    height: 38px;
+    max-width: 38px;
+  }
+
+  .btn-hamburguer {
+    width: 38px;
+    height: 38px;
+  }
+
+  .btn-icone-topbar {
+    width: 36px;
+    height: 36px;
+  }
+
+  .btn-login-google-topbar {
+    padding: 6px 10px;
+    font-size: 0.8rem;
+  }
+
+  /* 2. DRAWER LATERAL TOUCH */
+  .drawer-trigo {
+    width: 86vw;
+    max-width: 310px;
+  }
+
+  .drawer-nav-item {
+    padding: 11px 12px;
+    font-size: 0.92rem;
+  }
+
+  /* 3. CONTEÚDO PRINCIPAL & PADDING */
+  main {
+    padding: var(--e4) var(--e3);
+  }
+
+  #aba-inicio {
+    padding: var(--e4) 0;
+  }
+
+  /* 4. HERO SECTION MOBILE */
+  .hero-inicio {
+    padding: var(--e5) var(--e4);
+    margin-bottom: var(--e6);
+    border-radius: var(--raio);
+  }
+
+  .hero-brand-destaque {
+    gap: var(--e3);
+    margin-bottom: var(--e4);
+  }
+
+  .hero-logo-img {
+    height: 50px;
+  }
+
+  .hero-titulo {
+    font-size: 1.4rem;
+  }
+
+  .hero-chamada {
+    font-size: 1.18rem;
+    line-height: 1.4;
+  }
+
+  .hero-descricao {
+    font-size: 0.92rem;
+    line-height: 1.55;
+  }
+
+  /* 5. CARD DE ADERÊNCIA EM COLUNA */
+  .hero-card-aderencia {
+    grid-template-columns: 1fr;
+    gap: var(--e4);
+    padding: var(--e4);
+  }
+
+  .card-aderencia-icone {
+    width: 40px;
+    height: 40px;
+  }
+
+  .btn-cta-principal,
+  .btn-cta-secundario {
+    width: 100%;
+    padding: 12px 14px;
+    font-size: 0.92rem;
+  }
+
+  /* 6. PILARES & GLOSSÁRIO MOBILE (1 COLUNA) */
+  .pilares-inicio-grid {
+    grid-template-columns: 1fr;
+    gap: var(--e3);
+  }
+
+  .glossario-inicio-grid {
+    grid-template-columns: 1fr;
+    gap: var(--e3);
+  }
+
+  .pilar-card {
+    padding: var(--e4);
+  }
+
+  /* 7. BUSCA ESTILO GOOGLE MOBILE */
+  .busca-google-container {
+    padding: 0 var(--e2);
+    margin-bottom: var(--e5);
+  }
+
+  .busca-google-box {
+    padding: 6px 14px;
+  }
+
+  .busca-google-input {
+    font-size: 16px; /* Evita zoom forçado do Safari no iOS */
+  }
+
+  /* 8. FAQ ACCORDION MOBILE */
+  .faq-pergunta {
+    font-size: 0.92rem;
+    padding: var(--e3) var(--e4);
+  }
+
+  .faq-resposta {
+    font-size: 0.88rem;
+    padding: 0 var(--e4) var(--e3);
+  }
+
+  /* 9. CONTROLES E FILTROS DAS ABAS (MAPA, PODERES, POLÍTICOS, GASTOS) */
+  .barra {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--e3);
+  }
+
+  .barra > div {
+    width: 100%;
+  }
+
+  .barra select,
+  .barra input,
+  .barra button {
+    width: 100%;
+    font-size: 16px; /* Touch-friendly e sem zoom no iOS */
+  }
+
+  .tiras {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .tira {
+    padding: 12px 14px;
+  }
+
+  .tira strong,
+  .tira .valor {
+    font-size: 1.2rem;
+  }
+
+  /* 10. TABELAS COM SCROLL HORIZONTAL SUAVE */
+  table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+  }
+
+  /* 11. MODAL PERFIL MOBILE */
+  .modal-trigo {
+    width: 94vw;
+    max-width: 380px;
+    padding: var(--e4);
+    margin: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-titulo {
+    font-size: 1.22rem;
+  }
+
+  .hero-subtitulo-marca {
+    font-size: 0.78rem;
+  }
+
+  .hero-chamada {
+    font-size: 1.05rem;
+  }
+
+  .brand-title {
+    font-size: 0.8rem;
+  }
+
+  .topbar-logo {
+    height: 34px;
+    max-width: 34px;
+  }
+
+  .drawer-secao-rotulo {
+    font-size: 0.68rem;
+  }
+
+  .drawer-nav-item {
+    font-size: 0.85rem;
+    padding: 9px 10px;
+  }
+}
+
+
