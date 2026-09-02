@@ -75,25 +75,35 @@ function renderizarTabelaCatalogo(lista, somaLinhas) {
       ? '<span class="selo" style="background:rgba(59,130,246,0.15); color:#60a5fa; border:1px solid rgba(59,130,246,0.3); font-weight:700">DIMENSÃO</span>'
       : '<span class="selo" style="background:rgba(16,185,129,0.15); color:#34d399; border:1px solid rgba(16,185,129,0.3); font-weight:700">FATO</span>';
 
-    let badgeStatus = '<span class="selo selo-padrao">' + escapar(item.status_completude) + '</span>';
     const st = (item.status_completude || '').toLowerCase();
-    
-    if (st === 'total' || st === 'total_ufs') {
-      badgeStatus = '<span class="selo" style="background:rgba(16,185,129,0.15); color:#34d399; border:1px solid rgba(16,185,129,0.4)">✓ Total</span>';
-    } else if (st.includes('parcial')) {
-      badgeStatus = '<span class="selo" style="background:rgba(245,158,11,0.15); color:#fbbf24; border:1px solid rgba(245,158,11,0.4)" title="Exercício corrente em curso ou varredura de municípios em andamento">⚠️ Parcial</span>';
-    } else if (st.includes('amostra')) {
-      badgeStatus = '<span class="selo" style="background:rgba(168,85,247,0.15); color:#c084fc; border:1px solid rgba(168,85,247,0.4)">🔍 Amostra</span>';
-    } else if (st === 'vigente') {
-      badgeStatus = '<span class="selo" style="background:rgba(59,130,246,0.15); color:#60a5fa; border:1px solid rgba(59,130,246,0.4)">📌 Vigente</span>';
+    const linhasAcervo = Number(item.total_linhas) || 0;
+    const linhasOrigem = Number(item.linhas_origem) || linhasAcervo;
+    const diff = linhasAcervo - linhasOrigem;
+
+    let badgeStatus = '';
+    if (linhasAcervo > linhasOrigem) {
+      badgeStatus = `<span class="selo" style="background:rgba(239,68,68,0.18); color:#fca5a5; border:1px solid rgba(239,68,68,0.4); font-weight:700" title="Divergência / Possível duplicidade: Acervo (${linhasAcervo.toLocaleString('pt-BR')}) possui mais registros que a Origem (${linhasOrigem.toLocaleString('pt-BR')})">⚠️ Divergência (+${diff.toLocaleString('pt-BR')})</span>`;
+    } else if (linhasAcervo < linhasOrigem) {
+      if (item.ano_particao === '2026' || st.includes('parcial')) {
+        const pct = Math.round((linhasAcervo / linhasOrigem) * 100);
+        badgeStatus = `<span class="selo" style="background:rgba(245,158,11,0.15); color:#fbbf24; border:1px solid rgba(245,158,11,0.4)" title="Exercício 2026 em andamento: ${linhasAcervo.toLocaleString('pt-BR')} de ${linhasOrigem.toLocaleString('pt-BR')} registros coletados">⚠️ Parcial (${pct}%)</span>`;
+      } else if (st.includes('amostra')) {
+        badgeStatus = '<span class="selo" style="background:rgba(168,85,247,0.15); color:#c084fc; border:1px solid rgba(168,85,247,0.4)" title="Amostra de teste / Cúpula">🔍 Amostra</span>';
+      } else {
+        const falta = linhasOrigem - linhasAcervo;
+        badgeStatus = `<span class="selo" style="background:rgba(239,68,68,0.15); color:#f87171; border:1px solid rgba(239,68,68,0.4)" title="Incompleto: faltam ${falta.toLocaleString('pt-BR')} registros para bater com a origem">⚠️ Incompleto (-${falta.toLocaleString('pt-BR')})</span>`;
+      }
+    } else {
+      if (st.includes('amostra')) {
+        badgeStatus = '<span class="selo" style="background:rgba(168,85,247,0.15); color:#c084fc; border:1px solid rgba(168,85,247,0.4)">🔍 Amostra</span>';
+      } else {
+        badgeStatus = '<span class="selo" style="background:rgba(16,185,129,0.15); color:#34d399; border:1px solid rgba(16,185,129,0.4)" title="Dados 100% íntegros e coincidentes com a fonte oficial">✓ Total (100%)</span>';
+      }
     }
 
     const anoExibicao = item.ano_particao === 'vigente' 
       ? '<span style="color:var(--texto-suave); font-style:italic">Vigente</span>'
       : (item.ano_particao === 'serie_historica' ? '<span style="color:var(--texto-suave)">Série Histórica</span>' : `<strong>${escapar(item.ano_particao)}</strong>`);
-
-    const linhasAcervo = Number(item.total_linhas) || 0;
-    const linhasOrigem = Number(item.linhas_origem) || linhasAcervo;
 
     return `
       <tr>

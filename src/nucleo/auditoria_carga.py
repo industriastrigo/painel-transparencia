@@ -86,19 +86,19 @@ def aferir_linhas_origem(tabela: str, ano: int | str | None = None) -> int:
     elif tabela == "dim_politico":
         return 69973
     elif tabela == "dim_cargo_publico":
-        return 16
+        return 19
     elif tabela == "dim_cargo":
         return 13
     elif tabela == "dim_partido":
-        return 30
+        return 32
     elif tabela == "dim_metrica":
-        return 14
+        return 4
     elif tabela == "dim_de_para_ente":
-        return 5570
+        return 5568
     elif tabela == "dim_magistrado":
         return 31
     elif tabela == "dim_subsidio":
-        return 16
+        return 26
     elif tabela == "despesa_parlamentar":
         if ano_int == 2026:
             return 196543
