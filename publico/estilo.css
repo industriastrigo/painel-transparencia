@@ -186,7 +186,7 @@ main {
   max-width: 1560px;
   margin: 0 auto;
 }
-section[hidden] { display: none; }
+section[hidden] { display: none !important; }
 section:focus { outline: none; }
 
 /* ------------------------------------------------------------------ barra */

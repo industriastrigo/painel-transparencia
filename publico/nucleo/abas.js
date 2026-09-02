@@ -30,7 +30,13 @@ export function trocarAba(destino, { focar = false } = {}) {
     b.setAttribute('aria-selected', String(ativa));
     b.tabIndex = ativa ? 0 : -1;
   });
-  $$('main > section').forEach((sec) => { sec.hidden = sec.id !== `aba-${destino}`; });
+  $$('main > section').forEach((sec) => {
+    const ativa = sec.id === `aba-${destino}`;
+    sec.hidden = !ativa;
+    sec.style.display = ativa ? 'block' : 'none';
+    if (ativa) sec.classList.add('aba-ativa');
+    else sec.classList.remove('aba-ativa');
+  });
 
   atualizarItemAtivoDrawer(destino);
 
