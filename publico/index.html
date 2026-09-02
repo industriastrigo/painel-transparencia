@@ -9,8 +9,18 @@
 <body>
 
 <header>
-  <h1>Painel da Transparência</h1>
-  <p>Dados políticos, socioeconômicos e orçamentários do Brasil, a partir de fontes oficiais.</p>
+  <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px; margin-bottom:var(--e4, 12px)">
+    <div>
+      <h1>Painel da Transparência</h1>
+      <p style="margin:0">Dados políticos, socioeconômicos e orçamentários do Brasil, a partir de fontes oficiais.</p>
+    </div>
+    <div style="display:flex; align-items:center; gap:8px">
+      <button id="btn-recarregar-painel" class="discreto" title="Atualizar dados do painel (Atalho: Ctrl + T)" style="display:inline-flex; align-items:center; gap:6px; font-size:0.85rem; padding:6px 12px; cursor:pointer">
+        <span>🔄 Atualizar</span>
+        <kbd style="background:var(--superficie-3, rgba(255,255,255,0.1)); border:1px solid var(--borda-forte); border-radius:4px; padding:1px 5px; font-size:0.75rem; font-family:inherit">Ctrl + T</kbd>
+      </button>
+    </div>
+  </div>
   <!-- `role="tab"` de verdade, com `aria-controls` e painéis rotulados. Antes
        havia `role="tablist"` e `aria-selected` em botões SEM `role="tab"` —
        e `aria-selected` é inválido num botão comum, então o leitor de tela

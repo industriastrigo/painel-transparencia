@@ -2,7 +2,7 @@
 
 import { $, $$ } from './nucleo/ui.js';
 import { buscar } from './nucleo/api.js';
-import { trocarAba, ligarTeclasDasAbas, registrarGanchoAba } from './nucleo/abas.js';
+import { trocarAba, ligarTeclasDasAbas, registrarGanchoAba, forcarRecargaAba } from './nucleo/abas.js';
 import { reavaliarTema } from './mapa.js';
 
 import {
@@ -117,12 +117,24 @@ async function iniciar() {
   configurarEventosJudiciario();
   inicializarEventosMp();
 
-
   $('#fechar-detalhe').addEventListener('click', () => $('#detalhe').close());
   $('#botao-atualizar').addEventListener('click', dispararColeta);
   $('#salvar-chave').addEventListener('click', salvarChave);
   $('#campo-chave').addEventListener('keydown', (ev) => {
     if (ev.key === 'Enter') salvarChave();
+  });
+
+  // Atalho de teclado Ctrl + T para refresh rápido do painel
+  window.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 't') {
+      e.preventDefault();
+      recarregarPainelCompleto();
+    }
+  });
+
+  // Botão de refresh no cabeçalho
+  $('#btn-recarregar-painel')?.addEventListener('click', () => {
+    recarregarPainelCompleto();
   });
 
   await carregarAnos();
@@ -143,6 +155,41 @@ async function iniciar() {
   } else {
     $('#rodape-mapa').textContent =
       'Nenhum dado no armazém. Rode a primeira carga: INSTALAR.bat';
+  }
+}
+
+export function mostrarNotificacaoRecarga(msg = '🔄 Painel atualizado com sucesso!') {
+  let toast = $('#toast-notificacao');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'toast-notificacao';
+    toast.style.cssText = 'position:fixed; bottom:24px; right:24px; background:var(--superficie-3, #1e293b); color:var(--texto, #f8fafc); border:1px solid var(--realce, #38bdf8); padding:10px 18px; border-radius:8px; box-shadow:0 10px 25px rgba(0,0,0,0.5); z-index:9999; font-weight:600; display:flex; align-items:center; gap:8px; transition:opacity 0.25s ease, transform 0.25s ease; opacity:0; transform:translateY(10px); pointer-events:none;';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
+  toast.style.opacity = '1';
+  toast.style.transform = 'translateY(0)';
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(10px)';
+  }, 2200);
+}
+
+export async function recarregarPainelCompleto() {
+  const abaAtiva = location.hash.slice(1) || 'mapa';
+  try {
+    await fetch('/api/recarregar', { method: 'POST' }).catch(() => {});
+    if (abaAtiva === 'mapa') {
+      await carregarAnos();
+      await carregarMapa();
+    } else {
+      await forcarRecargaAba(abaAtiva);
+    }
+    mostrarNotificacaoRecarga('🔄 Painel e dados atualizados com sucesso!');
+  } catch (erro) {
+    console.error('Erro ao atualizar painel:', erro);
+    mostrarNotificacaoRecarga('⚠️ Erro ao atualizar painel');
   }
 }
 

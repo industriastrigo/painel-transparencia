@@ -32,6 +32,20 @@ export function trocarAba(destino, { focar = false } = {}) {
   }
 }
 
+export function forcarRecargaAba(destino) {
+  if (!destino) return Promise.resolve();
+  abasCarregadas.delete(destino);
+  const carregar = ganchosDeAba[destino];
+  if (carregar) {
+    abasCarregadas.add(destino);
+    return Promise.resolve(carregar()).catch((erro) => {
+      abasCarregadas.delete(destino);
+      console.error(`aba ${destino}`, erro);
+    });
+  }
+  return Promise.resolve();
+}
+
 export function ligarTeclasDasAbas() {
   const botoes = $$('header nav button[data-aba]');
   const navPrincipal = $('header nav');
@@ -51,3 +65,4 @@ export function ligarTeclasDasAbas() {
     trocarAba(botoes[destino].dataset.aba);
   });
 }
+
