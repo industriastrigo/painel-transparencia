@@ -63,8 +63,8 @@ function aplicarTema(tema) {
   const logoImg = document.getElementById('topbar-logo-img');
   if (logoImg) {
     logoImg.src = efetivo === 'dark'
-      ? 'ativos/logos/logo_trigo_dark.png'
-      : 'ativos/logos/logo_trigo_light.jpg';
+      ? 'ativos/logos/icone_trigo_dark.png'
+      : 'ativos/logos/icone_trigo_light.jpg';
   }
 }
 
