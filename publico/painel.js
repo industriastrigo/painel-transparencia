@@ -58,7 +58,12 @@ import {
   carregarCatalogo, configurarEventosCatalogo
 } from './secoes/catalogo.js';
 
+import {
+  carregarInicio
+} from './secoes/inicio.js';
+
 // Registro dos ganchos de carregamento preguiçoso por aba
+registrarGanchoAba('inicio', carregarInicio);
 registrarGanchoAba('politicos', carregarPoliticos);
 registrarGanchoAba('executivo', carregarExecutivo);
 registrarGanchoAba('legislativo', carregarLegislativo);
@@ -91,7 +96,7 @@ async function iniciar() {
   botoesAbas.forEach((b) => b.addEventListener('click', () => trocarAba(b.dataset.aba)));
   ligarTeclasDasAbas();
 
-  const abaInicial = location.hash.slice(1) || 'mapa';
+  const abaInicial = location.hash.slice(1) || 'inicio';
   trocarAba(abaInicial);
 
   window.addEventListener('hashchange', () => {

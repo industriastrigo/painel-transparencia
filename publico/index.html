@@ -27,8 +27,8 @@
 
   <div class="topbar-centro">
     <div class="topbar-pagina-ativa" id="topbar-titulo-pagina">
-      <svg class="item-svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>
-      <strong>Mapa Interativo & Rankings</strong>
+      <svg class="item-svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+      <strong>Início & Sobre o Projeto</strong>
     </div>
   </div>
 
@@ -44,7 +44,7 @@
 
 <aside id="drawer-menu" class="drawer-trigo" aria-label="Menu de Navegação Principal">
   <div class="drawer-header">
-    <a href="#mapa" class="brand-link" style="gap:10px">
+    <a href="#inicio" class="brand-link" style="gap:10px">
       <img id="drawer-logo-img" src="ativos/logos/icone_trigo_transparente.png" alt="Trigo" style="height:36px; width:auto; object-fit:contain" />
       <div class="brand-text">
         <span class="brand-title" style="font-size:0.85rem">INDÚSTRIAS TRIGO</span>
@@ -55,6 +55,16 @@
   </div>
 
   <div class="drawer-corpo">
+    <!-- 0. INÍCIO & SOBRE O PROJETO -->
+    <div style="margin-bottom: var(--e2);">
+      <nav class="drawer-nav-lista">
+        <a href="#inicio" class="drawer-nav-item ativo" data-aba="inicio">
+          <span class="item-icone"><svg class="item-svg" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg></span>
+          <span class="item-texto">Início & Sobre o Projeto</span>
+        </a>
+      </nav>
+    </div>
+
     <!-- 1. TERRITÓRIO & FEDERAÇÃO -->
     <div>
       <div class="drawer-secao-rotulo">
@@ -62,7 +72,7 @@
         <span>Território & Federação</span>
       </div>
       <nav class="drawer-nav-lista">
-        <a href="#mapa" class="drawer-nav-item ativo" data-aba="mapa">
+        <a href="#mapa" class="drawer-nav-item" data-aba="mapa">
           <span class="item-icone"><svg class="item-svg" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg></span>
           <span class="item-texto">Mapa Interativo & Rankings</span>
         </a>
@@ -222,6 +232,257 @@
 </dialog>
 
 <main>
+
+  <!-- ------------------------------------------------------------ inicio -->
+  <section id="aba-inicio" role="tabpanel" tabindex="-1" class="aba-ativa" style="display: block;">
+    
+    <!-- HERO SECTION -->
+    <div class="hero-inicio">
+      <div class="hero-conteudo">
+        <div class="hero-badge">
+          <span>✦</span> GOVERNANÇA PÚBLICA & CONTROLE CIDADÃO
+        </div>
+        
+        <div class="hero-brand-destaque">
+          <img src="ativos/logos/icone_trigo_transparente.png" alt="Indústrias Trigo" class="hero-logo-img" />
+          <div>
+            <h1 class="hero-titulo">INDÚSTRIAS TRIGO</h1>
+            <p class="hero-subtitulo-marca">Data Lakehouse & Transparência Governamental</p>
+          </div>
+        </div>
+
+        <h2 class="hero-chamada">
+          Transformando dados públicos complexos em <span class="destaque-dourado">clareza, controle e cidadania</span>.
+        </h2>
+
+        <p class="hero-descricao">
+          Este painel foi criado para que qualquer cidadão brasileiro possa auditar, comparar e acompanhar
+          as contas de todos os <strong>5.570 municípios</strong>, dos <strong>27 estados</strong> e dos
+          <strong>Três Poderes da República</strong> de forma simples, visual e 100% transparente.
+        </p>
+
+        <!-- CARD EXPLICATIVO DE CADASTRO / ADERÊNCIA -->
+        <div class="hero-card-aderencia">
+          <div class="card-aderencia-icone">
+            <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+          </div>
+          <div class="card-aderencia-texto">
+            <h4>Por que solicitamos o registro com sua conta?</h4>
+            <p>
+              Para monitorar a <strong>aderência, alcance e impacto cívico</strong> do projeto na sociedade,
+              além de proteger as conexões com as fontes oficiais de dados governamentais contra abusos.
+              O acesso é <strong>100% gratuito</strong>, seguro e não compartilha seus dados com terceiros.
+            </p>
+          </div>
+          <div class="card-aderencia-acao">
+            <button id="btn-cta-entrar" class="btn-cta-principal">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
+              <span>Entrar com sua Conta</span>
+            </button>
+            <button data-ir-aba="mapa" class="btn-cta-secundario">
+              <span>Explorar o Mapa da Federação →</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4 PILARES DO PAINEL -->
+    <div class="secao-inicio-bloco">
+      <div class="inicio-secao-cabecalho">
+        <h3>O que você pode acompanhar neste Painel?</h3>
+        <p>Dados oficiais integrados dos principais órgãos de controle e transparência do Brasil</p>
+      </div>
+
+      <div class="pilares-inicio-grid">
+        <div class="pilar-card" data-ir-aba="mapa">
+          <div class="pilar-icone">
+            <svg viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>
+          </div>
+          <h4>Território & Federação</h4>
+          <p>Compare quanto sua cidade arrecada e investe por habitante em saúde, educação e infraestrutura.</p>
+          <span class="pilar-link">Ver mapa interativo →</span>
+        </div>
+
+        <div class="pilar-card" data-ir-aba="executivo">
+          <div class="pilar-icone">
+            <svg viewBox="0 0 24 24"><line x1="3" y1="22" x2="21" y2="22"></line><line x1="6" y1="18" x2="6" y2="11"></line><line x1="10" y1="18" x2="10" y2="11"></line><line x1="14" y1="18" x2="14" y2="11"></line><line x1="18" y1="18" x2="18" y2="11"></line><polygon points="12 2 20 7 4 7"></polygon></svg>
+          </div>
+          <h4>Poderes da República</h4>
+          <p>Acompanhe despesas com pessoal, custeio e investimentos do Executivo, Legislativo, Judiciário e MP.</p>
+          <span class="pilar-link">Ver gastos por poder →</span>
+        </div>
+
+        <div class="pilar-card" data-ir-aba="politicos">
+          <div class="pilar-icone">
+            <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          </div>
+          <h4>Parlamento & Representantes</h4>
+          <p>Veja mandatos, votações nominais, projetos de lei e o uso da cota parlamentar de deputados e senadores.</p>
+          <span class="pilar-link">Ver deputados e senadores →</span>
+        </div>
+
+        <div class="pilar-card" data-ir-aba="custo">
+          <div class="pilar-icone">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"></path><line x1="12" y1="6" x2="12" y2="18"></line></svg>
+          </div>
+          <h4>Custo do Estado & Subsídios</h4>
+          <p>Audite diárias de viagens, cartões corporativos, benefícios e remunerações acima do teto constitucional.</p>
+          <span class="pilar-link">Ver custos do estado →</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CAMPO DE BUSCA ESTILO GOOGLE -->
+    <div class="secao-inicio-bloco">
+      <div class="inicio-secao-cabecalho">
+        <h3>Central de Dúvidas & Perguntas Frequentes</h3>
+        <p>Pesquise qualquer dúvida sobre o painel, termos do orçamento público ou funcionamento</p>
+      </div>
+
+      <div class="busca-google-container">
+        <div class="busca-google-box">
+          <div class="busca-google-icone">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          </div>
+          <input type="text" id="busca-faq-glossario" class="busca-google-input" placeholder="Pesquise por 'empenho', 'login', 'teto constitucional', 'cartão corporativo', 'município'..." autocomplete="off" />
+          <button id="btn-limpar-busca-inicio" class="btn-limpar-busca" style="display:none" title="Limpar busca">✕</button>
+        </div>
+      </div>
+
+      <div id="aviso-busca-sem-resultado" class="aviso-busca-vazia" style="display:none"></div>
+
+      <!-- FAQ ACCORDION -->
+      <div class="faq-container">
+        <!-- 1 -->
+        <div class="faq-item">
+          <button class="faq-pergunta">
+            <span>O que é este painel e qual é o objetivo do projeto?</span>
+            <svg class="faq-seta" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          <div class="faq-resposta">
+            <p>O Painel da Transparência & Controle foi desenvolvido pelas <strong>Indústrias Trigo</strong> para democratizar o acesso aos dados fiscais e legislativos do Brasil. O objetivo é transformar relatórios orçamentários complexos e dispersos em uma plataforma única, didática e intuitiva, permitindo que qualquer pessoa exerça o controle social e a cidadania ativa.</p>
+          </div>
+        </div>
+
+        <!-- 2 -->
+        <div class="faq-item">
+          <button class="faq-pergunta">
+            <span>Por que é solicitado entrar com uma conta para acessar os dados?</span>
+            <svg class="faq-seta" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          <div class="faq-resposta">
+            <p>A autenticação simples serve para monitorarmos a <strong>aderência e o alcance do projeto</strong> (quantos cidadãos, estudantes, jornalistas e auditores utilizam o sistema), além de garantir que as consultas às bases oficiais sejam feitas com segurança e sem sobrecarga dos servidores públicos. Não exigimos senhas de bancos ou de contas governamentais.</p>
+          </div>
+        </div>
+
+        <!-- 3 -->
+        <div class="faq-item">
+          <button class="faq-pergunta">
+            <span>O acesso ao painel é gratuito? Meus dados pessoais estão seguros?</span>
+            <svg class="faq-seta" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          <div class="faq-resposta">
+            <p><strong>Sim, 100% gratuito!</strong> Este é um projeto cívico e de governança aberta. Suas informações de login são tratadas com total privacidade, e sua eventual chave individual da CGU fica gravada exclusivamente no seu próprio navegador, sem ser enviada para servidores de terceiros.</p>
+          </div>
+        </div>
+
+        <!-- 4 -->
+        <div class="faq-item">
+          <button class="faq-pergunta">
+            <span>De onde vêm os dados exibidos nas tabelas e gráficos?</span>
+            <svg class="faq-seta" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          <div class="faq-resposta">
+            <p>Todos os dados são <strong>oficiais e auditáveis</strong>, obtidos diretamente de órgãos públicos de controle: Tesouro Nacional (SICONFI/SADIPEM), Câmara dos Deputados, Senado Federal, Tribunal Superior Eleitoral (TSE), Conselho Nacional de Justiça (CNJ) e Portal da Transparência do Governo Federal (CGU).</p>
+          </div>
+        </div>
+
+        <!-- 5 -->
+        <div class="faq-item">
+          <button class="faq-pergunta">
+            <span>Qualquer cidadão pode auditar e fiscalizar as contas públicas por aqui?</span>
+            <svg class="faq-seta" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          <div class="faq-resposta">
+            <p>Sim. A Constituição Brasileira (CF/88) e a Lei de Acesso à Informação (Lei 12.527/2011) garantem que todo cidadão tem o direito de fiscalizar os gastos do Estado. O painel disponibiliza links diretos para as requisições originais nos portais do governo para que qualquer informação possa ser confrontada.</p>
+          </div>
+        </div>
+
+        <!-- 6 -->
+        <div class="faq-item">
+          <button class="faq-pergunta">
+            <span>Como posso pesquisar as despesas da minha cidade ou do meu estado?</span>
+            <svg class="faq-seta" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          <div class="faq-resposta">
+            <p>Basta acessar a seção <strong>Mapa Interativo & Rankings</strong> no menu lateral. Você poderá selecionar qualquer um dos 5.570 municípios ou estados, escolher o ano desejado e visualizar os gastos por habitante em educação, saúde, saneamento, segurança e folha de pagamento.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GLOSSÁRIO CIDADÃO PÚBLICO (SEM PRECISAR DE ACESSO) -->
+    <div class="secao-inicio-bloco">
+      <div class="inicio-secao-cabecalho">
+        <h3>Glossário Cidadão: Termos Explicados de Forma Simples</h3>
+        <p>Aprenda os principais conceitos das contas públicas para entender qualquer relatório</p>
+      </div>
+
+      <div class="glossario-inicio-grid">
+        <div class="glossario-card-inicio">
+          <div class="termo-rotulo">Empenho</div>
+          <div class="termo-conceito">O compromisso formal do governo de que aquele dinheiro está reservado para pagar um serviço ou produto contratado. É a primeira etapa do gasto público.</div>
+        </div>
+
+        <div class="glossario-card-inicio">
+          <div class="termo-rotulo">Liquidação</div>
+          <div class="termo-conceito">A verificação oficial de que o produto foi efetivamente entregue ou que o serviço contratado foi prestado de forma correta antes de liberar o dinheiro.</div>
+        </div>
+
+        <div class="glossario-card-inicio">
+          <div class="termo-rotulo">Pagamento</div>
+          <div class="termo-conceito">A transferência real do dinheiro público para a conta bancária do fornecedor ou servidor, após o empenho e a liquidação aprovada.</div>
+        </div>
+
+        <div class="glossario-card-inicio">
+          <div class="termo-rotulo">Receita Corrente Líquida (RCL)</div>
+          <div class="termo-conceito">É o total que o governo arrecada com tributos e contribuições, descontadas as transferências obrigatórias. Serve como base para calcular limites legais de gastos.</div>
+        </div>
+
+        <div class="glossario-card-inicio">
+          <div class="termo-rotulo">Teto Constitucional</div>
+          <div class="termo-conceito">O valor máximo que qualquer servidor público ou autoridade pode receber por mês, baseado no salário de ministro do Supremo Tribunal Federal (STF). Valores acima sofrem 'Abate-Teto'.</div>
+        </div>
+
+        <div class="glossario-card-inicio">
+          <div class="termo-rotulo">Cota Parlamentar (CEAP)</div>
+          <div class="termo-conceito">Verba mensal destinada a cobrir despesas do exercício do mandato de deputados e senadores, como passagens aéreas, combustível, hospedagem e consultorias.</div>
+        </div>
+
+        <div class="glossario-card-inicio">
+          <div class="termo-rotulo">Cartão Corporativo</div>
+          <div class="termo-conceito">Mecanismo para pagamentos emergenciais e de pequeno vulto da administração pública (suprimento de fundos), com regras rígidas de prestação de contas.</div>
+        </div>
+
+        <div class="glossario-card-inicio">
+          <div class="termo-rotulo">Emendas Parlamentares</div>
+          <div class="termo-conceito">Recursos do orçamento federal indicados por deputados e senadores para financiar obras, hospitais e projetos em suas cidades e estados de base.</div>
+        </div>
+
+        <div class="glossario-card-inicio">
+          <div class="termo-rotulo">RREO & RGF</div>
+          <div class="termo-conceito">Relatórios oficiais bimestrais e quadrimestrais exigidos pela Lei de Responsabilidade Fiscal para demonstrar o equilíbrio entre arrecadação e despesas.</div>
+        </div>
+
+        <div class="glossario-card-inicio">
+          <div class="termo-rotulo">Lei de Responsabilidade Fiscal (LRF)</div>
+          <div class="termo-conceito">Lei que impõe limites rígidos para gastos com folha de pagamento e dívidas públicas de prefeitos, governadores e do Presidente da República.</div>
+        </div>
+      </div>
+    </div>
+
+  </section>
 
   <!-- ------------------------------------------------------------ mapa -->
   <section id="aba-mapa" role="tabpanel" tabindex="-1"
