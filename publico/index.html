@@ -1445,15 +1445,17 @@
             <th style="text-align:left; padding:10px 12px">Tabela Parquet</th>
             <th style="text-align:left; padding:10px 12px">Camada</th>
             <th style="text-align:right; padding:10px 12px">Ano / Partição</th>
-            <th style="text-align:right; padding:10px 12px">Total Linhas</th>
+            <th style="text-align:right; padding:10px 12px" title="Linhas gravadas localmente no Data Lakehouse Parquet">Linhas Acervo</th>
+            <th style="text-align:right; padding:10px 12px" title="Total de registros na fonte oficial da API">Linhas Origem</th>
             <th style="text-align:left; padding:10px 12px">Status Completude</th>
             <th style="text-align:left; padding:10px 12px">Órgão Oficial</th>
             <th style="text-align:left; padding:10px 12px">Recurso & Endpoint da API</th>
+            <th style="text-align:center; padding:10px 12px">Ação GET</th>
           </tr>
         </thead>
         <tbody id="tabela-catalogo-corpo">
           <tr>
-            <td colspan="7" class="carregando">Carregando catálogo de dados...</td>
+            <td colspan="9" class="carregando">Carregando catálogo de dados...</td>
           </tr>
         </tbody>
         <tfoot id="tabela-catalogo-rodape"></tfoot>
@@ -1463,6 +1465,21 @@
   </section>
 
 </main>
+
+<!-- Modal de Detalhes da Requisição GET / Origem Oficial -->
+<dialog id="modal-get-catalogo" style="border:1px solid var(--borda-forte); border-radius:10px; background:var(--superficie-1, #0f172a); color:var(--texto, #f8fafc); max-width:640px; width:90%; padding:24px; box-shadow:0 20px 40px rgba(0,0,0,0.6)">
+  <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px">
+    <div>
+      <h3 id="modal-get-titulo" style="margin:0; font-size:1.2rem; color:var(--realce, #38bdf8)">Detalhes da Requisição GET</h3>
+      <div id="modal-get-subtitulo" style="font-size:0.85rem; color:var(--texto-suave); margin-top:4px">Fonte Oficial & Auditoria de Contagem</div>
+    </div>
+    <button id="modal-get-fechar" class="secundario" style="padding:4px 10px; cursor:pointer; font-weight:700">✕</button>
+  </div>
+
+  <div id="modal-get-corpo" style="font-size:0.9rem; line-height:1.5">
+    <!-- Conteúdo preenchido dinamicamente por catalogo.js -->
+  </div>
+</dialog>
 
 <!-- Dica dos políticos. Fica no `body`, e não dentro do cartão, porque
      `position: fixed` dentro de um contêiner com `overflow` seria recortada

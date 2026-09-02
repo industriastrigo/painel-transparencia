@@ -10,7 +10,7 @@ export async function carregarCatalogo() {
   const corpo = $('#tabela-catalogo-corpo');
   if (!corpo) return;
 
-  corpo.innerHTML = '<tr><td colspan="7" class="carregando">Carregando inventário de dados do acervo...</td></tr>';
+  corpo.innerHTML = '<tr><td colspan="9" class="carregando">Carregando inventário de dados do acervo...</td></tr>';
 
   try {
     const busca = $('#cat-filtro-busca')?.value?.trim() || '';
@@ -49,7 +49,7 @@ export async function carregarCatalogo() {
     renderizarTabelaCatalogo(catalogoCache, dados.total_linhas_filtradas || 0);
   } catch (erro) {
     console.error('Erro ao carregar catálogo:', erro);
-    corpo.innerHTML = `<tr><td colspan="7" class="erro">Falha ao carregar catálogo: ${escapar(erro.message)}</td></tr>`;
+    corpo.innerHTML = `<tr><td colspan="9" class="erro">Falha ao carregar catálogo: ${escapar(erro.message)}</td></tr>`;
   }
 }
 
@@ -61,7 +61,7 @@ function renderizarTabelaCatalogo(lista, somaLinhas) {
   if (contador) contador.textContent = `${lista.length} registro(s) encontrado(s)`;
 
   if (!lista || lista.length === 0) {
-    corpo.innerHTML = '<tr><td colspan="7" class="vazio">Nenhuma tabela encontrada com os filtros selecionados.</td></tr>';
+    corpo.innerHTML = '<tr><td colspan="9" class="vazio">Nenhuma tabela encontrada com os filtros selecionados.</td></tr>';
     if (rodape) rodape.innerHTML = '';
     return;
   }
@@ -86,8 +86,11 @@ function renderizarTabelaCatalogo(lista, somaLinhas) {
     }
 
     const anoExibicao = item.ano_particao === 'vigente' 
-      ? '<span style="color:var(--texto-suave); font-style:italic">Vigente (Sem ano)</span>'
+      ? '<span style="color:var(--texto-suave); font-style:italic">Vigente</span>'
       : (item.ano_particao === 'serie_historica' ? '<span style="color:var(--texto-suave)">Série Histórica</span>' : `<strong>${escapar(item.ano_particao)}</strong>`);
+
+    const linhasAcervo = Number(item.total_linhas) || 0;
+    const linhasOrigem = Number(item.linhas_origem) || linhasAcervo;
 
     return `
       <tr>
@@ -97,7 +100,10 @@ function renderizarTabelaCatalogo(lista, somaLinhas) {
         <td>${badgeCamada}</td>
         <td class="num">${anoExibicao}</td>
         <td class="valor" style="font-weight:700; color:var(--realce, #38bdf8)">
-          ${(item.total_linhas || 0).toLocaleString('pt-BR')}
+          ${linhasAcervo.toLocaleString('pt-BR')}
+        </td>
+        <td class="valor" style="font-weight:600; color:var(--texto-suave)">
+          ${linhasOrigem.toLocaleString('pt-BR')}
         </td>
         <td>${badgeStatus}</td>
         <td>
@@ -107,15 +113,30 @@ function renderizarTabelaCatalogo(lista, somaLinhas) {
           <div><strong>${escapar(item.descricao_recurso || '')}</strong></div>
           <div style="color:var(--texto-suave); font-family:monospace; font-size:0.78rem; margin-top:2px">${escapar(item.endpoint_recurso || '')}</div>
         </td>
+        <td style="text-align:center">
+          <button class="secundario btn-ver-get" data-sk="${escapar(item.sk)}" style="padding:4px 8px; font-size:0.8rem; border-radius:4px; cursor:pointer; white-space:nowrap" title="Ver detalhes do GET e executar">
+            👁️ Ver GET
+          </button>
+        </td>
       </tr>
     `;
   }).join('');
 
   corpo.innerHTML = linhasHtml;
 
+  // Eventos dos botões "Ver GET"
+  $$('.btn-ver-get', corpo).forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const sk = btn.dataset.sk;
+      const item = catalogoCache.find((i) => i.sk === sk);
+      if (item) abrirModalGet(item);
+    });
+  });
+
   // Linha de Soma e Totalizadores (tfoot)
   if (rodape) {
     const somaTotal = lista.reduce((acc, i) => acc + (Number(i.total_linhas) || 0), 0);
+    const somaOrigem = lista.reduce((acc, i) => acc + (Number(i.linhas_origem) || Number(i.total_linhas) || 0), 0);
     rodape.innerHTML = `
       <tr style="background:var(--superficie-2); font-weight:700; border-top:2px solid var(--borda-forte)">
         <td colspan="3" style="text-align:left; padding:10px 12px">
@@ -124,12 +145,113 @@ function renderizarTabelaCatalogo(lista, somaLinhas) {
         <td class="valor" style="font-size:1.05rem; color:var(--realce, #38bdf8); padding:10px 12px">
           ${somaTotal.toLocaleString('pt-BR')}
         </td>
-        <td colspan="3" style="color:var(--texto-suave); font-weight:normal; font-size:0.85rem; padding:10px 12px">
-          Soma de registros gravados no Lakehouse Parquet
+        <td class="valor" style="font-size:1.05rem; color:var(--texto-suave); padding:10px 12px">
+          ${somaOrigem.toLocaleString('pt-BR')}
+        </td>
+        <td colspan="4" style="color:var(--texto-suave); font-weight:normal; font-size:0.85rem; padding:10px 12px">
+          Soma de registros gravados no Lakehouse Parquet vs Fonte Oficial
         </td>
       </tr>
     `;
   }
+}
+
+function abrirModalGet(item) {
+  const modal = $('#modal-get-catalogo');
+  const corpo = $('#modal-get-corpo');
+  const titulo = $('#modal-get-titulo');
+  const subtitulo = $('#modal-get-subtitulo');
+  if (!modal || !corpo) return;
+
+  if (titulo) titulo.textContent = `Requisição Oficial: ${item.tabela}`;
+  if (subtitulo) subtitulo.textContent = `${item.orgao_origem} · ${item.descricao_recurso} (Ano: ${item.ano_particao})`;
+
+  const urlReq = item.url_requisicao || item.url_origem || 'n/a';
+  const exigeChave = Boolean(item.exige_chave);
+
+  let bannerAuth = '';
+  let curlHeader = '';
+
+  if (exigeChave) {
+    bannerAuth = `
+      <div style="background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.3); border-radius:6px; padding:12px 14px; margin-bottom:14px; color:#fca5a5; font-size:0.85rem">
+        <div style="font-weight:700; margin-bottom:4px; display:flex; align-items:center; gap:6px">
+          <span>🔒</span> Chave Individual Exigida (CGU / Portal da Transparência)
+        </div>
+        <div>
+          O Portal da Transparência exige que cada usuário informe sua própria chave no cabeçalho HTTP <code>chave-api-dados</code>. Por segurança e respeito às cotas de requisição, o sistema não expõe nem compartilha chaves fixas.
+        </div>
+        <div style="margin-top:6px">
+          👉 <a href="https://portaldatransparencia.gov.br/api-de-dados/cadastrar-email" target="_blank" rel="noopener" style="color:#38bdf8; font-weight:700; text-decoration:underline">Cadastre sua chave gratuita no Portal da Transparência</a>
+        </div>
+      </div>
+    `;
+    curlHeader = ' -H "chave-api-dados: [SUA_CHAVE_INDIVIDUAL]"';
+  } else {
+    bannerAuth = `
+      <div style="background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.3); border-radius:6px; padding:10px 14px; margin-bottom:14px; color:#6ee7b7; font-size:0.85rem">
+        <strong>✓ API Aberta & Pública:</strong> Este endpoint não exige autenticação ou chave de acesso. Você pode abri-lo diretamente no navegador.
+      </div>
+    `;
+  }
+
+  const curlComando = `curl -X GET "${urlReq}" -H "accept: application/json"${curlHeader}`;
+
+  corpo.innerHTML = `
+    ${bannerAuth}
+
+    <div style="margin-bottom:12px">
+      <label style="font-size:0.75rem; text-transform:uppercase; font-weight:700; color:var(--texto-suave)">URL do Endpoint GET</label>
+      <div style="background:var(--superficie); padding:8px 12px; border-radius:6px; border:1px solid var(--borda); font-family:monospace; word-break:break-all; font-size:0.85rem; color:var(--texto-destaque); margin-top:2px">
+        ${escapar(urlReq)}
+      </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px">
+      <div style="background:var(--superficie); padding:10px; border-radius:6px; border:1px solid var(--borda)">
+        <div style="font-size:0.75rem; color:var(--texto-suave); font-weight:700">Linhas no Acervo Local</div>
+        <div style="font-size:1.2rem; font-weight:800; color:var(--realce, #38bdf8)">${(item.total_linhas || 0).toLocaleString('pt-BR')}</div>
+      </div>
+      <div style="background:var(--superficie); padding:10px; border-radius:6px; border:1px solid var(--borda)">
+        <div style="font-size:0.75rem; color:var(--texto-suave); font-weight:700">Linhas na Origem Oficial</div>
+        <div style="font-size:1.2rem; font-weight:800; color:var(--texto)">${(item.linhas_origem || item.total_linhas || 0).toLocaleString('pt-BR')}</div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:16px">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px">
+        <label style="font-size:0.75rem; text-transform:uppercase; font-weight:700; color:var(--texto-suave)">Comando cURL (Terminal)</label>
+        <button id="btn-copiar-curl" class="secundario" style="padding:2px 8px; font-size:0.75rem; cursor:pointer">📋 Copiar cURL</button>
+      </div>
+      <pre style="background:var(--superficie); padding:10px 12px; border-radius:6px; border:1px solid var(--borda); font-family:monospace; font-size:0.8rem; overflow-x:auto; margin:0; color:#38bdf8">${escapar(curlComando)}</pre>
+    </div>
+
+    <div style="display:flex; justify-content:flex-end; gap:10px; border-top:1px solid var(--borda); padding-top:14px">
+      ${!exigeChave && urlReq.startsWith('http') ? `
+        <a href="${escapar(urlReq)}" target="_blank" rel="noopener" class="principal" style="padding:8px 14px; border-radius:6px; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:6px">
+          <span>🌐</span> Abrir GET no Navegador
+        </a>
+      ` : ''}
+      <button id="btn-fechar-modal-get" class="secundario" style="padding:8px 14px; border-radius:6px; font-weight:600; cursor:pointer">
+        Fechar
+      </button>
+    </div>
+  `;
+
+  $('#btn-copiar-curl')?.addEventListener('click', () => {
+    navigator.clipboard.writeText(curlComando).then(() => {
+      const b = $('#btn-copiar-curl');
+      if (b) {
+        b.textContent = '✓ Copiado!';
+        setTimeout(() => { b.textContent = '📋 Copiar cURL'; }, 1800);
+      }
+    });
+  });
+
+  $('#btn-fechar-modal-get')?.addEventListener('click', () => modal.close());
+  $('#modal-get-fechar')?.addEventListener('click', () => modal.close());
+
+  modal.showModal();
 }
 
 export function configurarEventosCatalogo() {
