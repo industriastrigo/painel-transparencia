@@ -220,27 +220,28 @@ function renderizarLegislativo(sumario, cotas, dadosParlamentares) {
         <table class="tabela">
           <thead>
             <tr>
-              <th>Código Interno</th>
-              <th>Nome Formatado</th>
-              <th>Nome Extraído (Fonte)</th>
+              <th>Nome Parlamentar</th>
               <th>Cargo</th>
               <th>Partido</th>
-              <th>UF / Base</th>
+              <th>UF</th>
               <th>Mandato</th>
+              <th class="coluna-secundaria">Código Interno</th>
             </tr>
           </thead>
           <tbody>
             ${listaParlamentares.length === 0 ? `
-              <tr><td colspan="7" class="vazio">Nenhum parlamentar encontrado para o filtro.</td></tr>
+              <tr><td colspan="6" class="vazio">Nenhum parlamentar encontrado para o filtro.</td></tr>
             ` : listaParlamentares.map((p) => `
               <tr>
-                <td><code>${escapar(p.cod_politico_interno || '—')}</code></td>
-                <td><strong>${escapar(p.nome_formatado || p.nome)}</strong></td>
-                <td><span class="subtexto">${escapar(p.nome_extraido || p.nome)}</span></td>
+                <td>
+                  <strong>${escapar(p.nome_formatado || p.nome)}</strong>
+                  ${p.nome_extraido && p.nome_extraido !== (p.nome_formatado || p.nome) ? `<br><small class="subtexto">${escapar(p.nome_extraido)}</small>` : ''}
+                </td>
                 <td><span class="cargo-texto">${escapar(formatarNomeProprio(p.cargo))}</span></td>
                 <td><span class="selo padrao">${escapar(p.sigla_partido || '—')}</span></td>
                 <td>${escapar(p.sigla_uf || p.base_eleitoral || 'BR')}</td>
                 <td>${escapar(p.ano_inicio || '')}–${escapar(p.ano_fim || '')}</td>
+                <td class="coluna-secundaria"><code>${escapar(p.cod_politico_interno || '—')}</code></td>
               </tr>
             `).join('')}
           </tbody>

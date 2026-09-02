@@ -3007,24 +3007,59 @@ a:hover { color: var(--realce-vivo); }
   /* 9. CONTROLES E FILTROS DAS ABAS (MAPA, PODERES, POLÍTICOS, GASTOS) */
   .barra {
     display: grid;
-    grid-template-columns: 1fr;
-    gap: 8px;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 10px;
     margin-bottom: var(--e4);
+    align-items: end;
   }
 
   .barra > div {
+    grid-column: span 2;
     width: 100%;
+  }
+
+  /* Campos curtos e botões organizados lado a lado em 2 colunas */
+  .barra > div:has(#filtro-de),
+  .barra > div:has(#filtro-ate),
+  .barra > div:has(#filtro-uf),
+  .barra > div:has(#filtro-partido),
+  .barra > div:has(#filtro-leg-ano),
+  .barra > div:has(#filtro-leg-casa),
+  .barra > div:has(#custo-ano),
+  .barra > div:has(#custo-filtro-poder),
+  .barra > .acao {
+    grid-column: span 1;
   }
 
   .barra select,
   .barra input,
   .barra button {
     width: 100%;
+    min-height: 42px;
     font-size: 15px; /* Touch-friendly e sem zoom no iOS */
-    padding: 9px 12px;
+    padding: 8px 12px;
+    box-sizing: border-box;
   }
 
-  /* Grids de Cards Lado a Lado empilhados em 1 coluna no mobile */
+  /* 10. CARTÕES E GRIDS RESPONSIVOS */
+  .cartao {
+    padding: 14px 16px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+  }
+
+  .cartao h2 {
+    font-size: 1.05rem;
+    line-height: 1.35;
+    margin: 0 0 8px 0;
+  }
+
+  .cartao h3 {
+    font-size: 0.95rem;
+    line-height: 1.35;
+    margin: 0 0 6px 0;
+  }
+
   .grid-duas-colunas,
   .grid-bancadas-gastos,
   .painel {
@@ -3032,28 +3067,82 @@ a:hover { color: var(--realce-vivo); }
     gap: 12px !important;
   }
 
+  /* 11. TIRAS E KPIS UNIFORMIZADOS */
   .tiras {
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 8px;
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+    margin: var(--e3) 0 var(--e4) !important;
   }
 
-  .tira {
-    padding: 10px 12px;
+  .tiras > .tira:last-child:nth-child(odd),
+  .tiras > .cartao:last-child:nth-child(odd) {
+    grid-column: span 2 !important;
   }
 
-  .tira strong,
-  .tira .valor {
-    font-size: 1.1rem;
+  .tira,
+  .tiras .cartao {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 12px 14px;
+    min-height: 82px;
+    border-radius: var(--raio);
+    background: var(--superficie);
+    border: 1px solid var(--borda);
+    border-top: 3px solid var(--dourado-primario, #f59e0b);
+    box-sizing: border-box;
+    margin: 0;
   }
 
-  /* 10. TABELAS COM SCROLL HORIZONTAL SUAVE */
-  table {
+  .rotulo-numero,
+  .tira .rotulo,
+  .tira > span:first-child {
+    font-size: 0.72rem;
+    color: var(--texto-fraco);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    font-weight: 600;
+    line-height: 1.25;
+    margin-bottom: 4px;
+  }
+
+  .numero-grande,
+  .tira .valor,
+  .tira strong {
+    font-size: clamp(0.95rem, 3.8vw, 1.2rem);
+    font-weight: 700;
+    line-height: 1.2;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+
+  .nota-numero,
+  .tira .detalhe,
+  .tira .subtexto,
+  .tira span:last-child:not(:first-child) {
+    font-size: 0.72rem;
+    color: var(--texto-fraco);
+    margin-top: 4px;
+    line-height: 1.3;
+  }
+
+  /* 12. TABELAS COM SCROLL HORIZONTAL FLUIDO */
+  .rolagem {
     display: block;
     width: 100%;
+    max-width: 100%;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    white-space: nowrap;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  table {
+    width: 100%;
     border-collapse: collapse;
+    white-space: nowrap;
   }
 
   table th, table td {
@@ -3061,7 +3150,11 @@ a:hover { color: var(--realce-vivo); }
     font-size: 0.84rem;
   }
 
-  /* 11. MODAL PERFIL MOBILE */
+  .coluna-secundaria {
+    display: none !important;
+  }
+
+  /* 13. MODAL PERFIL MOBILE */
   .modal-trigo {
     width: 94vw;
     max-width: 380px;
