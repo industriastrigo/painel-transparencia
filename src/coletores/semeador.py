@@ -151,8 +151,8 @@ def semear_parlamentares() -> None:
             "ano_eleicao": 2022,
         })
 
-    armazem.salvar_dimensao("dim_politico", linhas_politico, "semeador")
-    armazem.salvar_fato("mandato", linhas_mandato, "semeador")
+    armazem.mesclar("dim_politico", linhas_politico, "semeador")
+    armazem.mesclar("mandato", linhas_mandato, "semeador")
 
 
 def semear_proposicoes() -> None:
@@ -308,10 +308,10 @@ def semear_proposicoes() -> None:
         {"casa": "camara", "id_votacao": "2358482-1", "id_politico": "dep_sp_kim_kataguiri", "nome_politico": "Kim Kataguiri", "sigla_partido": "UNIÃO", "sigla_uf": "SP", "voto": "Não", "data_hora": "2023-05-23 23:15:00", "ano": 2023, "mes": 5},
     ]
 
-    armazem.salvar_fato("proposicao", proposicoes, "semeador")
-    armazem.salvar_fato("votacao", votacoes, "semeador")
-    armazem.salvar_fato("votacao_proposicao", votacao_proposicoes, "semeador")
-    armazem.salvar_fato("voto", votos, "semeador")
+    armazem.mesclar("proposicao", proposicoes, "semeador")
+    armazem.mesclar("votacao", votacoes, "semeador")
+    armazem.mesclar("votacao_proposicao", votacao_proposicoes, "semeador")
+    armazem.mesclar("voto", votos, "semeador")
 
 
 def semear_financas() -> None:
@@ -324,32 +324,81 @@ def semear_financas() -> None:
     # 1. Finanças Ente (Receitas e Despesas Consolidadas)
     for ano in anos:
         # União
-        financas.append({"cod_ibge": "0", "ano": ano, "esfera": "federal", "cod_conta": "RO1.0.0.0.00.0.0", "conta": "Receitas Correntes", "estagio": "Receitas Realizadas", "valor": 2_150_000_000_000.0 + (ano - 2020) * 120_000_000_000.0})
-        financas.append({"cod_ibge": "0", "ano": ano, "esfera": "federal", "cod_conta": "DO3.0.00.00.00.00", "conta": "Despesas Correntes", "estagio": "Despesas Empenhadas", "valor": 2_080_000_000_000.0 + (ano - 2020) * 115_000_000_000.0})
+        financas.append({
+            "cod_ibge": "0", "ano": ano, "periodo": "1", "esfera": "federal", "uf": "BR",
+            "cod_conta": "RO1.0.0.0.00.0.0", "cod_funcao": None, "funcao": None, "rotulo_conta": "Receitas Correntes",
+            "estagio": "Receitas Realizadas", "valor": 2_150_000_000_000.0 + (ano - 2020) * 120_000_000_000.0,
+            "data_referencia": f"{ano}-12-31"
+        })
+        financas.append({
+            "cod_ibge": "0", "ano": ano, "periodo": "1", "esfera": "federal", "uf": "BR",
+            "cod_conta": "DO3.0.00.00.00.00", "cod_funcao": None, "funcao": None, "rotulo_conta": "Despesas Correntes",
+            "estagio": "Despesas Empenhadas", "valor": 2_080_000_000_000.0 + (ano - 2020) * 115_000_000_000.0,
+            "data_referencia": f"{ano}-12-31"
+        })
         
         # SP
-        financas.append({"cod_ibge": "35", "ano": ano, "esfera": "estadual", "cod_conta": "RO1.0.0.0.00.0.0", "conta": "Receitas Correntes", "estagio": "Receitas Realizadas", "valor": 290_000_000_000.0 + (ano - 2020) * 18_000_000_000.0})
-        financas.append({"cod_ibge": "35", "ano": ano, "esfera": "estadual", "cod_conta": "DO3.0.00.00.00.00", "conta": "Despesas Correntes", "estagio": "Despesas Empenhadas", "valor": 280_000_000_000.0 + (ano - 2020) * 17_000_000_000.0})
+        financas.append({
+            "cod_ibge": "35", "ano": ano, "periodo": "1", "esfera": "estadual", "uf": "SP",
+            "cod_conta": "RO1.0.0.0.00.0.0", "cod_funcao": None, "funcao": None, "rotulo_conta": "Receitas Correntes",
+            "estagio": "Receitas Realizadas", "valor": 290_000_000_000.0 + (ano - 2020) * 18_000_000_000.0,
+            "data_referencia": f"{ano}-12-31"
+        })
+        financas.append({
+            "cod_ibge": "35", "ano": ano, "periodo": "1", "esfera": "estadual", "uf": "SP",
+            "cod_conta": "DO3.0.00.00.00.00", "cod_funcao": None, "funcao": None, "rotulo_conta": "Despesas Correntes",
+            "estagio": "Despesas Empenhadas", "valor": 280_000_000_000.0 + (ano - 2020) * 17_000_000_000.0,
+            "data_referencia": f"{ano}-12-31"
+        })
 
         # RJ
-        financas.append({"cod_ibge": "33", "ano": ano, "esfera": "estadual", "cod_conta": "RO1.0.0.0.00.0.0", "conta": "Receitas Correntes", "estagio": "Receitas Realizadas", "valor": 105_000_000_000.0 + (ano - 2020) * 8_000_000_000.0})
-        financas.append({"cod_ibge": "33", "ano": ano, "esfera": "estadual", "cod_conta": "DO3.0.00.00.00.00", "conta": "Despesas Correntes", "estagio": "Despesas Empenhadas", "valor": 102_000_000_000.0 + (ano - 2020) * 7_500_000_000.0})
+        financas.append({
+            "cod_ibge": "33", "ano": ano, "periodo": "1", "esfera": "estadual", "uf": "RJ",
+            "cod_conta": "RO1.0.0.0.00.0.0", "cod_funcao": None, "funcao": None, "rotulo_conta": "Receitas Correntes",
+            "estagio": "Receitas Realizadas", "valor": 105_000_000_000.0 + (ano - 2020) * 8_000_000_000.0,
+            "data_referencia": f"{ano}-12-31"
+        })
+        financas.append({
+            "cod_ibge": "33", "ano": ano, "periodo": "1", "esfera": "estadual", "uf": "RJ",
+            "cod_conta": "DO3.0.00.00.00.00", "cod_funcao": None, "funcao": None, "rotulo_conta": "Despesas Correntes",
+            "estagio": "Despesas Empenhadas", "valor": 102_000_000_000.0 + (ano - 2020) * 7_500_000_000.0,
+            "data_referencia": f"{ano}-12-31"
+        })
 
         # MG
-        financas.append({"cod_ibge": "31", "ano": ano, "esfera": "estadual", "cod_conta": "RO1.0.0.0.00.0.0", "conta": "Receitas Correntes", "estagio": "Receitas Realizadas", "valor": 115_000_000_000.0 + (ano - 2020) * 9_000_000_000.0})
-        financas.append({"cod_ibge": "31", "ano": ano, "esfera": "estadual", "cod_conta": "DO3.0.00.00.00.00", "conta": "Despesas Correntes", "estagio": "Despesas Empenhadas", "valor": 112_000_000_000.0 + (ano - 2020) * 8_500_000_000.0})
+        financas.append({
+            "cod_ibge": "31", "ano": ano, "periodo": "1", "esfera": "estadual", "uf": "MG",
+            "cod_conta": "RO1.0.0.0.00.0.0", "cod_funcao": None, "funcao": None, "rotulo_conta": "Receitas Correntes",
+            "estagio": "Receitas Realizadas", "valor": 115_000_000_000.0 + (ano - 2020) * 9_000_000_000.0,
+            "data_referencia": f"{ano}-12-31"
+        })
+        financas.append({
+            "cod_ibge": "31", "ano": ano, "periodo": "1", "esfera": "estadual", "uf": "MG",
+            "cod_conta": "DO3.0.00.00.00.00", "cod_funcao": None, "funcao": None, "rotulo_conta": "Despesas Correntes",
+            "estagio": "Despesas Empenhadas", "valor": 112_000_000_000.0 + (ano - 2020) * 8_500_000_000.0,
+            "data_referencia": f"{ano}-12-31"
+        })
 
         # 2. Despesas por Função de Governo (vw_despesa_poder)
-        financas.append({"cod_ibge": "0", "ano": ano, "esfera": "federal", "cod_conta": "01", "conta": "Legislativa", "estagio": "Despesas Empenhadas", "valor": 14_500_000_000.0 + (ano - 2020) * 800_000_000.0})
-        financas.append({"cod_ibge": "0", "ano": ano, "esfera": "federal", "cod_conta": "02", "conta": "Judiciária", "estagio": "Despesas Empenhadas", "valor": 52_000_000_000.0 + (ano - 2020) * 2_500_000_000.0})
-        financas.append({"cod_ibge": "0", "ano": ano, "esfera": "federal", "cod_conta": "03", "conta": "Essencial à Justiça", "estagio": "Despesas Empenhadas", "valor": 9_800_000_000.0 + (ano - 2020) * 500_000_000.0})
-        financas.append({"cod_ibge": "0", "ano": ano, "esfera": "federal", "cod_conta": "04", "conta": "Administração", "estagio": "Despesas Empenhadas", "valor": 85_000_000_000.0 + (ano - 2020) * 4_000_000_000.0})
+        funcoes_gov = [
+            ("01", "Legislativa", 14_500_000_000.0 + (ano - 2020) * 800_000_000.0),
+            ("02", "Judiciária", 52_000_000_000.0 + (ano - 2020) * 2_500_000_000.0),
+            ("03", "Essencial à Justiça", 9_800_000_000.0 + (ano - 2020) * 500_000_000.0),
+            ("04", "Administração", 85_000_000_000.0 + (ano - 2020) * 4_000_000_000.0),
+        ]
+        for cod_f, nome_f, val_f in funcoes_gov:
+            financas.append({
+                "cod_ibge": "0", "ano": ano, "periodo": "1", "esfera": "federal", "uf": "BR",
+                "cod_conta": f"DO{cod_f}.0.00.00.00.00", "cod_funcao": cod_f, "funcao": nome_f, "rotulo_conta": nome_f,
+                "estagio": "Despesas Empenhadas", "valor": val_f,
+                "data_referencia": f"{ano}-12-31"
+            })
 
-        # 3. Custo por Órgão Medido
-        custos.append({"conjunto": "Executivo Federal", "ano": ano, "valor": 1_850_000_000_000.0})
-        custos.append({"conjunto": "Poder Judiciário", "ano": ano, "valor": 54_500_000_000.0})
-        custos.append({"conjunto": "Poder Legislativo", "ano": ano, "valor": 15_300_000_000.0})
-        custos.append({"conjunto": "Ministério Público", "ano": ano, "valor": 10_200_000_000.0})
+        # 3. Custo por Órgão Medido (ano, mes)
+        custos.append({"conjunto": "Executivo Federal", "orgao_nome": "Executivo Federal", "orgao_codigo": "01", "item_custo": "Pessoal e Custeio", "ano": ano, "mes": 12, "valor": 1_850_000_000_000.0, "data_referencia": f"{ano}-12-31"})
+        custos.append({"conjunto": "Poder Judiciário", "orgao_nome": "Poder Judiciário", "orgao_codigo": "02", "item_custo": "Pessoal e Custeio", "ano": ano, "mes": 12, "valor": 54_500_000_000.0, "data_referencia": f"{ano}-12-31"})
+        custos.append({"conjunto": "Poder Legislativo", "orgao_nome": "Poder Legislativo", "orgao_codigo": "03", "item_custo": "Pessoal e Custeio", "ano": ano, "mes": 12, "valor": 15_300_000_000.0, "data_referencia": f"{ano}-12-31"})
+        custos.append({"conjunto": "Ministério Público", "orgao_nome": "Ministério Público", "orgao_codigo": "04", "item_custo": "Pessoal e Custeio", "ano": ano, "mes": 12, "valor": 10_200_000_000.0, "data_referencia": f"{ano}-12-31"})
 
-    armazem.salvar_fato("financas_ente", financas, "semeador")
-    armazem.salvar_fato("custo_orgao", custos, "semeador")
+    armazem.mesclar("financas_ente", financas, "semeador")
+    armazem.mesclar("custo_orgao", custos, "semeador")

@@ -465,10 +465,10 @@ def proposicoes(
         condicoes.append("(ementa ILIKE ? OR identificador ILIKE ?)")
         parametros += [f"%{busca}%", f"%{busca}%"]
     if de:
-        condicoes.append("CAST(data_apresentacao AS DATE) >= ?")
+        condicoes.append("TRY_CAST(data_apresentacao AS DATE) >= ?")
         parametros.append(de)
     if ate:
-        condicoes.append("CAST(data_apresentacao AS DATE) <= ?")
+        condicoes.append("TRY_CAST(data_apresentacao AS DATE) <= ?")
         parametros.append(ate)
     onde = f"WHERE {' AND '.join(condicoes)}" if condicoes else ""
 
@@ -477,7 +477,7 @@ def proposicoes(
                data_apresentacao, situacao, tramitacao_atual, orgao_atual,
                nome_autor, partido_autor, uf_autor, qtd_autores, url
           FROM proposicao {onde}
-         ORDER BY CAST(data_apresentacao AS DATE) DESC
+         ORDER BY TRY_CAST(data_apresentacao AS DATE) DESC NULLS LAST, data_apresentacao DESC
          LIMIT {int(limite)}
     """, parametros)
 
