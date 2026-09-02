@@ -214,23 +214,45 @@
     <button onclick="document.getElementById('modal-aviso-registro').close()" style="background:transparent; border:none; color:var(--texto-fraco); font-size:1.2rem; cursor:pointer">✕</button>
   </div>
 
-  <div style="text-align:center; padding:16px 8px;">
-    <div style="width:60px; height:60px; margin:0 auto 16px; border-radius:50%; background:var(--realce-fraco); border:2px solid var(--realce-borda); display:flex; align-items:center; justify-content:center; color:var(--realce-dourado)">
-      <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+  <div style="text-align:center; padding:12px 6px;">
+    <div style="width:54px; height:54px; margin:0 auto 12px; border-radius:50%; background:var(--realce-fraco); border:2px solid var(--realce-borda); display:flex; align-items:center; justify-content:center; color:var(--realce-dourado)">
+      <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
     </div>
-    <h3 style="margin:0 0 8px; font-size:1.2rem; color:var(--texto)">Identificação Necessária</h3>
-    <p style="margin:0 0 18px; font-size:0.9rem; line-height:1.55; color:var(--texto-fraco)">
-      Para ter acesso aos dados detalhados de <strong>despesas, folhas salariais, mapas e votações</strong>, entre com sua conta Google.
-      O registro é rápido, seguro e nos ajuda a monitorar a aderência e o impacto cívico do projeto.
+    <h3 style="margin:0 0 6px; font-size:1.18rem; color:var(--texto)">Identificação Necessária</h3>
+    <p style="margin:0 0 16px; font-size:0.88rem; line-height:1.5; color:var(--texto-fraco)">
+      Para ter acesso aos dados completos de <strong>despesas, salários, mapas e votações</strong>, identifique-se para registrar sua adesão cívica.
     </p>
-    <div style="display:flex; flex-direction:column; gap:10px;">
-      <button id="btn-login-modal-aviso" class="principal" style="width:100%; padding:12px; border-radius:var(--raio); font-weight:700; font-size:0.95rem; cursor:pointer">
-        Entrar com a Conta Google
-      </button>
-      <button onclick="document.getElementById('modal-aviso-registro').close()" class="secundario" style="width:100%; padding:10px; border-radius:var(--raio); font-weight:600; font-size:0.88rem; cursor:pointer">
-        Continuar Lendo o Início
-      </button>
+
+    <!-- Botão Principal Google -->
+    <button id="btn-login-modal-aviso" class="principal" style="width:100%; padding:11px; border-radius:var(--raio); font-weight:700; font-size:0.92rem; cursor:pointer; margin-bottom:14px; display:flex; align-items:center; justify-content:center; gap:8px">
+      <span>Entrar com a Conta Google</span>
+    </button>
+
+    <!-- Divisor Elegante -->
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px">
+      <div style="flex:1; height:1px; background:var(--borda)"></div>
+      <span style="font-size:0.75rem; text-transform:uppercase; color:var(--texto-sutil); font-weight:600">ou identificação cívica</span>
+      <div style="flex:1; height:1px; background:var(--borda)"></div>
     </div>
+
+    <!-- Formulário Direto Resiliente -->
+    <form id="form-login-direto" onsubmit="return false;" style="display:flex; flex-direction:column; gap:10px; text-align:left; margin-bottom:14px">
+      <div>
+        <label for="input-login-nome" style="display:block; font-size:0.75rem; text-transform:uppercase; font-weight:700; color:var(--texto-fraco); margin-bottom:4px">Seu Nome Completo</label>
+        <input type="text" id="input-login-nome" required placeholder="Ex: Johnny Trigo" style="width:100%; padding:9px 12px; border-radius:var(--raio); border:1px solid var(--borda); background:var(--superficie-2); color:var(--texto); font-size:0.9rem" />
+      </div>
+      <div>
+        <label for="input-login-email" style="display:block; font-size:0.75rem; text-transform:uppercase; font-weight:700; color:var(--texto-fraco); margin-bottom:4px">Seu E-mail</label>
+        <input type="email" id="input-login-email" required placeholder="Ex: johnny@empresa.com.br" style="width:100%; padding:9px 12px; border-radius:var(--raio); border:1px solid var(--borda); background:var(--superficie-2); color:var(--texto); font-size:0.9rem" />
+      </div>
+      <button id="btn-submit-login-direto" class="secundario" style="width:100%; padding:10px; border-radius:var(--raio); font-weight:700; font-size:0.9rem; cursor:pointer; border-color:var(--realce-dourado); color:var(--realce-dourado); margin-top:4px">
+        ✓ Confirmar e Acessar Painel
+      </button>
+    </form>
+
+    <button onclick="document.getElementById('modal-aviso-registro').close()" style="background:transparent; border:none; color:var(--texto-sutil); font-size:0.8rem; cursor:pointer; text-decoration:underline">
+      Continuar apenas no Início
+    </button>
   </div>
 </dialog>
 

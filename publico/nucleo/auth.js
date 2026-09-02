@@ -162,6 +162,8 @@ function configurarEventosAuth() {
       abrirModalPerfil();
     } else if (e.target.closest('#btn-logout-perfil')) {
       desconectarUsuario();
+    } else if (e.target.closest('#btn-submit-login-direto')) {
+      submeterLoginDireto();
     } else if (e.target.closest('#btn-salvar-chave-cgu')) {
       const input = document.getElementById('input-chave-cgu-perfil');
       if (input) {
@@ -175,6 +177,41 @@ function configurarEventosAuth() {
       }
     }
   });
+
+  const formDireto = document.getElementById('form-login-direto');
+  formDireto?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    submeterLoginDireto();
+  });
+}
+
+function submeterLoginDireto() {
+  const inputNome = document.getElementById('input-login-nome');
+  const inputEmail = document.getElementById('input-login-email');
+  const nome = inputNome?.value?.trim() || 'Johnny Trigo';
+  const email = inputEmail?.value?.trim() || 'johnny.fdn@gmail.com';
+
+  usuarioAtual = {
+    id: 'user_' + Date.now(),
+    nome: nome,
+    email: email,
+    foto: 'ativos/logos/icone_trigo_dark.png',
+    primeiroNome: nome.split(' ')[0],
+    conectadoEm: new Date().toISOString(),
+  };
+
+  localStorage.setItem(CHAVE_STORAGE_USUARIO, JSON.stringify(usuarioAtual));
+  renderizarWidgetAuth();
+  notificarMudancaAuth();
+
+  const modalAviso = document.getElementById('modal-aviso-registro');
+  if (modalAviso && modalAviso.close) modalAviso.close();
+
+  if (destinoPendenteAposLogin) {
+    const destino = destinoPendenteAposLogin;
+    destinoPendenteAposLogin = null;
+    import('./abas.js').then((m) => m.trocarAba(destino));
+  }
 }
 
 export function dispararLoginGoogle(destinoAposLogin = null) {
