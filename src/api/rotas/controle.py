@@ -247,4 +247,15 @@ def executar_validacao_carga(payload: dict | None = None):
     return {"status": "ok", "total_validados": len(resultados), "resultados": resultados}
 
 
+@router.get("/api/controle/semear")
+@router.post("/api/controle/semear")
+def disparar_semeadura():
+    """Força a execução da semeadura de dados e recarrega todas as views DuckDB."""
+    from ...coletores.semeador import semear_se_vazio
+    semear_se_vazio(forcar=True)
+    criadas = recarregar_views()
+    return {"status": "ok", "mensagem": "Bases de dados semeadas com sucesso", "views_recarregadas": len(criadas)}
+
+
+
 

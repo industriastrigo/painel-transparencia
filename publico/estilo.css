@@ -2143,7 +2143,16 @@ a:hover { color: var(--realce-vivo); }
   transform: translateX(-100%);
   transition: transform 300ms cubic-bezier(.16, 1, .3, 1);
   box-shadow: var(--sombra-3);
+  overflow-x: hidden !important;
   overflow-y: auto;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+.drawer-trigo::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+  width: 0;
+  height: 0;
 }
 
 .drawer-trigo.aberto {
@@ -2156,6 +2165,7 @@ a:hover { color: var(--realce-vivo); }
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-shrink: 0;
 }
 
 .drawer-fechar {
@@ -2184,6 +2194,16 @@ a:hover { color: var(--realce-vivo); }
   display: flex;
   flex-direction: column;
   gap: var(--e4);
+  overflow-x: hidden !important;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.drawer-corpo::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 .drawer-secao-rotulo {
@@ -2194,6 +2214,9 @@ a:hover { color: var(--realce-vivo); }
   color: var(--realce-dourado);
   padding: 0 var(--e3);
   margin-bottom: var(--e1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .drawer-nav-lista {
@@ -2201,6 +2224,7 @@ a:hover { color: var(--realce-vivo); }
   flex-direction: column;
   gap: 3px;
   margin-bottom: var(--e3);
+  overflow: hidden;
 }
 
 .drawer-nav-item {
@@ -2215,6 +2239,10 @@ a:hover { color: var(--realce-vivo); }
   font-weight: 600;
   transition: all var(--transicao);
   border: 1px solid transparent;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-sizing: border-box;
 }
 
 .drawer-nav-item:hover {
