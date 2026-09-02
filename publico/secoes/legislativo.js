@@ -96,7 +96,7 @@ function renderizarLegislativo(sumario, cotas, dadosParlamentares) {
     </div>
 
     <!-- Painel de Bancadas e Cotas Parlamentares -->
-    <div class="painel" style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-bottom:18px; align-items:stretch">
+    <div class="painel" style="display:grid; grid-template-columns: minmax(320px, 1fr) minmax(480px, 1.4fr); gap:20px; margin-bottom:18px; align-items:stretch">
       <!-- Distribuição por Bancada -->
       <div class="cartao" style="background:var(--superficie-2); display:flex; flex-direction:column; justify-content:space-between; height:100%; min-height:480px">
         <div>
@@ -108,8 +108,8 @@ function renderizarLegislativo(sumario, cotas, dadosParlamentares) {
             <thead>
               <tr>
                 <th>Partido</th>
-                <th class="num">Cadeiras</th>
-                <th class="num">Proporção</th>
+                <th class="num" style="width:105px; min-width:90px">Cadeiras</th>
+                <th class="num" style="width:115px; min-width:100px">Proporção</th>
               </tr>
             </thead>
             <tbody>
@@ -147,18 +147,21 @@ function renderizarLegislativo(sumario, cotas, dadosParlamentares) {
             <thead>
               <tr>
                 <th>Categoria da Despesa</th>
-                <th class="num">Notas</th>
-                <th class="num">Total Gasto</th>
+                <th class="num" style="width:110px; min-width:95px">Notas</th>
+                <th class="num" style="width:175px; min-width:160px">Total Gasto</th>
               </tr>
             </thead>
             <tbody>
-              ${categoriasCota.map((c) => `
-                <tr>
-                  <td><strong>${escapar(c.categoria)}</strong></td>
-                  <td class="num">${contagem(c.documentos)}</td>
-                  <td class="num">${dinheiro.format(c.total_gasto)}</td>
-                </tr>
-              `).join('')}
+              ${categoriasCota.map((c) => {
+                const categoriaLimpa = String(c.categoria || '').replace(/\s*,\s*/g, ', ').replace(/\.+$/, '').trim();
+                return `
+                  <tr>
+                    <td style="line-height:1.35"><strong>${escapar(categoriaLimpa)}</strong></td>
+                    <td class="num">${contagem(c.documentos)}</td>
+                    <td class="num">${dinheiro.format(c.total_gasto)}</td>
+                  </tr>
+                `;
+              }).join('')}
             </tbody>
             <tfoot>
               <tr style="border-top:2px solid var(--borda-forte, #475569); background:var(--superficie-3, rgba(255,255,255,0.06)); font-weight:bold">
