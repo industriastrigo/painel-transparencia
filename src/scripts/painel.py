@@ -110,7 +110,7 @@ def principal(argv: list[str] | None = None) -> int:
 
     print()
     print("=" * 52)
-    print(f"  PAINEL DA TRANSPARENCIA  →  {endereco}")
+    print(f"  PAINEL DA TRANSPARENCIA  ->  {endereco}")
     print("=" * 52)
     print("  [Atalho] Pressione Ctrl+T ou 'r' para dar refresh nos dados")
     print("  Feche esta janela (ou Ctrl+C) para encerrar.")
@@ -124,7 +124,7 @@ def principal(argv: list[str] | None = None) -> int:
 
     try:
         uvicorn.run("src.api.servidor:app", host=args.host, port=porta,
-                    log_level="info")
+                    reload=True, log_level="info")
     except OSError as erro:
         log.error("não foi possível subir em %s: %s", endereco, erro)
         print("\nO Windows recusou essa porta. Tente com uma porta explícita:")
