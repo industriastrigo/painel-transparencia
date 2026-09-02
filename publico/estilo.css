@@ -664,23 +664,29 @@ dialog {
   background: var(--superficie); color: var(--texto);
   max-width: 1140px; width: min(96vw, 1140px); max-height: 92vh;
   padding: 0; box-shadow: var(--sombra-3);
+  position: relative;
   /* `flex` + `overflow` no filho: sem isto o conteúdo que passa de 88vh
      transborda para fora da caixa e fica INALCANÇÁVEL — não havia como
      rolar. A ficha de um ente tem cinco tabelas; passava sempre. */
   flex-direction: column;
 }
 dialog[open] { display: flex; }
-dialog::backdrop { background: rgba(10, 10, 9, .55); backdrop-filter: blur(2px); }
+dialog::backdrop { background: rgba(10, 10, 9, .7); backdrop-filter: blur(4px); }
 
 dialog .fechar {
-  position: absolute; top: var(--e3); right: var(--e3); z-index: 2;
-  background: var(--superficie); border: 1px solid var(--borda);
-  width: 32px; height: 32px; border-radius: 50%;
-  font-size: var(--t-m); line-height: 1; cursor: pointer;
-  color: var(--texto-fraco); display: grid; place-items: center;
-  transition: all var(--transicao);
+  position: absolute; top: 12px; right: 12px; z-index: 1000;
+  background: var(--superficie-2, #181920); border: 1px solid var(--borda, #2e303d);
+  width: 36px; height: 36px; border-radius: 50%;
+  font-size: 18px; font-weight: bold; line-height: 1; cursor: pointer;
+  color: var(--texto, #f5f5f7); display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  transition: all 0.2s ease;
+  pointer-events: auto;
 }
-dialog .fechar:hover { color: var(--texto); border-color: var(--texto-sutil); background: var(--superficie-2); }
+dialog .fechar:hover, dialog .fechar:active {
+  color: #fff; border-color: var(--realce, #d4a017); background: var(--realce, #d4a017);
+  transform: scale(1.08);
+}
 
 #detalhe-conteudo {
   overflow-y: auto; padding: var(--e6);

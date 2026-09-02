@@ -130,7 +130,27 @@ async function iniciar() {
   inicializarEventosMp();
   configurarEventosCatalogo();
 
-  $('#fechar-detalhe').addEventListener('click', () => $('#detalhe').close());
+  const modalDetalhe = $('#detalhe');
+  const btnFechar = $('#fechar-detalhe');
+  if (modalDetalhe) {
+    const fecharModal = (e) => {
+      if (e) e.stopPropagation();
+      modalDetalhe.close();
+    };
+    btnFechar?.addEventListener('click', fecharModal);
+    btnFechar?.addEventListener('touchend', fecharModal);
+
+    // Fechar ao clicar fora (no backdrop escuro)
+    modalDetalhe.addEventListener('click', (e) => {
+      const rect = modalDetalhe.getBoundingClientRect();
+      const clicouDentro = (
+        rect.top <= e.clientY && e.clientY <= rect.top + rect.height &&
+        rect.left <= e.clientX && e.clientX <= rect.left + rect.width
+      );
+      if (!clicouDentro) modalDetalhe.close();
+    });
+  }
+
   $('#botao-atualizar').addEventListener('click', dispararColeta);
   $('#salvar-chave').addEventListener('click', salvarChave);
   $('#campo-chave').addEventListener('keydown', (ev) => {
