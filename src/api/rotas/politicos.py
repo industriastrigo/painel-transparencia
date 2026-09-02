@@ -26,7 +26,12 @@ def politicos(uf: str | None = None, cargo: str | None = None,
               limite: int = Query(200, le=2000)):
     condicoes, parametros = [], []
     if uf:
-        condicoes.append("p.sigla_uf = ?"); parametros.append(uf.upper())
+        if cargo == "presidente":
+            condicoes.append("(p.sigla_uf = ? OR p.sigla_uf = 'BR')")
+            parametros.append(uf.upper())
+        else:
+            condicoes.append("p.sigla_uf = ?")
+            parametros.append(uf.upper())
     if cargo:
         condicoes.append("p.cargo = ?"); parametros.append(cargo)
     if partido:

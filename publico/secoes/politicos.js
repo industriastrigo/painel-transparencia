@@ -48,11 +48,13 @@ async function carregarPoliticos() {
   const uf = $('#filtro-uf')?.value?.trim();
   const cargo = $('#filtro-cargo')?.value;
   const busca = $('#filtro-nome')?.value?.trim();
+  const partido = $('#filtro-partido')?.value?.trim();
   const ano = $('#filtro-ano-politico')?.value;
 
   if (uf) parametros.uf = uf;
   if (cargo) parametros.cargo = cargo;
   if (busca) parametros.busca = busca;
+  if (partido) parametros.partido = partido;
   if (ano) parametros.ano = ano;
 
   corpo.innerHTML = `<tr><td colspan="6">${esqueleto(4)}</td></tr>`;

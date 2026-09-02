@@ -109,7 +109,7 @@ async function iniciar() {
   $('#filtro-ano-politico')?.addEventListener('change', carregarPoliticos);
   $('#filtro-cargo')?.addEventListener('change', carregarPoliticos);
   $('#buscar-proposicoes').addEventListener('click', carregarProposicoes);
-  ['#filtro-uf', '#filtro-nome'].forEach((sel) => {
+  ['#filtro-uf', '#filtro-nome', '#filtro-partido'].forEach((sel) => {
     $(sel)?.addEventListener('keydown', (ev) => {
       if (ev.key === 'Enter') carregarPoliticos();
     });
