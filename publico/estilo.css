@@ -2181,7 +2181,7 @@ a:hover { color: var(--realce-vivo); }
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 14px;
+  padding: 9px 12px;
   border-radius: var(--raio);
   color: var(--texto-fraco);
   text-decoration: none;
@@ -2204,10 +2204,62 @@ a:hover { color: var(--realce-vivo); }
   font-weight: 700;
 }
 
-.drawer-nav-item .item-icone {
-  font-size: 1.1rem;
-  width: 24px;
-  text-align: center;
+.item-icone {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  color: var(--texto-sutil);
+  transition: all var(--transicao);
+}
+
+.item-svg {
+  width: 17px;
+  height: 17px;
+  display: block;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+  transition: transform var(--transicao);
+}
+
+.drawer-nav-item:hover .item-icone,
+.drawer-nav-item:hover .item-svg {
+  color: var(--realce-dourado);
+  stroke: var(--realce-dourado);
+  transform: scale(1.08);
+}
+
+.drawer-nav-item.ativo .item-icone,
+.drawer-nav-item.ativo .item-svg {
+  color: var(--realce-dourado);
+  stroke: var(--realce-dourado);
+}
+
+.drawer-secao-rotulo {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--realce-dourado);
+  padding: 0 var(--e3);
+  margin-bottom: var(--e1);
+}
+
+.drawer-secao-rotulo svg {
+  stroke: var(--realce-dourado);
+  opacity: 0.85;
+}
+
+.topbar-pagina-ativa svg {
+  stroke: var(--realce-dourado);
+  margin-right: 2px;
 }
 
 .drawer-footer {

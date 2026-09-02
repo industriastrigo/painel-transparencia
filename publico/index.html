@@ -27,13 +27,14 @@
 
   <div class="topbar-centro">
     <div class="topbar-pagina-ativa" id="topbar-titulo-pagina">
-      <span>🗺️</span> <strong>Mapa da Federação</strong>
+      <svg class="item-svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>
+      <strong>Mapa Interativo & Rankings</strong>
     </div>
   </div>
 
   <div class="topbar-direita">
     <button class="btn-toggle-tema btn-icone-topbar" title="Alternar tema (Claro / Escuro / Sistema)">
-      <span>🌓</span>
+      <svg class="item-svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
     </button>
     <div id="topbar-auth-widget"></div>
   </div>
@@ -56,10 +57,13 @@
   <div class="drawer-corpo">
     <!-- 1. TERRITÓRIO & FEDERAÇÃO -->
     <div>
-      <div class="drawer-secao-rotulo">🗺️ Território & Federação</div>
+      <div class="drawer-secao-rotulo">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>
+        <span>Território & Federação</span>
+      </div>
       <nav class="drawer-nav-lista">
         <a href="#mapa" class="drawer-nav-item ativo" data-aba="mapa">
-          <span class="item-icone">🗺️</span>
+          <span class="item-icone"><svg class="item-svg" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg></span>
           <span class="item-texto">Mapa Interativo & Rankings</span>
         </a>
       </nav>
@@ -67,22 +71,25 @@
 
     <!-- 2. PODERES DA REPÚBLICA -->
     <div>
-      <div class="drawer-secao-rotulo">🏛️ Poderes da República</div>
+      <div class="drawer-secao-rotulo">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="22" x2="21" y2="22"></line><line x1="6" y1="18" x2="6" y2="11"></line><line x1="10" y1="18" x2="10" y2="11"></line><line x1="14" y1="18" x2="14" y2="11"></line><line x1="18" y1="18" x2="18" y2="11"></line><polygon points="12 2 20 7 4 7"></polygon></svg>
+        <span>Poderes da República</span>
+      </div>
       <nav class="drawer-nav-lista">
         <a href="#executivo" class="drawer-nav-item" data-aba="executivo">
-          <span class="item-icone">🏛️</span>
+          <span class="item-icone"><svg class="item-svg" viewBox="0 0 24 24"><line x1="3" y1="22" x2="21" y2="22"></line><line x1="6" y1="18" x2="6" y2="11"></line><line x1="10" y1="18" x2="10" y2="11"></line><line x1="14" y1="18" x2="14" y2="11"></line><line x1="18" y1="18" x2="18" y2="11"></line><polygon points="12 2 20 7 4 7"></polygon></svg></span>
           <span class="item-texto">Poder Executivo</span>
         </a>
         <a href="#legislativo" class="drawer-nav-item" data-aba="legislativo">
-          <span class="item-icone">⚖️</span>
+          <span class="item-icone"><svg class="item-svg" viewBox="0 0 24 24"><path d="M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1zM2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1zM7 21h10M12 3v18M3 7h18"></path></svg></span>
           <span class="item-texto">Poder Legislativo</span>
         </a>
         <a href="#judiciario" class="drawer-nav-item" data-aba="judiciario">
-          <span class="item-icone">⚖️</span>
+          <span class="item-icone"><svg class="item-svg" viewBox="0 0 24 24"><path d="M14 13l-7.5 7.5a2.12 2.12 0 0 1-3-3L11 10M16 8l2-2 4 4-2 2M13 11l4 4"></path></svg></span>
           <span class="item-texto">Poder Judiciário</span>
         </a>
         <a href="#mp" class="drawer-nav-item" data-aba="mp">
-          <span class="item-icone">🛡️</span>
+          <span class="item-icone"><svg class="item-svg" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg></span>
           <span class="item-texto">Ministério Público</span>
         </a>
       </nav>
@@ -90,18 +97,21 @@
 
     <!-- 3. PARLAMENTO & GASTOS -->
     <div>
-      <div class="drawer-secao-rotulo">👥 Parlamento & Gastos</div>
+      <div class="drawer-secao-rotulo">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
+        <span>Parlamento & Gastos</span>
+      </div>
       <nav class="drawer-nav-lista">
         <a href="#politicos" class="drawer-nav-item" data-aba="politicos">
-          <span class="item-icone">👥</span>
+          <span class="item-icone"><svg class="item-svg" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></span>
           <span class="item-texto">Políticos & Mandatos</span>
         </a>
         <a href="#proposicoes" class="drawer-nav-item" data-aba="proposicoes">
-          <span class="item-icone">📜</span>
+          <span class="item-icone"><svg class="item-svg" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg></span>
           <span class="item-texto">Projetos de Lei & Votações</span>
         </a>
         <a href="#custo" class="drawer-nav-item" data-aba="custo">
-          <span class="item-icone">💰</span>
+          <span class="item-icone"><svg class="item-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"></path><line x1="12" y1="6" x2="12" y2="18"></line></svg></span>
           <span class="item-texto">Custo do Estado & Subsídios</span>
         </a>
       </nav>
@@ -109,22 +119,25 @@
 
     <!-- 4. ENGENHARIA & LAKEHOUSE -->
     <div>
-      <div class="drawer-secao-rotulo">🔬 Engenharia & Lakehouse</div>
+      <div class="drawer-secao-rotulo">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+        <span>Engenharia & Lakehouse</span>
+      </div>
       <nav class="drawer-nav-lista">
         <a href="#catalogo" class="drawer-nav-item" data-aba="catalogo">
-          <span class="item-icone">📜</span>
+          <span class="item-icone"><svg class="item-svg" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg></span>
           <span class="item-texto">Catálogo de Tabelas (Parquet)</span>
         </a>
         <a href="#explorador" class="drawer-nav-item" data-aba="explorador">
-          <span class="item-icone">💻</span>
+          <span class="item-icone"><svg class="item-svg" viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg></span>
           <span class="item-texto">Explorador GCP & SQL Studio</span>
         </a>
         <a href="#fontes" class="drawer-nav-item" data-aba="fontes">
-          <span class="item-icone">🌐</span>
+          <span class="item-icone"><svg class="item-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg></span>
           <span class="item-texto">Fontes Oficiais & Conectores</span>
         </a>
         <a href="#atualizar" class="drawer-nav-item" data-aba="atualizar">
-          <span class="item-icone">⚡</span>
+          <span class="item-icone"><svg class="item-svg" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg></span>
           <span class="item-texto">Carga, Auditoria & Sincronização</span>
         </a>
       </nav>
@@ -132,10 +145,13 @@
 
     <!-- 5. DOCUMENTAÇÃO -->
     <div>
-      <div class="drawer-secao-rotulo">📚 Documentação & Metodologia</div>
+      <div class="drawer-secao-rotulo">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+        <span>Documentação & Metodologia</span>
+      </div>
       <nav class="drawer-nav-lista">
         <a href="#glossario" class="drawer-nav-item" data-aba="glossario">
-          <span class="item-icone">📖</span>
+          <span class="item-icone"><svg class="item-svg" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg></span>
           <span class="item-texto">Glossário & Metodologia</span>
         </a>
       </nav>

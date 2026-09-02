@@ -88,7 +88,7 @@ export function atualizarItemAtivoDrawer(abaId) {
   const itemAtivo = drawer.querySelector(`.drawer-nav-item[data-aba="${abaId}"]`);
   if (tituloPagina && itemAtivo) {
     const texto = itemAtivo.querySelector('.item-texto')?.textContent || itemAtivo.textContent;
-    const icone = itemAtivo.querySelector('.item-icone')?.textContent || '📊';
-    tituloPagina.innerHTML = `<span>${icone}</span> <strong>${texto.trim()}</strong>`;
+    const iconeHtml = itemAtivo.querySelector('.item-icone')?.innerHTML || '';
+    tituloPagina.innerHTML = `${iconeHtml} <strong>${texto.trim()}</strong>`;
   }
 }
