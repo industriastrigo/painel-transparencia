@@ -1,1 +1,0 @@
-Armazem Parquet. Criado pelos coletores; fora do git.

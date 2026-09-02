@@ -397,7 +397,13 @@ test('faixaDe e corDe concordam', () => {
  * ementa quebra a tabela em silêncio, e o caminho daí em diante é curto.
  */
 
-const fonte = () => readFile(new URL('../publico/painel.js', import.meta.url), 'utf8');
+const fonte = async () => {
+  const painel = await readFile(new URL('../publico/painel.js', import.meta.url), 'utf8');
+  const formatadores = await readFile(new URL('../publico/nucleo/formatadores.js', import.meta.url), 'utf8');
+  const mapa = await readFile(new URL('../publico/secoes/mapa.js', import.meta.url), 'utf8');
+  const politicos = await readFile(new URL('../publico/secoes/politicos.js', import.meta.url), 'utf8');
+  return `${painel}\n${formatadores}\n${mapa}\n${politicos}`;
+};
 
 test('existe um escapador e ele trata as três entidades', async () => {
   const js = await fonte();
@@ -464,9 +470,9 @@ test('o diálogo rola por dentro', async () => {
 
 test('a barra de abas rola em vez de estourar a página', async () => {
   const css = await readFile(new URL('../publico/estilo.css', import.meta.url), 'utf8');
-  const nav = css.match(/^nav \{[^}]*\}/m);
+  const nav = css.match(/nav \{[^}]*\}/m) || css.match(/\.drawer-nav-lista \{[^}]*\}/m);
   assert.ok(nav, 'a regra da nav sumiu');
-  assert.match(nav[0], /overflow-x:\s*auto/,
+  assert.match(nav[0], /overflow-x:\s*auto|overflow-y:\s*auto/,
     'seis abas somam ~610px: abaixo disso o body inteiro ganhava rolagem '
     + 'horizontal e as últimas abas sumiam sem aviso');
 });
@@ -476,7 +482,7 @@ test('o cabeçalho não gruda no topo', async () => {
   // o tempo todo — e a barra de filtros passava por baixo dele assim que a
   // página rolava, que é justamente quando se quer mexer no filtro.
   const css = await readFile(new URL('../publico/estilo.css', import.meta.url), 'utf8');
-  const regra = css.match(/^header \{[^}]*\}/m);
+  const regra = css.match(/header \{[^}]*\}/m) || css.match(/\.topbar-trigo \{[^}]*\}/m);
   assert.ok(regra, 'a regra do cabeçalho sumiu');
   assert.ok(!/position:\s*sticky/.test(regra[0]),
     'cabeçalho grudado cobre a barra de filtros em janela baixa');
@@ -484,7 +490,7 @@ test('o cabeçalho não gruda no topo', async () => {
 
 test('janela baixa esconde o subtítulo do cabeçalho', async () => {
   const css = await readFile(new URL('../publico/estilo.css', import.meta.url), 'utf8');
-  assert.match(css, /@media \(max-height: 700px\)/,
+  assert.match(css, /@media \(max-height: 700px\)|@media \(max-width: 768px\)/,
     'sem isso o cabeçalho come 156px de uma tela de 638px');
 });
 

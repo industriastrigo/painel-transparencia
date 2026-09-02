@@ -152,8 +152,10 @@ const RAMPA_ESCURA = [
 ];
 
 const _escuro = () => {
-  const temaRaiz = document.documentElement.getAttribute('data-tema');
-  if (temaRaiz) return temaRaiz === 'dark';
+  if (typeof document !== 'undefined' && document.documentElement) {
+    const temaRaiz = document.documentElement.getAttribute('data-tema');
+    if (temaRaiz) return temaRaiz === 'dark';
+  }
   return typeof matchMedia === 'function' && matchMedia('(prefers-color-scheme: dark)').matches;
 };
 

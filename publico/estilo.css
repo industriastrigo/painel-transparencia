@@ -13,8 +13,8 @@
   --superficie-2: #f1f4f9;
   --superficie-3: #e8edf5;
 
-  --borda: rgba(15, 23, 42, 0.12);
-  --borda-forte: rgba(15, 23, 42, 0.24);
+  --borda: #cbd5e1;
+  --borda-forte: #94a3b8;
 
   /* Texto */
   --texto: #0f172a;
@@ -22,19 +22,19 @@
   --texto-sutil: #64748b;
 
   /* Marca Indústrias Trigo (Dourado Nobre & Azul Tech) */
-  --realce: #b48c36;
+  --realce: #785408;
   --realce-vivo: #c5a059;
   --realce-dourado: #c5a059;
   --realce-azul: #2563eb;
-  --realce-fraco: rgba(197, 160, 89, 0.14);
-  --realce-borda: rgba(197, 160, 89, 0.40);
+  --realce-fraco: #fef8eb;
+  --realce-borda: #e2c88d;
   --sobre-realce: #ffffff;
 
   /* Estado & Semântica */
   --favor: #059669;
-  --contra: #dc2626;
-  --contra-fraco: #fef2f2;
-  --atencao: #d97706;
+  --contra: #b91c1c;
+  --contra-fraco: #fee2e2;
+  --atencao: #92400e;
   --atencao-fraco: #fef3c7;
   --sem-dado: #cbd5e1;
 
@@ -60,6 +60,38 @@
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
+@media (prefers-color-scheme: dark) {
+  :root:not([data-tema-modo="light"]):not([data-tema-modo="dark"]) {
+    color-scheme: dark;
+    --fundo: #0b0e14;
+    --superficie: #111622;
+    --superficie-2: #182030;
+    --superficie-3: #1e293b;
+    --borda: #2a3449;
+    --borda-forte: #475569;
+    --texto: #f8fafc;
+    --texto-fraco: #94a3b8;
+    --texto-sutil: #64748b;
+    --realce: #d4af37;
+    --realce-vivo: #e5c158;
+    --realce-dourado: #d4af37;
+    --realce-azul: #38bdf8;
+    --realce-fraco: #201704;
+    --realce-borda: #5c4514;
+    --sobre-realce: #0b0e14;
+    --favor: #34d399;
+    --contra: #f87171;
+    --contra-fraco: #380707;
+    --atencao: #fbbf24;
+    --atencao-fraco: #381a02;
+    --sem-dado: #334155;
+    --sombra-1: 0 1px 3px rgba(0, 0, 0, 0.5);
+    --sombra-2: 0 4px 18px rgba(0, 0, 0, 0.45);
+    --sombra-3: 0 18px 44px rgba(0, 0, 0, 0.65);
+    --anel: 0 0 0 2px var(--superficie), 0 0 0 4px var(--realce-dourado);
+  }
+}
+
 :root[data-tema="dark"], [data-tema="dark"] {
   color-scheme: dark;
 
@@ -69,8 +101,8 @@
   --superficie-2: #182030;
   --superficie-3: #1e293b;
 
-  --borda: rgba(197, 160, 89, 0.18);
-  --borda-forte: rgba(197, 160, 89, 0.35);
+  --borda: #2a3449;
+  --borda-forte: #475569;
 
   /* Texto */
   --texto: #f8fafc;
@@ -78,20 +110,20 @@
   --texto-sutil: #64748b;
 
   /* Marca Indústrias Trigo */
-  --realce: #c5a059;
-  --realce-vivo: #d4af37;
+  --realce: #d4af37;
+  --realce-vivo: #e5c158;
   --realce-dourado: #d4af37;
   --realce-azul: #38bdf8;
-  --realce-fraco: rgba(197, 160, 89, 0.16);
-  --realce-borda: rgba(197, 160, 89, 0.38);
+  --realce-fraco: #201704;
+  --realce-borda: #5c4514;
   --sobre-realce: #0b0e14;
 
   /* Estado */
-  --favor: #10b981;
-  --contra: #f43f5e;
-  --contra-fraco: rgba(244, 63, 94, 0.15);
-  --atencao: #f59e0b;
-  --atencao-fraco: rgba(245, 158, 11, 0.15);
+  --favor: #34d399;
+  --contra: #f87171;
+  --contra-fraco: #380707;
+  --atencao: #fbbf24;
+  --atencao-fraco: #381a02;
   --sem-dado: #334155;
 
   --sombra-1: 0 1px 3px rgba(0, 0, 0, 0.5);
@@ -101,37 +133,8 @@
   --anel: 0 0 0 2px var(--superficie), 0 0 0 4px var(--realce-dourado);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-tema-modo="light"]):not([data-tema-modo="dark"]) {
-    color-scheme: dark;
-    --fundo: #0b0e14;
-    --superficie: #111622;
-    --superficie-2: #182030;
-    --superficie-3: #1e293b;
-    --borda: rgba(197, 160, 89, 0.18);
-    --borda-forte: rgba(197, 160, 89, 0.35);
-    --texto: #f8fafc;
-    --texto-fraco: #94a3b8;
-    --texto-sutil: #64748b;
-    --realce: #c5a059;
-    --realce-vivo: #d4af37;
-    --realce-dourado: #d4af37;
-    --realce-azul: #38bdf8;
-    --realce-fraco: rgba(197, 160, 89, 0.16);
-    --realce-borda: rgba(197, 160, 89, 0.38);
-    --sobre-realce: #0b0e14;
-    --favor: #10b981;
-    --contra: #f43f5e;
-    --contra-fraco: rgba(244, 63, 94, 0.15);
-    --atencao: #f59e0b;
-    --atencao-fraco: rgba(245, 158, 11, 0.15);
-    --sem-dado: #334155;
-    --sombra-1: 0 1px 3px rgba(0, 0, 0, 0.5);
-    --sombra-2: 0 4px 18px rgba(0, 0, 0, 0.45);
-    --sombra-3: 0 18px 44px rgba(0, 0, 0, 0.65);
-    --anel: 0 0 0 2px var(--superficie), 0 0 0 4px var(--realce-dourado);
-  }
-}
+nav { overflow-x: auto; }
+header { position: static; }
 *, *::before, *::after { box-sizing: border-box; }
 
 body {

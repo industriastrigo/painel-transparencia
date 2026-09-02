@@ -1,7 +1,5 @@
 .env
-dados/bruto/
-dados/temp/
-dados/*.tmp
+dados/
 logs/
 
 __pycache__/
