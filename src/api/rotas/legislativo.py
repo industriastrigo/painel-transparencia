@@ -496,7 +496,7 @@ def proposicao_detalhe(casa: str, id_proposicao: str):
                descricao_situacao, despacho
           FROM tramitacao
          WHERE casa = ? AND id_proposicao = ?
-         ORDER BY CAST(seq_tramitacao AS INTEGER)
+         ORDER BY TRY_CAST(seq_tramitacao AS INTEGER) NULLS LAST, seq_tramitacao
     """, [casa, id_proposicao])
 
     votacoes = _consultar("""
