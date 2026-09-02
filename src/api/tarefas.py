@@ -209,9 +209,20 @@ def _rodar(tarefa: Tarefa, opcoes: orquestrador.Opcoes) -> None:
 
 
 def catalogo() -> list[dict]:
-    """O que o painel oferece para marcar."""
+    """O que o painel oferece para marcar, e como cada fonte atualiza.
+
+    Vai muito além do rótulo de propósito: "atualizar" não significa a mesma
+    coisa em duas fontes, e a tela precisa dizer isso antes do clique, não
+    depois. Ver `orquestrador.Fonte`.
+    """
     return [{
-        "fonte": f,
-        "rotulo": orquestrador.ROTULOS[f],
-        "cadencia": orquestrador.CADENCIAS[f],
-    } for f in orquestrador.ORDEM]
+        "fonte": nome,
+        "rotulo": f.rotulo,
+        "cadencia": f.cadencia,
+        "periodo": f.periodo,
+        "granularidade": f.granularidade,
+        "duracao": f.duracao,
+        "usa_ano": f.usa_ano,
+        "observacao": f.observacao,
+        "requer": f.requer,
+    } for nome, f in orquestrador.FONTES.items()]

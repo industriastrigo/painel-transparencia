@@ -284,67 +284,190 @@ def test_endpoint_saudavel_nao_gera_aviso(monkeypatch, caplog):
     assert "DEPRECIADO" not in caplog.text
 
 
-# ============ 6. Tesouro/SIC: catálogo primeiro, colunas detectadas
-def test_pergunta_ao_catalogo_em_vez_de_cravar_url(monkeypatch):
-    """A cota parlamentar já quebrou por URL fixa. Aqui o catálogo manda."""
+# ============ 6. Custos do Governo Federal: API em vez de CSV
+# Registro REAL da API, colhido pela verificação de 25/08. Os nomes que eu
+# havia suposto a partir do Swagger erraram todos.
+_REAL = {
+    "co_natureza_juridica": 2, "ds_natureza_juridica": "FUNDACAO PUBLICA",
+    "co_organizacao_n0": "000026", "ds_organizacao_n0": "PRESIDENCIA DA REPUBLICA",
+    "co_organizacao_n1": "000244", "ds_organizacao_n1": "MINISTERIO DA EDUCACAO",
+    "an_lanc": 2025, "me_lanc": 3, "va_custo_de_pessoal": 1500.5,
+}
+
+
+def test_custos_le_o_registro_real_da_api(monkeypatch):
+    """Contra o registro que a API devolveu de verdade, não contra o que eu
+    supus lendo o Swagger — que documenta os parâmetros, não a resposta."""
     from src.coletores import tesouro
 
     pedidos = []
 
     def falso(fonte, url, parametros=None, **k):
         pedidos.append((url, parametros))
-        return {"success": True, "result": {"resources": [
-            {"name": "custos_2025.csv", "format": "CSV",
-             "url": "https://exemplo/custos_2025.csv", "size": 100},
-        ]}}
+        return {"items": [_REAL], "hasMore": False}
 
     monkeypatch.setattr(tesouro.rede, "buscar", falso)
-    recursos = tesouro.catalogar("pessoal_ativo")
+    linhas, completo, _ = tesouro.coletar("pessoal_ativo", 2025)
 
-    assert pedidos[0][0].endswith("/package_show")
-    assert pedidos[0][1]["id"] == "custos-por-itens-de-custos-pessoal-ativo"
-    assert recursos[0]["url"] == "https://exemplo/custos_2025.csv"
+    assert completo
+    assert pedidos[0][0].endswith("/pessoal_ativo")
+    assert pedidos[0][1]["ano"] == 2025
+    assert linhas[0]["orgao_nome"] == "MINISTERIO DA EDUCACAO"
+    assert linhas[0]["orgao_codigo"] == "000244"
+    assert linhas[0]["valor"] == 1500.5
+    assert linhas[0]["mes"] == 3
 
 
-def test_prefere_o_arquivo_do_ano_pedido():
+def test_valor_tem_nome_diferente_em_cada_endpoint():
+    """`va_custo_de_pessoal`, `va_custo_pensionistas`, `va_custo`… Uma lista
+    de nomes envelheceria a cada recorte novo; o prefixo não."""
     from src.coletores import tesouro
-    recursos = [
-        {"nome": "custos_2023.csv", "formato": "CSV", "url": "u23"},
-        {"nome": "custos_2025.csv", "formato": "CSV", "url": "u25"},
+
+    for campo in ("va_custo_de_pessoal", "va_custo_pessoal_inativo",
+                  "va_custo_pensionistas", "va_custo_depreciacao",
+                  "va_custo_transferencias", "va_custo"):
+        assert tesouro._valor({campo: 7}) == 7, campo
+    assert tesouro._valor({"ds_organizacao_n1": "x"}) is None
+
+
+def test_endpoint_demais_usa_outro_vocabulario():
+    """O `demais` fala `co_siorg_n04..n07` em vez de `co_organizacao_n0..n6`,
+    e o ministério muda de nível: n1 nos cinco, n05 aqui."""
+    from src.coletores import tesouro
+
+    demais = {"ds_siorg_n04": "PRESIDENCIA DA REPUBLICA",
+              "ds_siorg_n05": "MINISTERIO DA GESTAO", "co_siorg_n05": "308803",
+              "an_referencia": 2025, "me_referencia": 3, "va_custo": 10.0,
+              "no_natureza_despesa_deta": "Diárias"}
+    assert tesouro._campo(demais, "orgao_nome") == "MINISTERIO DA GESTAO"
+    assert tesouro._campo(demais, "ano") == 2025
+    assert tesouro._campo(demais, "item_custo") == "Diárias"
+
+
+def test_custos_agrega_as_dimensoes_que_o_painel_nao_usa(monkeypatch):
+    """`pessoal_ativo` vem quebrado por sexo, escolaridade e faixa etária: um
+    único mês passou de 100 mil linhas e estourou o teto de páginas. O painel
+    pergunta quanto custa o ÓRGÃO — somar na leitura descarta a explosão
+    combinatória sem perder a resposta."""
+    from src.coletores import tesouro
+
+    monkeypatch.setattr(tesouro.rede, "buscar", lambda *a, **k: {"items": [
+        {**_REAL, "in_sexo": "M", "ds_faixa_etaria": "30-39",
+         "va_custo_de_pessoal": 100},
+        {**_REAL, "in_sexo": "F", "ds_faixa_etaria": "30-39",
+         "va_custo_de_pessoal": 150},
+        {**_REAL, "in_sexo": "M", "ds_faixa_etaria": "40-49",
+         "va_custo_de_pessoal": 200},
+    ], "hasMore": False})
+
+    linhas, _, _ = tesouro.coletar("pessoal_ativo", 2025)
+    assert len(linhas) == 1, "três recortes do mesmo órgão viram uma linha"
+    assert linhas[0]["valor"] == 450
+
+
+def test_custos_pagina_ate_o_fim(monkeypatch):
+    """250 itens por página: parar na primeira devolveria um total com cara
+    de completo."""
+    from src.coletores import tesouro
+
+    paginas = [
+        {"items": [{**_REAL, "ds_organizacao_n1": "A", "va_custo": 1}],
+         "hasMore": True},
+        {"items": [{**_REAL, "ds_organizacao_n1": "B", "va_custo": 2}],
+         "hasMore": False},
     ]
-    assert tesouro._escolher_recurso(recursos, 2025)["url"] == "u25"
+    monkeypatch.setattr(tesouro.rede, "buscar",
+                        lambda *a, **k: paginas.pop(0))
+    assert len(tesouro.coletar("demais_custos", 2025)[0]) == 2
 
 
-def test_ignora_recurso_que_nao_e_tabela():
+def test_diagnostico_pede_uma_pagina_so(monkeypatch):
+    """`descobrir()` quer os NOMES dos campos. Paginar o recorte inteiro
+    custou 232 páginas e quatro minutos de rede para responder o que a
+    primeira linha responde."""
     from src.coletores import tesouro
-    recursos = [{"nome": "manual.pdf", "formato": "PDF", "url": "u"}]
-    assert tesouro._escolher_recurso(recursos, 2025) is None
+
+    chamadas = []
+
+    def falso(fonte, url, parametros=None, **k):
+        chamadas.append(parametros)
+        return {"items": [_REAL], "hasMore": True}   # sempre diz que há mais
+
+    monkeypatch.setattr(tesouro.rede, "buscar", falso)
+    tesouro.descobrir(2025)
+
+    # Seis recortes, uma chamada cada — e nenhuma com offset.
+    assert len(chamadas) == len(tesouro.CONJUNTOS), chamadas
+    assert all("offset" not in (c or {}) for c in chamadas)
 
 
-def test_reconhece_colunas_por_padrao_de_nome():
+def test_falha_no_meio_da_paginacao_nao_zera_o_que_ja_veio(monkeypatch, caplog):
+    """A conexão caiu na página 232 e as 231 anteriores foram perdidas —
+    quatro minutos de rede jogados fora. O que chegou volta marcado como
+    parcial, e o aviso diz que o total é um piso."""
     from src.coletores import tesouro
-    mapa = tesouro._mapear_colunas(
-        ["ANO", "MES", "NOME_ORGAO", "COD_UG", "ITEM_CUSTO", "VALOR_CUSTO"])
-    assert mapa["ano"] == "ANO"
-    assert mapa["orgao_nome"] == "NOME_ORGAO"
-    assert mapa["valor"] == "VALOR_CUSTO"
+
+    estado = {"n": 0}
+
+    def falso(fonte, url, parametros=None, **k):
+        estado["n"] += 1
+        if estado["n"] > 2:
+            raise RuntimeError("Remote end closed connection without response")
+        return {"items": [{**_REAL, "va_custo": estado["n"]}], "hasMore": True}
+
+    monkeypatch.setattr(tesouro.rede, "buscar", falso)
+    with caplog.at_level("WARNING"):
+        linhas, completo, _ = tesouro.coletar("demais_custos", 2025)
+
+    assert not completo, "parcial precisa ser declarado"
+    assert linhas, "o que já tinha vindo não pode ser descartado"
+    assert "PARCIAIS" in caplog.text or "PARCIAL" in caplog.text
 
 
-def test_coluna_nao_reconhecida_vira_erro_com_a_lista_real(monkeypatch, caplog):
-    """Em vez de gravar coluna vazia, diz o que o arquivo realmente tem —
-    foi a falta disso que deixou a Situação em branco por uma semana."""
+def test_primeira_pagina_que_falha_ainda_levanta(monkeypatch):
+    """Sem nenhuma linha recebida, engolir o erro seria reportar 'coletei
+    nada com sucesso'."""
+    import pytest as _pytest
+
     from src.coletores import tesouro
-    import pandas as pd
 
-    monkeypatch.setattr(tesouro, "catalogar", lambda c: [
-        {"nome": "x.csv", "formato": "CSV", "url": "u"}])
-    monkeypatch.setattr(tesouro, "_ler_tabela",
-                        lambda r: pd.DataFrame([{"foo": "1", "bar": "2"}]))
+    def falso(*a, **k):
+        raise RuntimeError("DNS falhou")
 
-    with caplog.at_level("ERROR"):
-        assert tesouro.coletar_custos("pessoal_ativo", 2025) == 0
-    assert "não reconheci as colunas" in caplog.text
-    assert "foo" in caplog.text and "bar" in caplog.text
+    monkeypatch.setattr(tesouro.rede, "buscar", falso)
+    with _pytest.raises(RuntimeError):
+        tesouro.coletar("depreciacao", 2025)
+
+
+def test_custos_sem_valor_nao_vira_linha(monkeypatch):
+    """Linha sem valor não é custo zero — é linha que não diz nada."""
+    from src.coletores import tesouro
+    monkeypatch.setattr(tesouro.rede, "buscar", lambda *a, **k: {
+        "items": [{"ds_organizacao_n1": "A"},
+                  {"ds_organizacao_n1": "B", "va_custo_depreciacao": 10}],
+        "hasMore": False})
+    linhas, _, _ = tesouro.coletar("depreciacao", 2025)
+    assert [l["orgao_nome"] for l in linhas] == ["B"]
+
+
+def test_custos_avisa_quando_a_resposta_nao_tem_lista(monkeypatch, caplog):
+    """Resposta inesperada precisa mostrar as chaves recebidas: sem isso, a
+    próxima execução repete o mesmo mistério — foi o que aconteceu com o
+    envelope `registros` das transferências."""
+    from src.coletores import tesouro
+    monkeypatch.setattr(tesouro.rede, "buscar",
+                        lambda *a, **k: {"status": "erro", "mensagem": "x"})
+    with caplog.at_level("WARNING"):
+        assert tesouro.coletar("pensionista", 2025)[0] == []
+    assert "sem lista" in caplog.text
+    assert "status" in caplog.text
+
+
+def test_custos_respeita_o_limite_publicado():
+    """A documentação diz 1 requisição por segundo, e o piso do projeto não
+    deixa ninguém pedir menos (armadilha 2r)."""
+    from src.nucleo import config
+    assert config.INTERVALO_REQUISICOES["tesouro"] >= 1.0
 
 
 # ============ 7. subsídio: valor sem norma é número indefensável
@@ -549,3 +672,245 @@ def test_cota_avisa_quando_falta_coluna_de_parcela(monkeypatch, caplog):
 
     assert "numParcela" in caplog.text
     assert "Colunas disponíveis" in caplog.text
+
+
+def test_toda_coluna_gravada_esta_declarada_no_contrato():
+    """`rotulo_conta` e `uf` eram gravados pelo coletor do SICONFI e não
+    estavam no contrato de colunas. Com a tabela cheia ninguém notava — o
+    Parquet trazia as colunas. Numa instalação NOVA, a view nasce do contrato
+    e três views de despesa quebravam com
+
+        Binder Error: Referenced column "rotulo_conta" not found
+
+    Este teste cria o armazém vazio e monta as views: é o estado de quem
+    acabou de clonar o projeto.
+    """
+    from src.api import vistas  # noqa: PLC0415
+    from src.nucleo import armazem  # noqa: PLC0415
+
+    armazem.remover("financas_ente")
+    con = vistas.conexao_leitura()
+
+    # Não basta "criou": uma view pode existir e estourar ao ser lida.
+    for view in ("vw_despesa_categoria", "vw_despesa_natureza",
+                 "vw_financas_subfuncao", "vw_despesa_total",
+                 "vw_receita_total", "vw_conferencia_despesa"):
+        con.execute(f"SELECT * FROM {view} LIMIT 1").fetchall()
+
+
+def test_contrato_de_financas_cobre_o_que_o_coletor_grava():
+    """Guarda de manutenção: uma coluna nova no coletor sem entrada no
+    contrato repete o defeito acima, e só aparece para quem instala do zero."""
+    from src.nucleo.esquema import _COLUNAS  # noqa: PLC0415
+
+    declaradas = {nome for nome, _ in _COLUNAS["financas_ente"]}
+    gravadas = {"cod_ibge", "ano", "periodo", "cod_conta", "cod_funcao",
+                "funcao", "rotulo_conta", "estagio", "valor", "esfera", "uf",
+                "data_referencia"}
+    assert not (gravadas - declaradas), (
+        f"o coletor grava colunas fora do contrato: {gravadas - declaradas}")
+
+
+# ---------- Custos: paginação medida contra a API real (29/08/2026)
+# `scripts/medir_paginacao_custos.py` mediu no endpoint de verdade:
+#   limit=250 → 208 linhas/s | limit=10000 → 2.857 linhas/s | totalResults: null
+# Estes testes travam as três consequências disso no código.
+
+def test_pede_pagina_grande_porque_o_servidor_honra(monkeypatch):
+    """250 era o PADRÃO do servidor, não um limite. Pedir 10 mil é o que
+    separa horas de minutos: um ano de pessoal_ativo passa de um milhão de
+    linhas brutas."""
+    from src.coletores import tesouro
+
+    pedidos = []
+
+    def falso(fonte, url, parametros=None, **k):
+        pedidos.append(dict(parametros or {}))
+        return {"items": [_REAL], "hasMore": False, "limit": parametros["limit"]}
+
+    monkeypatch.setattr(tesouro.rede, "buscar", falso)
+    tesouro.coletar("demais_custos", 2025)
+
+    assert pedidos[0]["limit"] == tesouro.PAGINA == 10_000
+    assert "offset" not in pedidos[0], "a primeira página não pede offset"
+
+
+def test_adota_o_limite_que_o_servidor_aplicou(monkeypatch, caplog):
+    """Se o servidor devolver menos do que foi pedido, andar `limit` posições
+    pularia registros. Quem manda é o que ele devolveu."""
+    from src.coletores import tesouro
+
+    paginas = []
+
+    def falso(fonte, url, parametros=None, **k):
+        paginas.append(dict(parametros or {}))
+        if len(paginas) == 1:
+            return {"items": [_REAL] * 2, "hasMore": True, "limit": 2}
+        return {"items": [_REAL], "hasMore": False, "limit": 2}
+
+    monkeypatch.setattr(tesouro.rede, "buscar", falso)
+    with caplog.at_level("INFO"):
+        _, completo, alcancado = tesouro.coletar("demais_custos", 2025)
+
+    assert completo and alcancado == 3
+    assert paginas[1]["offset"] == 2, "o offset anda pelo que veio, não pelo pedido"
+    assert "o servidor aplicou" in caplog.text
+
+
+def test_pagina_vazia_com_hasmore_nao_vira_laco_infinito(monkeypatch, caplog):
+    """Página vazia com hasMore verdadeiro girava em falso até bater o teto:
+    1.500 requisições para não trazer nada."""
+    from src.coletores import tesouro
+
+    def falso(fonte, url, parametros=None, **k):
+        return {"items": [], "hasMore": True, "limit": 10_000}
+
+    monkeypatch.setattr(tesouro.rede, "buscar", falso)
+    with caplog.at_level("WARNING"):
+        linhas, completo, _ = tesouro.coletar("demais_custos", 2025)
+
+    assert linhas == [] and not completo
+    assert "girar em falso" in caplog.text
+
+
+def test_retomada_continua_do_offset_e_soma_ao_que_ja_havia(monkeypatch):
+    """O defeito que fez 24 h de carga não terminarem nada: toda execução
+    recomeçava do offset zero, rebaixava o mesmo prefixo e parava no mesmo
+    lugar. Agora a segunda execução continua de onde a primeira parou, e o
+    valor gravado é a soma dos dois trechos — não o segundo sozinho."""
+    from src.nucleo import armazem  # noqa: PLC0415
+    from src.coletores import tesouro
+
+    armazem.remover("custo_orgao")
+    armazem.mesclar("custo_orgao", [{
+        "conjunto": "demais_custos", "orgao_nome": "MINISTERIO DA EDUCACAO",
+        # `item_custo` sai de ds_natureza_juridica no registro real: a
+        # semente precisa cair na MESMA chave, senão vira linha nova.
+        "orgao_codigo": "000244", "item_custo": "FUNDACAO PUBLICA",
+        "ano": 2025, "mes": 3, "valor": 100.0,
+        "data_referencia": "2025-03-01"}], "teste")
+
+    pedidos = []
+
+    def falso(fonte, url, parametros=None, **k):
+        pedidos.append(dict(parametros or {}))
+        return {"items": [_REAL], "hasMore": False, "limit": 10_000}
+
+    monkeypatch.setattr(tesouro.rede, "buscar", falso)
+    linhas, completo, _ = tesouro.coletar("demais_custos", 2025,
+                                          offset=250, retomar=True)
+
+    assert pedidos[0]["offset"] == 250, "tem de continuar de onde parou"
+    assert completo
+    assert len(linhas) == 1
+    assert linhas[0]["valor"] == 1600.5, (   # 100 já gravado + 1500,5 do trecho novo
+        "o trecho novo soma ao que já estava gravado; sem isso a tela passaria "
+        "a mostrar MENOS do que mostrava antes da retomada")
+
+
+def test_marca_guarda_a_posicao_quando_fica_pela_metade(monkeypatch):
+    """A marca precisa dizer ONDE parou. Guardando só o ano, a execução
+    seguinte não tem como retomar e recomeça do zero."""
+    from src.coletores import tesouro
+    from src.nucleo import controle  # noqa: PLC0415
+
+    estado = {"n": 0}
+
+    def falso(fonte, url, parametros=None, **k):
+        estado["n"] += 1
+        if estado["n"] > 1:
+            raise RuntimeError("Remote end closed connection")
+        return {"items": [_REAL] * 3, "hasMore": True, "limit": 10_000}
+
+    monkeypatch.setattr(tesouro.rede, "buscar", falso)
+    tesouro.executar(anos=[2025], conjuntos=["demais_custos"], refazer=True)
+
+    assert controle.ler_marca("tesouro", "demais_custos_2025") == "offset=3"
+    assert tesouro._retomada("demais_custos", 2025) == 3
+
+
+def test_marca_antiga_nao_e_confundida_com_posicao():
+    """Marca de versão anterior guardava o ANO. Lê-la como offset pularia o
+    começo do recorte — dado perdido em silêncio."""
+    from src.coletores import tesouro
+    from src.nucleo import controle  # noqa: PLC0415
+
+    controle.gravar_marca("tesouro", "pensionista_2019", "2019", 10,
+                          situacao="parcial")
+    assert tesouro._retomada("pensionista", 2019) == 0
+
+
+# ---------- Câmara: os nomes de coluna do arquivo de votações (medidos 30/08)
+def test_votacao_le_a_proposicao_do_campo_que_existe(monkeypatch):
+    """`scripts/medir_votacoes_camara.py` mostrou que `votacoes-ANO.csv` NÃO
+    tem `ultimaAberturaVotacao_idProposicao` nem `idProposicaoObjeto`. Tem
+    `ultimaApresentacaoProposicao_idProposicao` — parecido o bastante para
+    ninguém desconfiar — e `uri`, não `uriVotacao`. Resultado: 21.128 votações
+    com proposição e URL vazias."""
+    import pandas as pd  # noqa: PLC0415
+
+    from src.coletores import camara  # noqa: PLC0415
+
+    linha = {
+        "id": "2585316-23", "uri": "https://dadosabertos.camara.leg.br/x",
+        "data": "2026-02-02", "dataHoraRegistro": "2026-02-02T14:38:11",
+        "siglaOrgao": "PLEN", "aprovacao": "1", "votosSim": "300",
+        "votosNao": "100", "votosOutros": "2", "descricao": "Aprovado",
+        "ultimaApresentacaoProposicao_idProposicao": "2644241",
+    }
+    gravadas = []
+    monkeypatch.setattr(camara, "_csv", lambda url, **k: pd.DataFrame([linha]))
+    monkeypatch.setattr(camara.armazem, "mesclar",
+                        lambda t, linhas, fonte: gravadas.extend(linhas))
+    monkeypatch.setattr(camara.controle, "gravar_marca",
+                        lambda *a, **k: None)
+
+    camara.coletar_votacoes(2026)
+
+    assert gravadas[0]["id_proposicao"] == "2644241"
+    assert gravadas[0]["url"] == "https://dadosabertos.camara.leg.br/x"
+
+
+def test_proposicao_zero_e_ausencia_nao_um_id():
+    """Votação de comissão vem com `0` no lugar da proposição. Guardar o
+    literal criaria uma proposição fantasma que junção nenhuma encontra."""
+    from src.coletores import camara  # noqa: PLC0415
+
+    assert camara._proposicao_ou_nada("0") is None
+    assert camara._proposicao_ou_nada("") is None
+    assert camara._proposicao_ou_nada(None) is None
+    assert camara._proposicao_ou_nada("2644241") == "2644241"
+
+
+def test_relacao_votacao_proposicao_e_n_para_n(monkeypatch):
+    """Uma votação pode decidir sobre várias proposições — é por isso que a
+    Câmara publica a relação num arquivo separado, e não como coluna."""
+    import pandas as pd  # noqa: PLC0415
+
+    from src.coletores import camara  # noqa: PLC0415
+
+    df = pd.DataFrame([
+        {"idVotacao": "2555417-29", "data": "2026-02-02",
+         "descricao": "Aprovada a MP", "proposicao_id": "2592069",
+         "proposicao__titulo": "PAR 25/2025", "proposicao_siglaTipo": "PAR",
+         "proposicao_numero": "25", "proposicao_ano": "2025"},
+        {"idVotacao": "2555417-29", "data": "2026-02-02",
+         "descricao": "Aprovada a MP", "proposicao_id": "2600556",
+         "proposicao_titulo": "RDF 1", "proposicao_siglaTipo": "RDF",
+         "proposicao_numero": "1", "proposicao_ano": ""},
+        {"idVotacao": "999-1", "data": "2026-02-02", "descricao": "x",
+         "proposicao_id": "0"},
+    ])
+    gravadas = []
+    monkeypatch.setattr(camara, "_csv", lambda url, **k: df)
+    monkeypatch.setattr(camara.armazem, "mesclar",
+                        lambda t, linhas, fonte: gravadas.extend(linhas))
+    monkeypatch.setattr(camara.controle, "gravar_marca", lambda *a, **k: None)
+
+    camara.coletar_votacoes_proposicoes(2026)
+
+    assert len(gravadas) == 2, "a linha com proposição 0 não vira ligação"
+    assert {g["id_proposicao"] for g in gravadas} == {"2592069", "2600556"}
+    # O título tem dois sublinhados num arquivo e um no outro.
+    assert gravadas[0]["titulo"] == "PAR 25/2025"
+    assert gravadas[1]["titulo"] == "RDF 1"

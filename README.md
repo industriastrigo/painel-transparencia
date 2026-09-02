@@ -13,7 +13,9 @@ Estado precisa hoje de tempo, prática e paciência que ninguém tem.
 Este projeto junta essas fontes num lugar só e responde em linguagem direta:
 
 - **Quem governa** cada município, estado e o país
-- **Quanto cada ente arrecada e gasta**, e em quê
+- **Quanto cada ente arrecada e gasta**, e em quê — inclusive quanto vai para
+  saúde e para educação
+- **Se a folha de pagamento cabe no limite da Lei de Responsabilidade Fiscal**
 - **Quem votou a favor e contra**, nominalmente, em cada projeto de lei
 - **Quanto custa cada função do Estado** — e a diferença entre o salário de um
   cargo e o que a função realmente consome dos cofres
@@ -69,7 +71,7 @@ python -m src.scripts.painel
 
 | Aba | Conteúdo |
 |---|---|
-| **Mapa** | Brasil → estado → município, colorido por despesa, arrecadação, transferências recebidas, dependência de transferências ou população. Estados levam a sigla, municípios o nome; passar o mouse abre a dica com os números do ente. Roda do mouse aproxima, arrastar move, **Ampliar** joga o mapa na tela inteira. Clique num estado e o mapa troca para os municípios dele; clique num município e abre a ficha. |
+| **Mapa** | Brasil → estado → município, colorido por despesa, arrecadação, transferências recebidas, dependência de transferências, **gasto em saúde ou educação**, **folha de pessoal sobre o limite da LRF**, dívida ou população. Estados levam a sigla, municípios o nome; passar o mouse abre a dica com os números do ente. Roda do mouse aproxima, arrastar move, **Ampliar** joga o mapa na tela inteira. Clique num estado e o mapa troca para os municípios dele; clique num município e abre a ficha. |
 | **Políticos** | Quantos existem e quem são, do presidente ao vereador, por UF, cargo e partido. |
 | **Projetos de lei** | Proposição, autor, ementa, todas as etapas de tramitação e, em cada votação, quem votou a favor e contra — nominalmente. Filtros por situação, tipo, texto e período. |
 | **Fontes** | Quando cada fonte foi lida pela última vez, quantas linhas trouxe e o que falhou. |
@@ -86,7 +88,11 @@ Todas as fontes são oficiais e abertas:
 |---|---|
 | Geografia, população e PIB | IBGE — Localidades, Malhas v3 e Agregados/SIDRA |
 | Despesa e arrecadação de estados e municípios | SICONFI — Tesouro Nacional (DCA, anexos I-D e I-C) |
-| Custo apurado do governo federal | Tesouro Transparente — SIC |
+| Despesa por função — saúde, educação, segurança | SICONFI — RREO Anexo 02 |
+| Pessoal, dívida e limites da LRF | SICONFI — RGF, anexos 01 e 02 |
+| Repasses da União a estados e municípios | Tesouro — Transferências Constitucionais (FPM, FPE, FUNDEB, royalties) |
+| Operações de crédito de estados e municípios | Tesouro — SADIPEM |
+| Custo apurado do governo federal | Tesouro — API de Custos (pessoal, pensões, depreciação) |
 | Deputados, projetos, votos e cota | Câmara dos Deputados — dados abertos |
 | Senadores e votações | Senado Federal — dados abertos |
 | Eleitos, do presidente ao vereador | TSE — dados abertos |
@@ -151,15 +157,48 @@ Pela linha de comando:
 python -m src.scripts.coletar --situacao          # o que já foi lido, e quando
 python -m src.scripts.coletar camara senado       # diária
 python -m src.scripts.coletar siconfi --ano 2024  # 27 UFs, ~1 min
+python -m src.scripts.coletar siconfi_funcao      # saúde e educação (RREO)
+python -m src.scripts.coletar siconfi_rgf         # pessoal e dívida (RGF)
 python -m src.scripts.coletar ibge                # anual
 python -m src.scripts.coletar tse --anos 2022 2024  # a cada eleição
 python -m src.scripts.coletar --pendencias        # cidades que não casaram
+python -m src.scripts.coletar --explicar-cinza 2024  # por que o ente está cinza
 
 # 5.570 municípios: 15 a 25 min na primeira vez, retomável a qualquer momento
 python -m src.scripts.coletar siconfi --nivel municipio --ano 2024
 ```
 
 Cadências diferentes, jobs diferentes: não rode tudo no mesmo agendamento.
+
+---
+
+## O arquivo bruto — a resposta como ela veio
+
+Cada coletor lê da resposta da API só as colunas que o painel usa hoje. O resto
+é descartado na hora, e isso tem um custo que só aparece meses depois: se a
+pergunta de amanhã precisar de um campo que não estava na lista, a única saída
+é coletar tudo de novo. E "tudo de novo" aqui são **horas** — as fontes limitam
+a uma requisição por segundo.
+
+Com o arquivo bruto ligado, cada resposta é gravada **inteira**, antes de
+qualquer contrato de colunas:
+
+```bash
+python -m src.scripts.carga --tudo --bruto     # a carga histórica guarda tudo
+python -m src.scripts.coletar siconfi --bruto  # uma fonte só
+
+python -m src.scripts.bruto                    # o que existe guardado
+python -m src.scripts.bruto --campos siconfi rreo   # TODOS os campos da fonte
+python -m src.scripts.bruto --sql "SELECT ..."      # qualquer pergunta
+python -m src.scripts.bruto --reprocessar siconfi   # recoletar sem recoletar
+```
+
+`--reprocessar` é o que fecha o ciclo: roda o coletor de novo lendo do
+**disco** em vez da rede. Um campo que passou a ser lido hoje entra no acervo a
+partir da resposta guardada ontem, sem uma requisição sequer.
+
+Custa disco (alguns GB), não custa tempo de coleta. Pela tela:
+`CARGA HISTORICA.bat` pergunta, e `CONSULTAR BRUTO.bat` consulta.
 
 ---
 
@@ -180,8 +219,8 @@ recusa o commit se isso for tentado.
 ## Testes
 
 ```bash
-python -m pytest          # 216 testes
-node --test testes/teste_mapa.mjs   # 14 testes
+python -m pytest          # 360 testes
+node --test testes/teste_mapa.mjs   # 38 testes
 ```
 
 ---

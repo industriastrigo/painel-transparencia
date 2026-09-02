@@ -8,7 +8,7 @@ Fica em dados/_ctl/ingestao.parquet e responde duas perguntas:
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 import pandas as pd
@@ -52,7 +52,7 @@ def gravar_marca(
             "linhas": int(linhas),
             "situacao": situacao,
             "detalhe": detalhe[:500],
-            "lido_em": datetime.utcnow(),
+            "lido_em": datetime.now(timezone.utc),
         }],
         fonte="controle",
     )
@@ -69,7 +69,7 @@ def registrar_entes(fonte: str, recurso: str, ano: int,
     """
     if not resultados:
         return
-    momento = datetime.utcnow()
+    momento = datetime.now(timezone.utc)
     armazem.mesclar(
         "coleta_ente",
         [{
@@ -151,3 +151,43 @@ def situacao() -> pd.DataFrame:
     return df.sort_values("lido_em", ascending=False)[
         ["fonte", "recurso", "marca", "linhas", "situacao", "lido_em"]
     ]
+
+
+def concluido(fonte: str, recurso: str) -> bool:
+    """Este recorte já foi coletado com sucesso?
+
+    Serve para carga histórica retomável: numa varredura de horas, o que
+    importa não é velocidade — é que interromper (ou a rede cair, ou a
+    máquina reiniciar) não custe o que já entrou.
+
+    Só `ok` é terminal. `sem_dado`, `parcial` e `erro` são retentados de
+    propósito:
+
+    - `sem_dado` pode virar dado quando o exercício for publicado;
+    - `parcial` é, por definição, incompleto;
+    - `erro` é o caso óbvio.
+    """
+    df = armazem.ler("ingestao")
+    if df.empty:
+        return False
+    linha = df[(df["fonte"] == fonte) & (df["recurso"] == recurso)]
+    if linha.empty:
+        return False
+    return str(linha.iloc[0].get("situacao", "")) == "ok"
+
+
+def recortes_pendentes(fonte: str, recursos: list[str]) -> list[str]:
+    """Dos recortes pedidos, os que ainda não foram concluídos.
+
+    Uma leitura só do controle para a lista inteira — perguntar um por um
+    numa carga de dez anos abriria o Parquet centenas de vezes.
+    """
+    df = armazem.ler("ingestao")
+    if df.empty:
+        return list(recursos)
+
+    feitos = set(
+        df[(df["fonte"] == fonte) & (df["situacao"] == "ok")]["recurso"]
+        .astype(str).tolist()
+    )
+    return [r for r in recursos if r not in feitos]

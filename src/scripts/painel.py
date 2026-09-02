@@ -62,6 +62,42 @@ def escolher_porta(host: str, preferida: int) -> int:
     return porta
 
 
+def iniciar_ouvinte_refresh():
+    """Ouvinte de teclado para o terminal Windows (ABRIR PAINEL.bat).
+
+    Permite que o usuário pressione Ctrl+T (ou digite 'r' / 't') dentro da janela
+    do prompt para forçar um refresh instantâneo das views analíticas do DuckDB.
+    """
+    import time
+    try:
+        import msvcrt
+    except ImportError:
+        return
+
+    def loop():
+        while True:
+            try:
+                if msvcrt.kbhit():
+                    ch = msvcrt.getch()
+                    # Ctrl+T (\x14), 't', 'T', 'r', 'R'
+                    if ch in (b"\x14", b"t", b"T", b"r", b"R"):
+                        print("\n" + "=" * 52)
+                        print("  [REFRESH] Recarregando views analíticas do DuckDB...")
+                        print("=" * 52)
+                        try:
+                            from ..api.db import marcar_dados_alterados, recarregar_views
+                            marcar_dados_alterados()
+                            views = recarregar_views()
+                            print(f"  ✓ {len(views)} views analíticas recarregadas com sucesso!\n")
+                        except Exception as erro:
+                            print(f"  ⚠️ Erro ao recarregar views: {erro}\n")
+                time.sleep(0.1)
+            except Exception:
+                break
+
+    threading.Thread(target=loop, daemon=True, name="refresh-teclado").start()
+
+
 def principal(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description="Sobe o Painel da Transparência")
     p.add_argument("--porta", type=int, default=config.API_PORTA)
@@ -74,17 +110,21 @@ def principal(argv: list[str] | None = None) -> int:
 
     print()
     print("=" * 52)
-    print(f"  PAINEL DA TRANSPARENCIA  →  {endereco}")
+    print(f"  PAINEL DA TRANSPARENCIA  ->  {endereco}")
     print("=" * 52)
+    print("  [Atalho] Pressione Ctrl+T ou 'r' para dar refresh nos dados")
     print("  Feche esta janela (ou Ctrl+C) para encerrar.")
+    print("=" * 52)
     print()
+
+    iniciar_ouvinte_refresh()
 
     if not args.sem_navegador:
         threading.Timer(1.5, lambda: webbrowser.open(endereco)).start()
 
     try:
         uvicorn.run("src.api.servidor:app", host=args.host, port=porta,
-                    log_level="info")
+                    reload=True, log_level="info")
     except OSError as erro:
         log.error("não foi possível subir em %s: %s", endereco, erro)
         print("\nO Windows recusou essa porta. Tente com uma porta explícita:")

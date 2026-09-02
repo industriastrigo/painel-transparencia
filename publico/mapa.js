@@ -96,14 +96,14 @@ export function desenharGeoJson(geojson, { largura, altura, margem = 8 }) {
     // O rótulo vai no maior anel, não no primeiro: em MultiPolygon o primeiro
     // pode ser uma ilha. Escrever "SP" sobre Ilhabela seria o resultado.
     let maior = { centro: [0, 0], area: -1 };
-    let caixa = 0;
+    let caixa = 0, largura = 0;
     for (const anel of ajustados) {
       const c = centroideDeAnel(anel);
       if (c.area > maior.area) {
         maior = c;
         const xs = anel.map((p) => p[0]), ys = anel.map((p) => p[1]);
-        caixa = Math.min(Math.max(...xs) - Math.min(...xs),
-                         Math.max(...ys) - Math.min(...ys));
+        largura = Math.max(...xs) - Math.min(...xs);
+        caixa = Math.min(largura, Math.max(...ys) - Math.min(...ys));
       }
     }
 
@@ -116,19 +116,88 @@ export function desenharGeoJson(geojson, { largura, altura, margem = 8 }) {
         .map((anel) => 'M' + anel.map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join('L') + 'Z')
         .join(''),
       centro: maior.centro,
-      // Menor lado da caixa do maior anel, em px do viewBox. É o que decide se
-      // cabe rótulo: 5.570 nomes de município sobrepostos não são informação.
+      // Caixa do maior anel, em px do viewBox. `caixa` é o menor lado (o ente
+      // é pequeno demais para qualquer texto?) e `largura` é o lado horizontal
+      // (o NOME cabe?). São perguntas diferentes: um município achatado e
+      // comprido reprova na primeira e passa na segunda.
       caixa,
+      largura,
     };
   });
 }
 
 /* ------------------------------------------------------------------ cores */
 
-/** Rampa sequencial de matiz única (verde-azulado), clara → escura. */
-export const RAMPA = [
-  '#e4efeb', '#c2ded6', '#9bcabd', '#72b3a2', '#4b9884', '#2b7a67', '#175a4c',
+/** Rampa sequencial de matiz única (verde-azulado).
+ *
+ *  DUAS rampas, uma por tema, e não uma só. A versão anterior era constante,
+ *  e no tema escuro isso produzia dois defeitos ao mesmo tempo:
+ *
+ *  - o rótulo (`--texto`, quase branco) caía sobre a primeira faixa, quase
+ *    branca também: **1,01:1**, ilegível, salvo apenas pelo halo;
+ *  - `--sem-dado` escurecia com o tema enquanto a rampa continuava clara,
+ *    então o cinza de "sem dado" ficava MAIS ESCURO que qualquer valor. O
+ *    olho lia ausência como o extremo da escala, enquanto o rodapé dizia
+ *    "cinza = sem dado coletado". Num painel de transparência, é o pior tipo
+ *    de erro: o mapa afirmando o contrário do que a legenda promete.
+ *
+ *  No escuro a rampa vai de escuro para claro — a mesma leitura ("mais tinta
+ *  = mais valor") invertida junto com o papel.
+ */
+const RAMPA_CLARA = [
+  '#fbf6ea', '#f5e4bc', '#ebcd88', '#dda84e', '#c5a059', '#997a35', '#634e1d',
 ];
+const RAMPA_ESCURA = [
+  '#201a11', '#3d301c', '#614d28', '#8a6e37', '#b89347', '#d4af37', '#f4da8a',
+];
+
+const _escuro = () => {
+  const temaRaiz = document.documentElement.getAttribute('data-tema');
+  if (temaRaiz) return temaRaiz === 'dark';
+  return typeof matchMedia === 'function' && matchMedia('(prefers-color-scheme: dark)').matches;
+};
+
+/** A rampa do tema em vigor. É `let` + getter para o painel poder redesenhar
+ *  quando o usuário troca o tema do sistema com a página aberta. */
+export let RAMPA = _escuro() ? RAMPA_ESCURA : RAMPA_CLARA;
+
+const TINTA_ESCURA = '#1c1407';
+const TINTA_CLARA = '#fcf8ee';
+
+/** Luminância relativa (WCAG). */
+function luminancia(hex) {
+  const h = String(hex).replace('#', '');
+  if (h.length !== 6) return 1;
+  const canais = [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16) / 255)
+    .map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
+  return 0.2126 * canais[0] + 0.7152 * canais[1] + 0.0722 * canais[2];
+}
+
+/** A tinta e o halo do rótulo PARA A COR EM QUE ELE CAI.
+ *
+ *  Uma tinta só para a rampa inteira é impossível: sete faixas que vão de
+ *  quase branco a quase preto não têm uma cor de texto que sirva às duas
+ *  pontas. Com uma tinta fixa, o pior caso ficava em **1,7:1**.
+ *
+ *  Escolhendo por faixa — escura sobre as faixas claras, clara sobre as
+ *  escuras — o PIOR caso da rampa passa a **4,2:1**. O halo deixa de ser a
+ *  única coisa segurando a legibilidade e volta a ser o que devia: reforço.
+ *
+ *  O limiar 0,19 não é chute: é o ponto em que as duas tintas empatam nas
+ *  duas rampas. Ver `testes/teste_mapa.mjs`.
+ */
+export function tintaSobre(cor) {
+  const claro = luminancia(cor) >= 0.19;
+  return claro
+    ? { tinta: TINTA_ESCURA, halo: TINTA_CLARA }
+    : { tinta: TINTA_CLARA, halo: TINTA_ESCURA };
+}
+
+/** Reavalia a rampa. Chamada quando o sistema troca de tema. */
+export function reavaliarTema() {
+  RAMPA = _escuro() ? RAMPA_ESCURA : RAMPA_CLARA;
+  return RAMPA;
+}
 
 /** Quebras por quantil: resiste a outliers, que é a regra em dado municipal. */
 export function calcularQuebras(valores, faixas = RAMPA.length) {
@@ -145,7 +214,13 @@ export function calcularQuebras(valores, faixas = RAMPA.length) {
 
 export function corDe(valor, quebras, semDado = 'var(--sem-dado)') {
   if (!Number.isFinite(valor) || quebras.length === 0) return semDado;
+  return RAMPA[faixaDe(valor, quebras)];
+}
+
+/** O índice da faixa em que este valor cai. Separado de `corDe` porque o
+ *  rótulo precisa saber SOBRE QUE COR vai ser escrito. */
+export function faixaDe(valor, quebras) {
   let i = 0;
   while (i < quebras.length && valor > quebras[i]) i += 1;
-  return RAMPA[i];
+  return i;
 }

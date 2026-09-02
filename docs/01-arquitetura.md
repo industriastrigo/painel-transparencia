@@ -13,6 +13,7 @@
 │ fato/  Hive: ano=/mes=/esfera=                             │
 │ _ctl/  marca-d'água por fonte                              │
 │ malhas/ GeoJSON do IBGE                                    │
+│ bruto/ a resposta INTEIRA, sem contrato (opcional)         │
 └───────────────────────────┬───────────────────────────────┘
                             │ views DuckDB
 ┌─ api/ ─────────────────────▼──────────────────────────────┐
@@ -48,6 +49,45 @@ Postgres entraria se houvesse contas de usuário e escrita concorrente. Não há
 **A consequência que define tudo:** Parquet não faz UPDATE. Atualizar é
 reescrever a partição inteira — logo, o particionamento não é só performance,
 é a unidade de transação. Ver `02-modelo-de-dados.md`.
+
+## Decisão 2b — guardar a resposta inteira, ao lado do acervo típado
+
+O `mesclar()` projeta a resposta num contrato de colunas declarado em
+`esquema.py`. Isso dá tipo, chave, partição e idempotência — e descarta, no
+ato, todo campo que o contrato não menciona.
+
+Na maior parte dos projetos isso é irrelevante: é só coletar de novo. Aqui
+não. O SICONFI e o SADIPEM publicam o limite de **uma requisição por segundo**,
+então a série histórica dos 5.570 municípios é medida em horas de máquina
+ligada. Descobrir em novembro que a resposta de agosto trazia o campo que
+faltava significa passar mais uma madrugada coletando o que já esteve na
+memória do processo.
+
+`nucleo.bruto` grava cada resposta **verbatim**, antes de qualquer projeção, em
+`dados/bruto/`. É um diário append-only: escreve, nunca reescreve, nunca relê
+para gravar. Não é tabela do `esquema.py` de propósito — registrá-la lhe daria
+justamente o contrato de colunas que ela existe para evitar.
+
+O gancho fica em `rede.buscar`, o único ponto por onde os dez coletores falam
+com a rede. Uma linha ali serve a todos eles, e nenhum coletor precisou mudar.
+
+E o mesmo gancho serve na direção contrária: em modo **replay**, `rede.buscar`
+responde pelo disco. Rodar um coletor inteiro em replay reprocessa as respostas
+guardadas com o código de hoje — o campo que passou a ser lido entra no acervo
+típado sem uma requisição sequer.
+
+Três regras o mantêm honesto:
+
+- **Arquivar nunca derruba a coleta.** Disco cheio, JSON estranho, arquivo
+  travado: vira aviso no log e a coleta segue. Perder o arquivo custa uma
+  recoleta; perder a coleta da madrugada custa a madrugada.
+- **Teto de disco.** Ao bater `PAINEL_BRUTO_LIMITE_GB`, o arquivamento para
+  sozinho, em silêncio, e a coleta continua.
+- **O replay não inventa.** Requisição que não está no arquivo vai para a rede,
+  como sempre. Devolver vazio viraria "a fonte não tem", que é uma afirmação
+  sobre o mundo.
+
+Desligado por padrão: a coleta do dia a dia não precisa dele.
 
 ## Decisão 3 — a API só enxerga views
 
@@ -87,11 +127,12 @@ Não rode tudo no mesmo job — as fontes mudam em ritmos muito diferentes:
 ```
 src/
   nucleo/      config · chaves · armazem · controle · rede · esquema · registro
+               bruto (resposta verbatim) · tabela · valores · energia · segredos
   coletores/   um por fonte
   api/         vistas.py (views) + servidor.py (rotas)
-  scripts/     instalar · coletar · painel
+  scripts/     instalar · coletar · painel · carga · verificar · bruto
 publico/       index.html · painel.js · mapa.js · estilo.css
-dados/         dim/ fato/ _ctl/ malhas/     (fora do git)
+dados/         dim/ fato/ _ctl/ malhas/ bruto/   (fora do git)
 docs/          esta documentação
 testes/        pytest (Python) + node:test (JS)
 logs/          um arquivo por dia               (fora do git)

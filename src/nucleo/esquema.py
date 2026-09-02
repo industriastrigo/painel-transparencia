@@ -122,7 +122,122 @@ dim_cargo = _registrar(Tabela(
     cadencia="manual",
 ))
 
+dim_magistrado = _registrar(Tabela(
+    nome="dim_magistrado",
+    camada="dim",
+    campos_pk=("sk",),
+    descricao="Juízes, desembargadores e ministros dos tribunais brasileiros (CNJ/STF/STJ/TST).",
+    cadencia="mensal",
+    colunas=(
+        ("sk", "VARCHAR"),
+        ("id_origem", "VARCHAR"),
+        ("nome", "VARCHAR"),
+        ("cargo", "VARCHAR"),
+        ("cargo_descricao", "VARCHAR"),
+        ("tribunal", "VARCHAR"),
+        ("ramo", "VARCHAR"),
+        ("grau", "VARCHAR"),
+        ("sigla_uf", "VARCHAR"),
+        ("orgao_lotacao", "VARCHAR"),
+        ("data_posse", "VARCHAR"),
+        ("situacao", "VARCHAR"),
+        ("url_foto", "VARCHAR"),
+    ),
+))
+
+dim_membro_mp = _registrar(Tabela(
+    nome="dim_membro_mp",
+    camada="dim",
+    campos_pk=("sk",),
+    descricao="Promotores e Procuradores de Justiça do Ministério Público (MPU e MPEs / CNMP).",
+    cadencia="mensal",
+    colunas=(
+        ("sk", "VARCHAR"),
+        ("id_origem", "VARCHAR"),
+        ("nome", "VARCHAR"),
+        ("cargo", "VARCHAR"),
+        ("cargo_descricao", "VARCHAR"),
+        ("orgao_mp", "VARCHAR"),
+        ("ramo", "VARCHAR"),
+        ("grau", "VARCHAR"),
+        ("sigla_uf", "VARCHAR"),
+        ("lotacao", "VARCHAR"),
+        ("data_posse", "VARCHAR"),
+        ("situacao", "VARCHAR"),
+        ("url_foto", "VARCHAR"),
+    ),
+))
+
+dim_catalogo_tabela = _registrar(Tabela(
+    nome="dim_catalogo_tabela",
+    camada="dim",
+    campos_pk=("tabela", "ano_particao", "camada"),
+    descricao="Catálogo e inventário do acervo de dados coletados por tabela e ano.",
+    cadencia="a cada carga",
+    colunas=(
+        ("sk", "VARCHAR"),
+        ("tabela", "VARCHAR"),
+        ("camada", "VARCHAR"),
+        ("ano_particao", "VARCHAR"),
+        ("ano", "INTEGER"),
+        ("total_linhas", "BIGINT"),
+        ("fontes", "VARCHAR"),
+        ("status_completude", "VARCHAR"),
+        ("orgao_origem", "VARCHAR"),
+        ("descricao_recurso", "VARCHAR"),
+        ("endpoint_recurso", "VARCHAR"),
+        ("granularidade", "VARCHAR"),
+        ("data_atualizacao", "VARCHAR"),
+    ),
+))
+
 # --------------------------------------------------------------- fatos
+
+fato_remuneracao_magistrado = _registrar(Tabela(
+    nome="fato_remuneracao_magistrado",
+    camada="fato",
+    campos_pk=("sk_magistrado", "ano", "mes"),
+    particoes=("ano",),
+    descricao="Folha de pagamento detalhada dos magistrados e ministros (Painel CNJ).",
+    cadencia="mensal",
+    colunas=(
+        ("sk", "VARCHAR"),
+        ("sk_magistrado", "VARCHAR"),
+        ("ano", "INTEGER"),
+        ("mes", "INTEGER"),
+        ("subsidio", "DOUBLE"),
+        ("vantagens_pessoais", "DOUBLE"),
+        ("indenizacoes", "DOUBLE"),
+        ("gratificacoes", "DOUBLE"),
+        ("total_bruto", "DOUBLE"),
+        ("retencao_teto", "DOUBLE"),
+        ("descontos_legais", "DOUBLE"),
+        ("total_liquido", "DOUBLE"),
+    ),
+))
+
+fato_remuneracao_mp = _registrar(Tabela(
+    nome="fato_remuneracao_mp",
+    camada="fato",
+    campos_pk=("sk_membro_mp", "ano", "mes"),
+    particoes=("ano",),
+    descricao="Folha de pagamento detalhada dos membros do Ministério Público (CNMP).",
+    cadencia="mensal",
+    colunas=(
+        ("sk", "VARCHAR"),
+        ("sk_membro_mp", "VARCHAR"),
+        ("ano", "INTEGER"),
+        ("mes", "INTEGER"),
+        ("subsidio", "DOUBLE"),
+        ("vantagens_pessoais", "DOUBLE"),
+        ("indenizacoes", "DOUBLE"),
+        ("gratificacoes", "DOUBLE"),
+        ("total_bruto", "DOUBLE"),
+        ("retencao_teto", "DOUBLE"),
+        ("descontos_legais", "DOUBLE"),
+        ("total_liquido", "DOUBLE"),
+    ),
+))
 
 indicador_ente = _registrar(Tabela(
     nome="indicador_ente",
@@ -134,6 +249,7 @@ indicador_ente = _registrar(Tabela(
     cadencia="anual",
 ))
 
+
 financas_ente = _registrar(Tabela(
     nome="financas_ente",
     camada="fato",
@@ -144,6 +260,84 @@ financas_ente = _registrar(Tabela(
               "previdência). Guardar conta contábil folha a folha levaria de "
               "~150 mil para ~50 milhões de linhas por ano sem ganho.",
     cadencia="mensal (RREO/RGF) · anual (DCA)",
+))
+
+# Transferências obrigatórias da União para estados e municípios.
+# Tabela SEPARADA de `financas_ente` de propósito: é outra medida da mesma
+# realidade — quem pagou declara aqui, quem recebeu declara lá, em regimes e
+# recortes diferentes. Juntar as duas na mesma tabela convidaria a somá-las.
+transferencia_uniao = _registrar(Tabela(
+    nome="transferencia_uniao",
+    camada="fato",
+    # `nivel` e `uf` ENTRAM na chave. Sem eles, um `cod_ibge` nulo faz as 27
+    # UFs colapsarem numa linha só por modalidade e mês — foi assim que 840
+    # linhas de 1997 viraram 53 no acervo, com aviso no log e ninguém vendo.
+    # Chave que não distingue o que a fonte distingue apaga dado no merge.
+    campos_pk=("cod_ibge", "nivel", "uf", "cod_transferencia", "ano", "mes"),
+    particoes=("ano",),
+    data_referencia="data_referencia",
+    descricao="FPM, FPE, FUNDEB, Lei Kandir, ITR, CIDE e royalties repassados "
+              "pela União, por ente e por mês. Fonte: Tesouro/SIAFI, regime "
+              "de caixa — não confundir com a transferência RECEBIDA que o "
+              "próprio ente declara no SICONFI.",
+    cadencia="mensal",
+))
+
+# Despesa por FUNÇÃO de governo — saúde, educação, segurança.
+# Tabela separada de `financas_ente` de propósito: aquela guarda o DCA anual
+# por NATUREZA (pessoal, juros, investimentos), esta guarda o RREO bimestral
+# por FUNÇÃO. São recortes diferentes do mesmo dinheiro, e somá-los contaria
+# tudo duas vezes — a mesma razão que separou as duas transferências.
+despesa_funcao = _registrar(Tabela(
+    nome="despesa_funcao",
+    camada="fato",
+    # `cod_conta` aqui é composto pelo coletor: bloco + função-mãe + conta.
+    # A fonte manda `RREO2TotalDespesas` em todas as linhas, e o nome da
+    # subfunção se repete sob várias funções — sem a função-mãe na identidade,
+    # 4.867 linhas por carga colidiam e o merge guardava só a última.
+    campos_pk=("cod_ibge", "ano", "periodo", "cod_conta"),
+    particoes=("ano", "esfera"),
+    data_referencia="data_referencia",
+    descricao="RREO Anexo 02: execução da despesa por função e subfunção. "
+              "Bimestral, então traz o exercício CORRENTE — o DCA só fecha o "
+              "anterior.",
+    cadencia="bimestral",
+))
+
+# Indicadores da Lei de Responsabilidade Fiscal.
+indicador_fiscal = _registrar(Tabela(
+    nome="indicador_fiscal",
+    camada="fato",
+    # `medida` ENTRA na chave: a mesma conta aparece em R$ e em % sobre a
+    # RCL, e sem ela as duas colidiriam — o merge guardaria a última que
+    # chegasse, que é como o percentual sumia do acervo.
+    # `anexo` e `secao` na chave: a mesma conta aparece nos dois anexos do
+    # RGF e se repete entre seções do mesmo anexo. Sem elas, 953 linhas por
+    # carga colidiam. `rotulo` (a descrição por extenso) fica FORA da chave:
+    # texto de apresentação muda de redação entre exercícios, e uma chave que
+    # depende de prosa transforma reedição em linha nova.
+    campos_pk=("cod_ibge", "ano", "periodo", "poder", "indicador", "medida",
+               "anexo", "secao"),
+    particoes=("ano",),
+    data_referencia="data_referencia",
+    descricao="RGF: despesa com pessoal sobre a receita corrente líquida (o "
+              "limite da LRF) e dívida consolidada líquida. Responde 'quanto "
+              "deve' com saldo, não com pedido como o SADIPEM.",
+    cadencia="quadrimestral",
+))
+
+# Pedidos de Verificação de Limites: o pedido que um ente faz ao Tesouro para
+# contrair dívida. NÃO é saldo devedor — ver a armadilha 2o.
+operacao_credito = _registrar(Tabela(
+    nome="operacao_credito",
+    camada="fato",
+    campos_pk=("id_pleito",),
+    particoes=("ano",),
+    data_referencia="data_referencia",
+    descricao="PVL do SADIPEM: quem pediu para tomar emprestado, de qual "
+              "credor, para qual finalidade, quanto, e qual foi o desfecho. "
+              "O valor é o do PLEITO, não o saldo devedor de hoje.",
+    cadencia="mensal",
 ))
 
 mandato = _registrar(Tabela(
@@ -191,6 +385,20 @@ votacao = _registrar(Tabela(
     cadencia="diária",
 ))
 
+votacao_proposicao = _registrar(Tabela(
+    nome="votacao_proposicao",
+    camada="fato",
+    campos_pk=("casa", "id_votacao", "id_proposicao"),
+    particoes=("ano",),
+    data_referencia="data",
+    descricao="Que proposições foram votadas em cada votação. É N para N: uma "
+              "votação pode decidir sobre várias proposições, e a mesma "
+              "proposição volta em várias votações. Sem esta tabela, a ficha "
+              "de um projeto nunca mostra quem votou a favor e contra — que é "
+              "a promessa central do painel.",
+    cadencia="diária",
+))
+
 voto = _registrar(Tabela(
     nome="voto",
     camada="fato",
@@ -202,17 +410,54 @@ voto = _registrar(Tabela(
     cadencia="diária",
 ))
 
+evento = _registrar(Tabela(
+    nome="evento",
+    camada="fato",
+    campos_pk=("casa", "id_evento"),
+    particoes=("ano",),
+    data_referencia="data_hora_inicio",
+    descricao="Sessão, audiência ou reunião. Existe para dar DENOMINADOR à "
+              "presença: sem saber quantas sessões deliberativas houve, "
+              "'compareceu a 120' não quer dizer nada.",
+    cadencia="diária",
+))
+
+presenca_evento = _registrar(Tabela(
+    nome="presenca_evento",
+    camada="fato",
+    campos_pk=("casa", "id_evento", "id_politico"),
+    particoes=("ano", "mes"),
+    data_referencia="data_hora_inicio",
+    descricao="Registro de presença de um deputado num evento já ocorrido. "
+              "ATENÇÃO: a fonte só publica quem ESTEVE. Ausência é inferida "
+              "pela ausência de linha, e por isso só pode ser calculada "
+              "dentro da janela em que o deputado estava em exercício — "
+              "quem tomou posse em março não faltou às sessões de fevereiro.",
+    cadencia="diária",
+))
+
+orientacao_bancada = _registrar(Tabela(
+    nome="orientacao_bancada",
+    camada="fato",
+    campos_pk=("casa", "id_votacao", "sigla_bancada"),
+    particoes=("ano",),
+    data_referencia=None,
+    descricao="O voto que a liderança recomendou à sua bancada. Cruzado com "
+              "`voto`, revela quem votou contra a orientação do próprio "
+              "partido — que é o dado que nenhum painel comum mostra.",
+    cadencia="diária",
+))
+
 despesa_parlamentar = _registrar(Tabela(
     nome="despesa_parlamentar",
     camada="fato",
-    campos_pk=("casa", "id_documento", "num_parcela", "num_ressarcimento"),
+    campos_pk=("casa", "id_politico", "id_documento", "num_parcela", "num_ressarcimento", "ano", "mes"),
     particoes=("ano", "mes"),
     data_referencia="data_emissao",
     descricao="Cota parlamentar, nota a nota. Único dado guardado no grão "
               "bruto, por decisão de escopo. `ideDocumento` sozinho NÃO é "
               "único — reembolso parcelado repete o documento em várias "
-              "linhas —, e a chave curta descartava ~1.300 notas por ano "
-              "como se fossem duplicatas.",
+              "linhas, e despesas internas (como telefonia) têm id_documento=0.",
     cadencia="mensal",
 ))
 
@@ -240,6 +485,46 @@ emenda_parlamentar = _registrar(Tabela(
     cadencia="mensal",
 ))
 
+cartao_corporativo = _registrar(Tabela(
+    nome="cartao_corporativo",
+    camada="fato",
+    campos_pk=("ano", "mes", "codigo_orgao", "cpf_portador", "data_transacao", "cnpj_cpf_favorecido", "valor"),
+    particoes=("ano",),
+    data_referencia="data_referencia",
+    descricao="Gastos do Cartão de Pagamento do Governo Federal (CPGF) / Cartões Corporativos do Executivo.",
+    cadencia="mensal",
+))
+
+viagem_servico = _registrar(Tabela(
+    nome="viagem_servico",
+    camada="fato",
+    campos_pk=("ano", "id_viagem", "codigo_orgao", "cpf_viajante", "data_inicio"),
+    particoes=("ano",),
+    data_referencia="data_referencia",
+    descricao="Diárias, passagens e viagens a serviço do Governo Federal (PCDP / CGU).",
+    cadencia="mensal",
+))
+
+bem_declarado = _registrar(Tabela(
+    nome="bem_declarado",
+    camada="fato",
+    campos_pk=("id_politico", "ano_eleicao", "sequencial_candidato", "tipo_bem", "descricao_bem", "valor_bem"),
+    particoes=("ano_eleicao",),
+    data_referencia="data_referencia",
+    descricao="Declaração de bens e evolução patrimonial de políticos e candidatos (TSE).",
+    cadencia="eleitoral",
+))
+
+contrato_governo = _registrar(Tabela(
+    nome="contrato_governo",
+    camada="fato",
+    campos_pk=("ano", "id_contrato", "codigo_orgao", "cnpj_fornecedor"),
+    particoes=("ano",),
+    data_referencia="data_referencia",
+    descricao="Contratos públicos, licitações, dispensas e fornecedores (PNCP / Compras.gov.br / CGU).",
+    cadencia="mensal",
+))
+
 # --------------------------------------------------------------- controle
 
 ingestao = Tabela(
@@ -259,6 +544,25 @@ coleta_ente = Tabela(
               "recomeçar do zero quando a máquina hiberna no meio.",
 )
 TABELAS[coleta_ente.nome] = coleta_ente
+
+qualidade = Tabela(
+    nome="qualidade",
+    camada="_ctl",
+    campos_pk=("tabela", "coluna"),
+    descricao="Taxa de preenchimento por coluna, com a MELHOR taxa já vista. "
+              "É a linha de base do portão: coluna que já esteve 98% cheia e "
+              "voltar a 3% acusa, mesmo que a carga ruim tenha rodado antes.",
+)
+TABELAS[qualidade.nome] = qualidade
+
+log_auditoria_carga = Tabela(
+    nome="log_auditoria_carga",
+    camada="_ctl",
+    campos_pk=("id_auditoria",),
+    descricao="Histórico de auditoria, validação origem x tabela e reprocessamento inteligente de cargas.",
+)
+TABELAS[log_auditoria_carga.nome] = log_auditoria_carga
+
 
 
 # --------------------------------------------------------------- contratos
@@ -305,7 +609,70 @@ _COLUNAS: dict[str, tuple[tuple[str, str], ...]] = {
     "financas_ente": (
         ("cod_ibge", "VARCHAR"), ("ano", "INTEGER"), ("periodo", "VARCHAR"),
         ("cod_conta", "VARCHAR"), ("cod_funcao", "VARCHAR"), ("funcao", "VARCHAR"),
+        # `rotulo_conta` e `uf` eram gravados pelo coletor e NÃO estavam no
+        # contrato. Enquanto a tabela tinha dado, ninguém notou — o Parquet
+        # trazia as colunas. Numa instalação nova, porém, a view nasce do
+        # contrato, e três views de despesa quebravam com
+        # `Binder Error: Referenced column "rotulo_conta" not found`.
+        # Coluna que o coletor grava PRECISA estar declarada aqui.
+        ("rotulo_conta", "VARCHAR"), ("uf", "VARCHAR"),
         ("estagio", "VARCHAR"), ("valor", "DOUBLE"), ("esfera", "VARCHAR"),
+        ("data_referencia", "VARCHAR"),
+    ),
+    "transferencia_uniao": (
+        ("cod_ibge", "VARCHAR"), ("nivel", "VARCHAR"), ("uf", "VARCHAR"),
+        ("nome_ente", "VARCHAR"), ("cod_transferencia", "VARCHAR"),
+        ("transferencia", "VARCHAR"), ("ano", "INTEGER"), ("mes", "INTEGER"),
+        ("valor", "DOUBLE"), ("cod_siafi", "VARCHAR"),
+        ("data_referencia", "VARCHAR"),
+    ),
+    "despesa_funcao": (
+        ("cod_ibge", "VARCHAR"), ("ano", "INTEGER"), ("periodo", "VARCHAR"),
+        ("cod_conta", "VARCHAR"), ("cod_funcao", "VARCHAR"),
+        ("funcao", "VARCHAR"),
+        # A função a que a subfunção pertence. Só existe na ORDEM do
+        # demonstrativo — a resposta não liga uma à outra.
+        ("cod_funcao_mae", "VARCHAR"), ("funcao_mae", "VARCHAR"),
+        ("rotulo_conta", "VARCHAR"),
+        # O bloco do demonstrativo: `exceto_intra` ou `intra`. São dois
+        # universos que se SOMAM para dar o total do ente — guardar o bloco é
+        # o que permite conferir isso em vez de torcer.
+        #
+        # Vem do sufixo `Intra` do `cod_conta` da fonte, não do campo
+        # `rotulo`: o rótulo descreve o mesmo bloco por extenso, mas falta em
+        # 15% das linhas, e onde faltava as duas despesas da mesma função
+        # colidiam na chave — uma apagava a outra, em silêncio.
+        ("bloco", "VARCHAR"),
+        # O rótulo por extenso, quando a fonte manda. É descrição, não chave.
+        ("descricao_bloco", "VARCHAR"),
+        ("estagio", "VARCHAR"), ("valor", "DOUBLE"), ("esfera", "VARCHAR"),
+        ("uf", "VARCHAR"), ("data_referencia", "VARCHAR"),
+    ),
+    "indicador_fiscal": (
+        ("cod_ibge", "VARCHAR"), ("ano", "INTEGER"), ("periodo", "VARCHAR"),
+        ("poder", "VARCHAR"),
+        # O `cod_conta` do RGF, VERBATIM — sem tradução para uma lista curta
+        # de apelidos nossos. Conta não prevista entra no acervo em vez de
+        # ser descartada, e vira consulta em vez de recoleta.
+        ("indicador", "VARCHAR"),
+        # O que o número é: valor em R$, percentual sobre a RCL, saldo do
+        # quadrimestre. No RGF isso vem da COLUNA, não da conta.
+        ("medida", "VARCHAR"),
+        ("rotulo", "VARCHAR"),
+        # Seção do demonstrativo (campo `rotulo` da fonte), não a descrição.
+        ("secao", "VARCHAR"), ("anexo", "VARCHAR"),
+        ("valor", "DOUBLE"), ("esfera", "VARCHAR"), ("uf", "VARCHAR"),
+        ("data_referencia", "VARCHAR"),
+    ),
+    "operacao_credito": (
+        ("id_pleito", "INTEGER"), ("cod_ibge", "VARCHAR"), ("uf", "VARCHAR"),
+        ("tipo_interessado", "VARCHAR"), ("interessado", "VARCHAR"),
+        ("num_pvl", "VARCHAR"), ("num_processo", "VARCHAR"),
+        ("status", "VARCHAR"), ("tipo_operacao", "VARCHAR"),
+        ("finalidade", "VARCHAR"), ("tipo_credor", "VARCHAR"),
+        ("credor", "VARCHAR"), ("moeda", "VARCHAR"), ("valor", "DOUBLE"),
+        ("contratado", "INTEGER"), ("data_protocolo", "VARCHAR"),
+        ("data_status", "VARCHAR"), ("ano", "INTEGER"),
         ("data_referencia", "VARCHAR"),
     ),
     "mandato": (
@@ -318,7 +685,7 @@ _COLUNAS: dict[str, tuple[tuple[str, str], ...]] = {
     ),
     "proposicao": (
         ("casa", "VARCHAR"), ("id_proposicao", "VARCHAR"), ("sigla_tipo", "VARCHAR"),
-        ("identificador", "VARCHAR"), ("ementa", "VARCHAR"),
+        ("numero", "VARCHAR"), ("identificador", "VARCHAR"), ("ementa", "VARCHAR"),
         ("data_apresentacao", "VARCHAR"), ("situacao", "VARCHAR"),
         ("tramitacao_atual", "VARCHAR"), ("orgao_atual", "VARCHAR"),
         ("regime", "VARCHAR"), ("data_ultimo_status", "VARCHAR"),
@@ -338,11 +705,35 @@ _COLUNAS: dict[str, tuple[tuple[str, str], ...]] = {
         ("sigla_orgao", "VARCHAR"), ("descricao", "VARCHAR"),
         ("aprovada", "VARCHAR"), ("id_proposicao", "VARCHAR"), ("ano", "INTEGER"),
     ),
+    "votacao_proposicao": (
+        ("casa", "VARCHAR"), ("id_votacao", "VARCHAR"),
+        ("id_proposicao", "VARCHAR"), ("titulo", "VARCHAR"),
+        ("sigla_tipo", "VARCHAR"), ("numero", "VARCHAR"),
+        ("ano_proposicao", "INTEGER"), ("descricao", "VARCHAR"),
+        ("data", "VARCHAR"), ("ano", "INTEGER"),
+    ),
     "voto": (
         ("casa", "VARCHAR"), ("id_votacao", "VARCHAR"), ("id_politico", "VARCHAR"),
         ("nome_politico", "VARCHAR"), ("sigla_partido", "VARCHAR"),
         ("sigla_uf", "VARCHAR"), ("voto", "VARCHAR"), ("data_hora", "VARCHAR"),
         ("ano", "INTEGER"), ("mes", "INTEGER"),
+    ),
+    "evento": (
+        ("casa", "VARCHAR"), ("id_evento", "VARCHAR"),
+        ("data_hora_inicio", "VARCHAR"), ("data_hora_fim", "VARCHAR"),
+        ("descricao_tipo", "VARCHAR"), ("descricao", "VARCHAR"),
+        ("situacao", "VARCHAR"), ("local", "VARCHAR"),
+        ("deliberativo", "BOOLEAN"), ("ano", "INTEGER"),
+    ),
+    "presenca_evento": (
+        ("casa", "VARCHAR"), ("id_evento", "VARCHAR"),
+        ("id_politico", "VARCHAR"), ("data_hora_inicio", "VARCHAR"),
+        ("ano", "INTEGER"), ("mes", "INTEGER"),
+    ),
+    "orientacao_bancada": (
+        ("casa", "VARCHAR"), ("id_votacao", "VARCHAR"),
+        ("sigla_bancada", "VARCHAR"), ("orientacao", "VARCHAR"),
+        ("sigla_orgao", "VARCHAR"), ("ano", "INTEGER"),
     ),
     "despesa_parlamentar": (
         ("casa", "VARCHAR"), ("id_documento", "VARCHAR"),
@@ -350,7 +741,15 @@ _COLUNAS: dict[str, tuple[tuple[str, str], ...]] = {
         ("id_politico", "VARCHAR"),
         ("nome_politico", "VARCHAR"), ("sigla_partido", "VARCHAR"),
         ("sigla_uf", "VARCHAR"), ("tipo_despesa", "VARCHAR"),
-        ("fornecedor", "VARCHAR"), ("valor_liquido", "DOUBLE"),
+        ("fornecedor", "VARCHAR"),
+        # CNPJ e link do documento existiam no COLETOR e não no contrato: a
+        # view podia tê-los ou não conforme o que estivesse no disco, e numa
+        # instalação nova a consulta por fornecedor quebrava. São eles que
+        # tornam a nota auditável — sem CNPJ não dá para reconhecer o mesmo
+        # fornecedor em gabinetes diferentes.
+        ("cnpj_cpf_fornecedor", "VARCHAR"),
+        ("valor_documento", "DOUBLE"), ("url_documento", "VARCHAR"),
+        ("valor_liquido", "DOUBLE"),
         ("data_emissao", "VARCHAR"), ("ano", "INTEGER"), ("mes", "INTEGER"),
     ),
     "custo_orgao": (
@@ -363,6 +762,56 @@ _COLUNAS: dict[str, tuple[tuple[str, str], ...]] = {
         ("ano", "INTEGER"), ("codigo_emenda", "VARCHAR"), ("tipo_emenda", "VARCHAR"),
         ("autor", "VARCHAR"), ("funcao", "VARCHAR"), ("valor_empenhado", "DOUBLE"),
         ("valor_pago", "DOUBLE"), ("localidade", "VARCHAR"),
+    ),
+    "cartao_corporativo": (
+        ("ano", "INTEGER"), ("mes", "INTEGER"),
+        ("codigo_orgao", "VARCHAR"), ("nome_orgao", "VARCHAR"),
+        ("nome_portador", "VARCHAR"), ("cpf_portador", "VARCHAR"),
+        ("nome_favorecido", "VARCHAR"), ("cnpj_cpf_favorecido", "VARCHAR"),
+        ("tipo_cartao", "VARCHAR"), ("data_transacao", "VARCHAR"),
+        ("valor", "DOUBLE"), ("data_referencia", "VARCHAR"),
+    ),
+    "viagem_servico": (
+        ("ano", "INTEGER"), ("mes", "INTEGER"), ("id_viagem", "VARCHAR"),
+        ("codigo_orgao", "VARCHAR"), ("nome_orgao", "VARCHAR"),
+        ("nome_viajante", "VARCHAR"), ("cpf_viajante", "VARCHAR"), ("cargo_viajante", "VARCHAR"),
+        ("origem", "VARCHAR"), ("destino", "VARCHAR"), ("motivo", "VARCHAR"),
+        ("data_inicio", "VARCHAR"), ("data_fim", "VARCHAR"),
+        ("valor_diarias", "DOUBLE"), ("valor_passagens", "DOUBLE"),
+        ("valor_outros", "DOUBLE"), ("valor_total", "DOUBLE"),
+        ("data_referencia", "VARCHAR"),
+    ),
+    "bem_declarado": (
+        ("id_politico", "VARCHAR"), ("ano_eleicao", "INTEGER"),
+        ("sequencial_candidato", "VARCHAR"), ("cargo", "VARCHAR"),
+        ("tipo_bem", "VARCHAR"), ("descricao_bem", "VARCHAR"),
+        ("valor_bem", "DOUBLE"), ("data_referencia", "VARCHAR"),
+    ),
+    "contrato_governo": (
+        ("ano", "INTEGER"), ("id_contrato", "VARCHAR"), ("numero_contrato", "VARCHAR"),
+        ("codigo_orgao", "VARCHAR"), ("nome_orgao", "VARCHAR"),
+        ("cnpj_fornecedor", "VARCHAR"), ("nome_fornecedor", "VARCHAR"),
+        ("modalidade_licitacao", "VARCHAR"), ("objeto", "VARCHAR"),
+        ("valor_inicial", "DOUBLE"), ("valor_atualizado", "DOUBLE"),
+        ("data_inicio_vigencia", "VARCHAR"), ("data_fim_vigencia", "VARCHAR"),
+        ("data_referencia", "VARCHAR"),
+    ),
+    "log_auditoria_carga": (
+        ("id_auditoria", "VARCHAR"),
+        ("data_hora", "VARCHAR"),
+        ("tabela", "VARCHAR"),
+        ("camada", "VARCHAR"),
+        ("ano_particao", "VARCHAR"),
+        ("status_validacao", "VARCHAR"),
+        ("linhas_anterior", "INTEGER"),
+        ("linhas_origem", "INTEGER"),
+        ("linhas_atual", "INTEGER"),
+        ("linhas_incluidas", "INTEGER"),
+        ("linhas_excluidas", "INTEGER"),
+        ("detalhe_mudanca", "VARCHAR"),
+        ("duracao_ms", "INTEGER"),
+        ("fonte_origem", "VARCHAR"),
+        ("endpoint", "VARCHAR"),
     ),
 }
 

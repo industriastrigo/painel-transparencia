@@ -86,9 +86,9 @@ def test_subfuncao_continua_acessivel_sem_contaminar_o_total():
 def test_funcao_traz_o_total_da_funcao_nao_a_soma_dos_filhos():
     _dca_hierarquico()
     con = vistas.conexao_leitura()
-    por_funcao = dict(con.execute(
-        "SELECT cod_funcao, valor FROM vw_financas_funcao").fetchall())
-    assert por_funcao == {"10": 1000.0, "12": 800.0}
+    por_conta = dict(con.execute(
+        "SELECT cod_natureza, valor FROM vw_despesa_categoria").fetchall())
+    assert por_conta == {"10": 1000.0, "12": 800.0}
 
 
 def test_per_capita_deixa_de_estar_inflado():

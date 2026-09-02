@@ -3,43 +3,529 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Painel da Transparência — Brasil</title>
+<title>Indústrias Trigo — Painel de Transparência & Controle</title>
 <link rel="stylesheet" href="estilo.css">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
 
-<header>
-  <h1>Painel da Transparência</h1>
-  <p>Dados políticos, socioeconômicos e orçamentários do Brasil, a partir de fontes oficiais.</p>
-  <nav role="tablist">
-    <button data-aba="mapa" aria-selected="true">Mapa</button>
-    <button data-aba="politicos" aria-selected="false">Políticos</button>
-    <button data-aba="proposicoes" aria-selected="false">Projetos de lei</button>
-    <button data-aba="fontes" aria-selected="false">Fontes</button>
-    <button data-aba="custo" aria-selected="false">Custo do Estado</button>
-    <button data-aba="atualizar" aria-selected="false">Atualizar</button>
-  </nav>
+<header class="topbar-trigo">
+  <div class="topbar-esquerda">
+    <button id="btn-menu-hamburguer" class="btn-hamburguer" aria-label="Abrir menu de navegação">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+    <a href="#inicio" class="brand-link">
+      <img id="topbar-logo-img" src="ativos/logos/icone_trigo_transparente.png" alt="Indústrias Trigo" class="topbar-logo" />
+      <div class="brand-text">
+        <span class="brand-title">INDÚSTRIAS TRIGO</span>
+        <span class="brand-subtitle">Data Lakehouse & Transparência</span>
+      </div>
+    </a>
+  </div>
+
+  <div class="topbar-centro">
+    <div class="topbar-pagina-ativa" id="topbar-titulo-pagina">
+      <svg class="item-svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+      <strong>Início & Sobre o Projeto</strong>
+    </div>
+  </div>
+
+  <div class="topbar-direita">
+    <button class="btn-toggle-tema btn-icone-topbar" title="Mudar para Tema Claro (Marfim Trigo)">
+      <svg class="item-svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+    </button>
+    <div id="topbar-auth-widget"></div>
+  </div>
 </header>
+
+<div id="drawer-backdrop" class="drawer-backdrop"></div>
+
+<aside id="drawer-menu" class="drawer-trigo" aria-label="Menu de Navegação Principal">
+  <div class="drawer-header">
+    <a href="#inicio" class="brand-link" style="gap:10px">
+      <img id="drawer-logo-img" src="ativos/logos/icone_trigo_transparente.png" alt="Trigo" style="height:36px; width:auto; object-fit:contain" />
+      <div class="brand-text">
+        <span class="brand-title" style="font-size:0.85rem">INDÚSTRIAS TRIGO</span>
+        <span class="brand-subtitle" style="font-size:0.68rem">Governança Pública</span>
+      </div>
+    </a>
+    <button id="btn-fechar-drawer" class="drawer-fechar" aria-label="Fechar menu">✕</button>
+  </div>
+
+  <div class="drawer-corpo">
+    <!-- 0. INÍCIO & SOBRE O PROJETO -->
+    <div style="margin-bottom: var(--e2);">
+      <nav class="drawer-nav-lista">
+        <a href="#inicio" class="drawer-nav-item ativo" data-aba="inicio">
+          <span class="item-icone"><svg class="item-svg" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg></span>
+          <span class="item-texto">Início & Sobre o Projeto</span>
+        </a>
+      </nav>
+    </div>
+
+    <!-- 1. TERRITÓRIO & FEDERAÇÃO -->
+    <div>
+      <div class="drawer-secao-rotulo">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>
+        <span>Território & Federação</span>
+      </div>
+      <nav class="drawer-nav-lista">
+        <a href="#mapa" class="drawer-nav-item" data-aba="mapa">
+          <span class="item-icone"><svg class="item-svg" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg></span>
+          <span class="item-texto">Mapa Interativo & Rankings</span>
+        </a>
+      </nav>
+    </div>
+
+    <!-- 2. PODERES DA REPÚBLICA -->
+    <div>
+      <div class="drawer-secao-rotulo">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="22" x2="21" y2="22"></line><line x1="6" y1="18" x2="6" y2="11"></line><line x1="10" y1="18" x2="10" y2="11"></line><line x1="14" y1="18" x2="14" y2="11"></line><line x1="18" y1="18" x2="18" y2="11"></line><polygon points="12 2 20 7 4 7"></polygon></svg>
+        <span>Poderes da República</span>
+      </div>
+      <nav class="drawer-nav-lista">
+        <a href="#executivo" class="drawer-nav-item" data-aba="executivo">
+          <span class="item-icone"><svg class="item-svg" viewBox="0 0 24 24"><line x1="3" y1="22" x2="21" y2="22"></line><line x1="6" y1="18" x2="6" y2="11"></line><line x1="10" y1="18" x2="10" y2="11"></line><line x1="14" y1="18" x2="14" y2="11"></line><line x1="18" y1="18" x2="18" y2="11"></line><polygon points="12 2 20 7 4 7"></polygon></svg></span>
+          <span class="item-texto">Poder Executivo</span>
+        </a>
+        <a href="#legislativo" class="drawer-nav-item" data-aba="legislativo">
+          <span class="item-icone"><svg class="item-svg" viewBox="0 0 24 24"><path d="M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1zM2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1zM7 21h10M12 3v18M3 7h18"></path></svg></span>
+          <span class="item-texto">Poder Legislativo</span>
+        </a>
+        <a href="#judiciario" class="drawer-nav-item" data-aba="judiciario">
+          <span class="item-icone"><svg class="item-svg" viewBox="0 0 24 24"><path d="M14 13l-7.5 7.5a2.12 2.12 0 0 1-3-3L11 10M16 8l2-2 4 4-2 2M13 11l4 4"></path></svg></span>
+          <span class="item-texto">Poder Judiciário</span>
+        </a>
+        <a href="#mp" class="drawer-nav-item" data-aba="mp">
+          <span class="item-icone"><svg class="item-svg" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg></span>
+          <span class="item-texto">Ministério Público</span>
+        </a>
+      </nav>
+    </div>
+
+    <!-- 3. PARLAMENTO & GASTOS -->
+    <div>
+      <div class="drawer-secao-rotulo">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
+        <span>Parlamento & Gastos</span>
+      </div>
+      <nav class="drawer-nav-lista">
+        <a href="#politicos" class="drawer-nav-item" data-aba="politicos">
+          <span class="item-icone"><svg class="item-svg" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></span>
+          <span class="item-texto">Políticos & Mandatos</span>
+        </a>
+        <a href="#proposicoes" class="drawer-nav-item" data-aba="proposicoes">
+          <span class="item-icone"><svg class="item-svg" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg></span>
+          <span class="item-texto">Projetos de Lei & Votações</span>
+        </a>
+        <a href="#custo" class="drawer-nav-item" data-aba="custo">
+          <span class="item-icone"><svg class="item-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"></path><line x1="12" y1="6" x2="12" y2="18"></line></svg></span>
+          <span class="item-texto">Custo do Estado & Subsídios</span>
+        </a>
+      </nav>
+    </div>
+
+    <!-- 4. ENGENHARIA & LAKEHOUSE -->
+    <div>
+      <div class="drawer-secao-rotulo">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+        <span>Engenharia & Lakehouse</span>
+      </div>
+      <nav class="drawer-nav-lista">
+        <a href="#catalogo" class="drawer-nav-item" data-aba="catalogo">
+          <span class="item-icone"><svg class="item-svg" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg></span>
+          <span class="item-texto">Catálogo de Tabelas (Parquet)</span>
+        </a>
+        <a href="#explorador" class="drawer-nav-item" data-aba="explorador">
+          <span class="item-icone"><svg class="item-svg" viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg></span>
+          <span class="item-texto">Explorador GCP & SQL Studio</span>
+        </a>
+        <a href="#fontes" class="drawer-nav-item" data-aba="fontes">
+          <span class="item-icone"><svg class="item-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg></span>
+          <span class="item-texto">Fontes Oficiais & Conectores</span>
+        </a>
+        <a href="#atualizar" class="drawer-nav-item" data-aba="atualizar">
+          <span class="item-icone"><svg class="item-svg" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg></span>
+          <span class="item-texto">Carga, Auditoria & Sincronização</span>
+        </a>
+      </nav>
+    </div>
+
+    <!-- 5. DOCUMENTAÇÃO -->
+    <div>
+      <div class="drawer-secao-rotulo">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+        <span>Documentação & Metodologia</span>
+      </div>
+      <nav class="drawer-nav-lista">
+        <a href="#glossario" class="drawer-nav-item" data-aba="glossario">
+          <span class="item-icone"><svg class="item-svg" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg></span>
+          <span class="item-texto">Glossário & Metodologia</span>
+        </a>
+      </nav>
+    </div>
+  </div>
+
+  <div class="drawer-footer">
+    <strong>Indústrias Trigo</strong> · Data Lakehouse 2.0<br>
+    <span style="opacity:0.8">DuckDB + Parquet Zstandard</span>
+  </div>
+</aside>
+
+<dialog id="modal-perfil-usuario" class="modal-trigo">
+  <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px">
+    <div style="font-size:0.8rem; font-weight:800; text-transform:uppercase; color:var(--realce-dourado); letter-spacing:0.05em">
+      Perfil do Auditor
+    </div>
+    <button onclick="document.getElementById('modal-perfil-usuario').close()" style="background:transparent; border:none; color:var(--texto-fraco); font-size:1.2rem; cursor:pointer">✕</button>
+  </div>
+
+  <div class="perfil-card-header">
+    <img id="perfil-modal-avatar" src="ativos/logos/icone_trigo_dark.png" alt="Avatar" class="perfil-avatar-grande" />
+    <div class="perfil-dados">
+      <h3 id="perfil-modal-nome">Johnny Trigo</h3>
+      <p id="perfil-modal-email">johnny.trigo@industriastrigo.com.br</p>
+      <div style="display:inline-block; margin-top:6px; background:rgba(197,160,89,0.18); border:1px solid rgba(197,160,89,0.4); border-radius:12px; padding:2px 10px; font-size:0.75rem; font-weight:700; color:var(--realce-dourado)">
+        ✦ Auditor Verificado
+      </div>
+    </div>
+  </div>
+
+  <!-- Preferências de Tema -->
+  <div class="perfil-secao">
+    <div class="perfil-secao-titulo">🌓 Modo Visual & Tema</div>
+    <div style="display:flex; align-items:center; justify-content:space-between; background:var(--superficie-2); padding:10px 14px; border-radius:var(--raio); border:1px solid var(--borda)">
+      <div>
+        <div style="font-weight:600; font-size:0.9rem">Esquema de Cores</div>
+        <div id="perfil-tema-rotulo" style="font-size:0.75rem; color:var(--texto-sutil)">Automático (Sistêmico)</div>
+      </div>
+      <button class="btn-toggle-tema secundario" style="padding:6px 12px; border-radius:var(--raio); font-size:0.85rem; font-weight:600; cursor:pointer">
+        Alternar Tema
+      </button>
+    </div>
+  </div>
+
+  <!-- Chave CGU Individual -->
+  <div class="perfil-secao">
+    <div class="perfil-secao-titulo">🔒 Chave Pessoal do Portal da Transparência (CGU)</div>
+    <p style="font-size:0.8rem; color:var(--texto-fraco); margin:0 0 8px">
+      Sua chave individual é armazenada localmente com total segurança no seu navegador.
+    </p>
+    <div style="display:flex; gap:8px">
+      <input type="password" id="input-chave-cgu-perfil" placeholder="Cole sua chave da API da CGU aqui" style="flex:1; padding:8px 12px; border-radius:var(--raio); border:1px solid var(--borda); background:var(--superficie-3); color:var(--texto); font-size:0.85rem" />
+      <button id="btn-salvar-chave-cgu" class="principal" style="padding:8px 14px; border-radius:var(--raio); font-weight:700; cursor:pointer">Salvar</button>
+    </div>
+    <div id="feedback-chave-cgu" style="display:none; color:var(--favor); font-size:0.8rem; margin-top:6px; font-weight:600"></div>
+  </div>
+
+  <!-- Ações do Perfil -->
+  <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--borda); padding-top:14px; margin-top:16px">
+    <button id="btn-logout-perfil" style="background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.3); color:#ef4444; padding:8px 14px; border-radius:var(--raio); font-weight:600; cursor:pointer; font-size:0.85rem">
+      🚪 Desconectar
+    </button>
+    <button onclick="document.getElementById('modal-perfil-usuario').close()" class="secundario" style="padding:8px 16px; border-radius:var(--raio); font-weight:600; cursor:pointer">
+      Fechar
+    </button>
+  </div>
+</dialog>
 
 <main>
 
+  <!-- ------------------------------------------------------------ inicio -->
+  <section id="aba-inicio" role="tabpanel" tabindex="-1" class="aba-ativa" style="display: block;">
+    
+    <!-- HERO SECTION -->
+    <div class="hero-inicio">
+      <div class="hero-conteudo">
+        <div class="hero-badge">
+          <span>✦</span> GOVERNANÇA PÚBLICA & CONTROLE CIDADÃO
+        </div>
+        
+        <div class="hero-brand-destaque">
+          <img src="ativos/logos/icone_trigo_transparente.png" alt="Indústrias Trigo" class="hero-logo-img" />
+          <div>
+            <h1 class="hero-titulo">INDÚSTRIAS TRIGO</h1>
+            <p class="hero-subtitulo-marca">Data Lakehouse & Transparência Governamental</p>
+          </div>
+        </div>
+
+        <h2 class="hero-chamada">
+          Transformando dados públicos complexos em <span class="destaque-dourado">clareza, controle e cidadania</span>.
+        </h2>
+
+        <p class="hero-descricao">
+          Este painel foi criado para que qualquer cidadão brasileiro possa auditar, comparar e acompanhar
+          as contas de todos os <strong>5.570 municípios</strong>, dos <strong>27 estados</strong> e dos
+          <strong>Três Poderes da República</strong> de forma simples, visual e 100% transparente.
+        </p>
+
+        <!-- CARD EXPLICATIVO DE CADASTRO / ADERÊNCIA -->
+        <div class="hero-card-aderencia">
+          <div class="card-aderencia-icone">
+            <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+          </div>
+          <div class="card-aderencia-texto">
+            <h4>Por que solicitamos o registro com sua conta?</h4>
+            <p>
+              Para monitorar a <strong>aderência, alcance e impacto cívico</strong> do projeto na sociedade,
+              além de proteger as conexões com as fontes oficiais de dados governamentais contra abusos.
+              O acesso é <strong>100% gratuito</strong>, seguro e não compartilha seus dados com terceiros.
+            </p>
+          </div>
+          <div class="card-aderencia-acao">
+            <button id="btn-cta-entrar" class="btn-cta-principal">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
+              <span>Entrar com sua Conta</span>
+            </button>
+            <button data-ir-aba="mapa" class="btn-cta-secundario">
+              <span>Explorar o Mapa da Federação →</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4 PILARES DO PAINEL -->
+    <div class="secao-inicio-bloco">
+      <div class="inicio-secao-cabecalho">
+        <h3>O que você pode acompanhar neste Painel?</h3>
+        <p>Dados oficiais integrados dos principais órgãos de controle e transparência do Brasil</p>
+      </div>
+
+      <div class="pilares-inicio-grid">
+        <div class="pilar-card" data-ir-aba="mapa">
+          <div class="pilar-icone">
+            <svg viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>
+          </div>
+          <h4>Território & Federação</h4>
+          <p>Compare quanto sua cidade arrecada e investe por habitante em saúde, educação e infraestrutura.</p>
+          <span class="pilar-link">Ver mapa interativo →</span>
+        </div>
+
+        <div class="pilar-card" data-ir-aba="executivo">
+          <div class="pilar-icone">
+            <svg viewBox="0 0 24 24"><line x1="3" y1="22" x2="21" y2="22"></line><line x1="6" y1="18" x2="6" y2="11"></line><line x1="10" y1="18" x2="10" y2="11"></line><line x1="14" y1="18" x2="14" y2="11"></line><line x1="18" y1="18" x2="18" y2="11"></line><polygon points="12 2 20 7 4 7"></polygon></svg>
+          </div>
+          <h4>Poderes da República</h4>
+          <p>Acompanhe despesas com pessoal, custeio e investimentos do Executivo, Legislativo, Judiciário e MP.</p>
+          <span class="pilar-link">Ver gastos por poder →</span>
+        </div>
+
+        <div class="pilar-card" data-ir-aba="politicos">
+          <div class="pilar-icone">
+            <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          </div>
+          <h4>Parlamento & Representantes</h4>
+          <p>Veja mandatos, votações nominais, projetos de lei e o uso da cota parlamentar de deputados e senadores.</p>
+          <span class="pilar-link">Ver deputados e senadores →</span>
+        </div>
+
+        <div class="pilar-card" data-ir-aba="custo">
+          <div class="pilar-icone">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"></path><line x1="12" y1="6" x2="12" y2="18"></line></svg>
+          </div>
+          <h4>Custo do Estado & Subsídios</h4>
+          <p>Audite diárias de viagens, cartões corporativos, benefícios e remunerações acima do teto constitucional.</p>
+          <span class="pilar-link">Ver custos do estado →</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CAMPO DE BUSCA ESTILO GOOGLE -->
+    <div class="secao-inicio-bloco">
+      <div class="inicio-secao-cabecalho">
+        <h3>Central de Dúvidas & Perguntas Frequentes</h3>
+        <p>Pesquise qualquer dúvida sobre o painel, termos do orçamento público ou funcionamento</p>
+      </div>
+
+      <div class="busca-google-container">
+        <div class="busca-google-box">
+          <div class="busca-google-icone">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          </div>
+          <input type="text" id="busca-faq-glossario" class="busca-google-input" placeholder="Pesquise por 'empenho', 'login', 'teto constitucional', 'cartão corporativo', 'município'..." autocomplete="off" />
+          <button id="btn-limpar-busca-inicio" class="btn-limpar-busca" style="display:none" title="Limpar busca">✕</button>
+        </div>
+      </div>
+
+      <div id="aviso-busca-sem-resultado" class="aviso-busca-vazia" style="display:none"></div>
+
+      <!-- FAQ ACCORDION -->
+      <div class="faq-container">
+        <!-- 1 -->
+        <div class="faq-item">
+          <button class="faq-pergunta">
+            <span>O que é este painel e qual é o objetivo do projeto?</span>
+            <svg class="faq-seta" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          <div class="faq-resposta">
+            <p>O Painel da Transparência & Controle foi desenvolvido pelas <strong>Indústrias Trigo</strong> para democratizar o acesso aos dados fiscais e legislativos do Brasil. O objetivo é transformar relatórios orçamentários complexos e dispersos em uma plataforma única, didática e intuitiva, permitindo que qualquer pessoa exerça o controle social e a cidadania ativa.</p>
+          </div>
+        </div>
+
+        <!-- 2 -->
+        <div class="faq-item">
+          <button class="faq-pergunta">
+            <span>Por que é solicitado entrar com uma conta para acessar os dados?</span>
+            <svg class="faq-seta" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          <div class="faq-resposta">
+            <p>A autenticação simples serve para monitorarmos a <strong>aderência e o alcance do projeto</strong> (quantos cidadãos, estudantes, jornalistas e auditores utilizam o sistema), além de garantir que as consultas às bases oficiais sejam feitas com segurança e sem sobrecarga dos servidores públicos. Não exigimos senhas de bancos ou de contas governamentais.</p>
+          </div>
+        </div>
+
+        <!-- 3 -->
+        <div class="faq-item">
+          <button class="faq-pergunta">
+            <span>O acesso ao painel é gratuito? Meus dados pessoais estão seguros?</span>
+            <svg class="faq-seta" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          <div class="faq-resposta">
+            <p><strong>Sim, 100% gratuito!</strong> Este é um projeto cívico e de governança aberta. Suas informações de login são tratadas com total privacidade, e sua eventual chave individual da CGU fica gravada exclusivamente no seu próprio navegador, sem ser enviada para servidores de terceiros.</p>
+          </div>
+        </div>
+
+        <!-- 4 -->
+        <div class="faq-item">
+          <button class="faq-pergunta">
+            <span>De onde vêm os dados exibidos nas tabelas e gráficos?</span>
+            <svg class="faq-seta" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          <div class="faq-resposta">
+            <p>Todos os dados são <strong>oficiais e auditáveis</strong>, obtidos diretamente de órgãos públicos de controle: Tesouro Nacional (SICONFI/SADIPEM), Câmara dos Deputados, Senado Federal, Tribunal Superior Eleitoral (TSE), Conselho Nacional de Justiça (CNJ) e Portal da Transparência do Governo Federal (CGU).</p>
+          </div>
+        </div>
+
+        <!-- 5 -->
+        <div class="faq-item">
+          <button class="faq-pergunta">
+            <span>Qualquer cidadão pode auditar e fiscalizar as contas públicas por aqui?</span>
+            <svg class="faq-seta" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          <div class="faq-resposta">
+            <p>Sim. A Constituição Brasileira (CF/88) e a Lei de Acesso à Informação (Lei 12.527/2011) garantem que todo cidadão tem o direito de fiscalizar os gastos do Estado. O painel disponibiliza links diretos para as requisições originais nos portais do governo para que qualquer informação possa ser confrontada.</p>
+          </div>
+        </div>
+
+        <!-- 6 -->
+        <div class="faq-item">
+          <button class="faq-pergunta">
+            <span>Como posso pesquisar as despesas da minha cidade ou do meu estado?</span>
+            <svg class="faq-seta" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          <div class="faq-resposta">
+            <p>Basta acessar a seção <strong>Mapa Interativo & Rankings</strong> no menu lateral. Você poderá selecionar qualquer um dos 5.570 municípios ou estados, escolher o ano desejado e visualizar os gastos por habitante em educação, saúde, saneamento, segurança e folha de pagamento.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GLOSSÁRIO CIDADÃO PÚBLICO (SEM PRECISAR DE ACESSO) -->
+    <div class="secao-inicio-bloco">
+      <div class="inicio-secao-cabecalho">
+        <h3>Glossário Cidadão: Termos Explicados de Forma Simples</h3>
+        <p>Aprenda os principais conceitos das contas públicas para entender qualquer relatório</p>
+      </div>
+
+      <div class="glossario-inicio-grid">
+        <div class="glossario-card-inicio">
+          <div class="termo-rotulo">Empenho</div>
+          <div class="termo-conceito">O compromisso formal do governo de que aquele dinheiro está reservado para pagar um serviço ou produto contratado. É a primeira etapa do gasto público.</div>
+        </div>
+
+        <div class="glossario-card-inicio">
+          <div class="termo-rotulo">Liquidação</div>
+          <div class="termo-conceito">A verificação oficial de que o produto foi efetivamente entregue ou que o serviço contratado foi prestado de forma correta antes de liberar o dinheiro.</div>
+        </div>
+
+        <div class="glossario-card-inicio">
+          <div class="termo-rotulo">Pagamento</div>
+          <div class="termo-conceito">A transferência real do dinheiro público para a conta bancária do fornecedor ou servidor, após o empenho e a liquidação aprovada.</div>
+        </div>
+
+        <div class="glossario-card-inicio">
+          <div class="termo-rotulo">Receita Corrente Líquida (RCL)</div>
+          <div class="termo-conceito">É o total que o governo arrecada com tributos e contribuições, descontadas as transferências obrigatórias. Serve como base para calcular limites legais de gastos.</div>
+        </div>
+
+        <div class="glossario-card-inicio">
+          <div class="termo-rotulo">Teto Constitucional</div>
+          <div class="termo-conceito">O valor máximo que qualquer servidor público ou autoridade pode receber por mês, baseado no salário de ministro do Supremo Tribunal Federal (STF). Valores acima sofrem 'Abate-Teto'.</div>
+        </div>
+
+        <div class="glossario-card-inicio">
+          <div class="termo-rotulo">Cota Parlamentar (CEAP)</div>
+          <div class="termo-conceito">Verba mensal destinada a cobrir despesas do exercício do mandato de deputados e senadores, como passagens aéreas, combustível, hospedagem e consultorias.</div>
+        </div>
+
+        <div class="glossario-card-inicio">
+          <div class="termo-rotulo">Cartão Corporativo</div>
+          <div class="termo-conceito">Mecanismo para pagamentos emergenciais e de pequeno vulto da administração pública (suprimento de fundos), com regras rígidas de prestação de contas.</div>
+        </div>
+
+        <div class="glossario-card-inicio">
+          <div class="termo-rotulo">Emendas Parlamentares</div>
+          <div class="termo-conceito">Recursos do orçamento federal indicados por deputados e senadores para financiar obras, hospitais e projetos em suas cidades e estados de base.</div>
+        </div>
+
+        <div class="glossario-card-inicio">
+          <div class="termo-rotulo">RREO & RGF</div>
+          <div class="termo-conceito">Relatórios oficiais bimestrais e quadrimestrais exigidos pela Lei de Responsabilidade Fiscal para demonstrar o equilíbrio entre arrecadação e despesas.</div>
+        </div>
+
+        <div class="glossario-card-inicio">
+          <div class="termo-rotulo">Lei de Responsabilidade Fiscal (LRF)</div>
+          <div class="termo-conceito">Lei que impõe limites rígidos para gastos com folha de pagamento e dívidas públicas de prefeitos, governadores e do Presidente da República.</div>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
   <!-- ------------------------------------------------------------ mapa -->
-  <section id="aba-mapa">
+  <section id="aba-mapa" role="tabpanel" tabindex="-1"
+           aria-labelledby="aba-btn-mapa">
     <div class="barra">
       <div>
         <label for="ano">Ano</label>
         <select id="ano"></select>
       </div>
       <div>
+        <!-- Agrupada por PERGUNTA, não pela ordem em que as métricas foram
+             sendo acrescentadas. Catorze opções numa lista corrida obrigam a
+             ler tudo para achar uma; em cinco grupos, o olho vai direto.
+             O `<optgroup>` também resolve a largura: era o rótulo mais longo
+             que ditava o tamanho do seletor, e ele estourava 380px. -->
         <label for="metrica">Métrica</label>
         <select id="metrica">
-          <option value="despesa_per_capita">Despesa por habitante</option>
-          <option value="despesa_total">Despesa total</option>
-          <option value="receita_total">Arrecadação</option>
-          <option value="receita_per_capita">Arrecadação por habitante</option>
-          <option value="transferencia_recebida">Transferências recebidas</option>
-          <option value="dependencia_transferencia">Dependência de transferências (%)</option>
-          <option value="populacao">População</option>
+          <optgroup label="Quanto gasta (Empenhos)">
+            <option value="despesa_per_capita">Despesas Empenhadas por habitante</option>
+            <option value="despesa_total">Despesas Empenhadas (total)</option>
+          </optgroup>
+          <optgroup label="Quanto arrecada">
+            <option value="receita_total">Arrecadação</option>
+            <option value="receita_per_capita">Arrecadação por habitante</option>
+          </optgroup>
+          <optgroup label="Quanto recebe da União">
+            <option value="transferencia_recebida">Transferências (declarado)</option>
+            <option value="transferencia_uniao">Transferências (pago pelo Tesouro)</option>
+            <option value="dependencia_transferencia">Dependência de transferências</option>
+          </optgroup>
+          <optgroup label="Em que gasta (Por função)">
+            <option value="despesa_saude">Saúde — total empenhado</option>
+            <option value="saude_per_capita">Saúde por habitante</option>
+            <option value="despesa_educacao">Educação — total empenhado</option>
+            <option value="educacao_per_capita">Educação por habitante</option>
+          </optgroup>
+          <optgroup label="Saúde fiscal">
+            <option value="percentual_pessoal">Pessoal sobre a RCL (limite da LRF)</option>
+            <option value="divida_liquida">Dívida consolidada líquida</option>
+          </optgroup>
+          <optgroup label="Contexto">
+            <option value="populacao">População</option>
+          </optgroup>
         </select>
       </div>
       <div>
@@ -52,28 +538,50 @@
       </div>
     </div>
 
+    <!-- Por que os cartões deste ano estão vazios. Preenchido por
+         `avisarAnoParcial()`; some quando o ano está completo. -->
+    <div id="aviso-ano" hidden></div>
+
     <p class="migalha" id="migalha">Brasil</p>
 
     <div class="painel" id="painel-mapa">
-      <div class="cartao" id="cartao-mapa">
+      <div class="cartao" id="cartao-mapa" role="group" aria-label="Mapa">
+        <!-- Os botões saíram do <h2>: dentro dele, o nome acessível do
+             cabeçalho virava "Clique num estado… − + Enquadrar Ampliar". -->
         <h2>
-          Clique num estado para ver seus municípios · num município, para a ficha dele
-          <span class="ferramentas-mapa">
-            <button type="button" class="discreto" id="zoom-menos" title="Afastar" aria-label="Afastar">−</button>
-            <button type="button" class="discreto" id="zoom-mais" title="Aproximar" aria-label="Aproximar">+</button>
-            <button type="button" class="discreto" id="zoom-reset" title="Enquadrar de novo">Enquadrar</button>
+          <span>Mapa</span>
+          <span class="ferramentas-mapa" role="group" aria-label="Controles do mapa">
+            <button type="button" class="discreto" id="zoom-menos" aria-label="Afastar">−</button>
+            <button type="button" class="discreto" id="zoom-mais" aria-label="Aproximar">+</button>
+            <button type="button" class="discreto" id="zoom-reset">Enquadrar</button>
             <button type="button" class="discreto" id="tela-cheia" aria-pressed="false">Ampliar</button>
           </span>
         </h2>
         <div class="moldura-mapa" id="moldura-mapa">
-          <svg id="mapa" role="img" aria-label="Mapa do Brasil"></svg>
-          <div class="dica" id="dica-mapa" role="status" aria-live="polite" hidden></div>
+          <!-- Sem `role="img"`: ele tornaria presentacional TODO o conteúdo
+               interno, inclusive os <path> focáveis que o teclado alcança —
+               foco indo para nós que a árvore de acessibilidade não expõe.
+               O nome é reescrito por painel.js a cada troca de UF e métrica.
+               Setas movem o mapa quando há zoom; + e − ajustam; 0 enquadra. -->
+          <svg id="mapa" role="group" tabindex="-1"
+               aria-label="Mapa do Brasil" aria-describedby="ajuda-mapa"></svg>
+          <!-- A dica NÃO é `aria-live`: ela era reescrita a cada ente sob o
+               cursor, e atravessar o mapa com o mouse enfileirava uma leitura
+               por município. O leitor chega ao número pelo aria-label do ente. -->
+          <div class="dica" id="dica-mapa" hidden></div>
         </div>
+        <p id="ajuda-mapa" class="rodape-mapa">
+          <strong>Clique num estado</strong> para ver seus municípios; num
+          município, para abrir a ficha dele. Roda do mouse ou
+          <kbd>+</kbd>/<kbd>−</kbd> aproxima, setas movem, <kbd>0</kbd>
+          enquadra de novo.
+        </p>
         <div class="legenda">
           <span id="legenda-min">—</span>
-          <span class="faixa" id="legenda-faixa"></span>
+          <span class="faixa" id="legenda-faixa" role="img"
+                aria-label="Escala de cor, do menor ao maior valor"></span>
           <span id="legenda-max">—</span>
-          <span>· cinza = sem dado coletado</span>
+          <span><i class="sem-dado-amostra"></i>sem dado coletado</span>
         </div>
         <p class="rodape-mapa" id="rodape-mapa"></p>
       </div>
@@ -86,7 +594,8 @@
   </section>
 
   <!-- -------------------------------------------------------- políticos -->
-  <section id="aba-politicos" hidden>
+  <section id="aba-politicos" role="tabpanel" tabindex="-1"
+           aria-labelledby="aba-btn-politicos" hidden>
     <div class="aviso">
       <strong>Limite honesto de escopo</strong>
       Cadastro de eleitos existe do presidente ao vereador (TSE). Já a votação
@@ -97,6 +606,60 @@
     </div>
 
     <div class="barra">
+      <div>
+        <label for="filtro-ano-politico">Ano de Competência / Mandato</label>
+        <select id="filtro-ano-politico">
+          <option value="">Todos os anos</option>
+          <optgroup label="Mandato 2023–2027 (Lula)">
+            <option value="2026">Exercício 2026</option>
+            <option value="2025">Exercício 2025</option>
+            <option value="2024">Exercício 2024</option>
+            <option value="2023">Exercício 2023</option>
+          </optgroup>
+          <optgroup label="Mandato 2019–2023 (Bolsonaro)">
+            <option value="2022">Exercício 2022</option>
+            <option value="2021">Exercício 2021</option>
+            <option value="2020">Exercício 2020</option>
+            <option value="2019">Exercício 2019</option>
+          </optgroup>
+          <optgroup label="Mandato 2015–2019 (Dilma / Temer)">
+            <option value="2018">Exercício 2018</option>
+            <option value="2017">Exercício 2017</option>
+            <option value="2016">Exercício 2016</option>
+            <option value="2015">Exercício 2015</option>
+          </optgroup>
+          <optgroup label="Mandato 2011–2015 (Dilma)">
+            <option value="2014">Exercício 2014</option>
+            <option value="2013">Exercício 2013</option>
+            <option value="2012">Exercício 2012</option>
+            <option value="2011">Exercício 2011</option>
+          </optgroup>
+          <optgroup label="Mandato 2007–2011 (Lula)">
+            <option value="2010">Exercício 2010</option>
+            <option value="2009">Exercício 2009</option>
+            <option value="2008">Exercício 2008</option>
+            <option value="2007">Exercício 2007</option>
+          </optgroup>
+          <optgroup label="Mandato 2003–2007 (Lula)">
+            <option value="2006">Exercício 2006</option>
+            <option value="2005">Exercício 2005</option>
+            <option value="2004">Exercício 2004</option>
+            <option value="2003">Exercício 2003</option>
+          </optgroup>
+          <optgroup label="Mandato 1999–2003 (FHC)">
+            <option value="2002">Exercício 2002</option>
+            <option value="2001">Exercício 2001</option>
+            <option value="2000">Exercício 2000</option>
+            <option value="1999">Exercício 1999</option>
+          </optgroup>
+          <optgroup label="Mandato 1995–1999 (FHC)">
+            <option value="1998">Exercício 1998</option>
+            <option value="1997">Exercício 1997</option>
+            <option value="1996">Exercício 1996</option>
+            <option value="1995">Exercício 1995</option>
+          </optgroup>
+        </select>
+      </div>
       <div><label for="filtro-uf">UF</label>
         <input id="filtro-uf" size="4" placeholder="SP" maxlength="2"></div>
       <div><label for="filtro-cargo">Cargo</label>
@@ -112,16 +675,28 @@
         </select></div>
       <div><label for="filtro-nome">Nome</label>
         <input id="filtro-nome" placeholder="buscar"></div>
-      <div><label>&nbsp;</label><button id="buscar-politicos">Buscar</button></div>
+      <div><label for="filtro-partido">Partido</label>
+        <input id="filtro-partido" size="6" maxlength="12" placeholder="PT"></div>
+      <div class="acao"><button id="buscar-politicos" class="principal">Buscar</button></div>
     </div>
 
     <div class="painel">
       <div class="cartao">
         <h2>Resultados</h2>
-        <table id="tabela-politicos">
-          <thead><tr><th>Nome</th><th>Cargo</th><th>Partido</th><th>UF</th><th>Fonte</th></tr></thead>
-          <tbody></tbody>
-        </table>
+        <!-- SEM `style` inline aqui. Um `display:flex` no atributo `style`
+             VENCE o `[hidden] { display: none }` da folha do navegador, e a
+             div apareceria vazia sempre — inclusive antes da primeira busca.
+             É a mesma armadilha do `font-size` do rótulo do mapa: quem ganha
+             a cascata não é quem parece. O layout está em estilo.css. -->
+        <div id="destaque-executivo" hidden></div>
+        <div class="rolagem">
+          <table id="tabela-politicos">
+            <caption class="rodape-mapa" style="text-align:left;caption-side:bottom">
+              Cadastro do TSE, conciliado com o código IBGE e mandatos oficiais.</caption>
+            <thead><tr><th>Nome</th><th>Cargo</th><th>Mandato / Vigência</th><th>Partido</th><th>UF</th><th>Fonte</th></tr></thead>
+            <tbody aria-live="polite" aria-busy="false"></tbody>
+          </table>
+        </div>
       </div>
       <div class="cartao">
         <h2>Quantos existem</h2>
@@ -130,8 +705,520 @@
     </div>
   </section>
 
+  <!-- ---------------------------------------------------- poder executivo -->
+  <section id="aba-executivo" role="tabpanel" tabindex="-1"
+           aria-labelledby="aba-btn-executivo" hidden>
+    <div class="aviso">
+      <strong>Mandatos do Poder Executivo & Contas de Gestão</strong>
+      Acompanhe os dados completos de quem governa (Presidente, Governador ou Prefeito):
+      arrecadação total, despesas executadas, se o mandato fechou no <strong>Superávit</strong>
+      ou <strong>Déficit</strong> orçamentário, em quais áreas o dinheiro foi investido e
+      o respeito aos limites da Lei de Responsabilidade Fiscal (LRF).
+    </div>
+
+    <div class="barra">
+      <div>
+        <label for="executivo-esfera">Esfera / Cargo</label>
+        <select id="executivo-esfera">
+          <option value="geral" selected>Gastos do Poder Executivo (Visão Geral)</option>
+          <option value="estadual">Governador (Estadual)</option>
+          <option value="federal">Presidente da República (Federal)</option>
+          <option value="municipal">Prefeito (Municipal)</option>
+        </select>
+      </div>
+      <div id="bloco-executivo-uf" hidden>
+        <label for="executivo-uf">Estado / UF</label>
+        <select id="executivo-uf">
+          <option value="SP" selected>São Paulo (SP)</option>
+          <option value="AC">Acre (AC)</option>
+          <option value="AL">Alagoas (AL)</option>
+          <option value="AP">Amapá (AP)</option>
+          <option value="AM">Amazonas (AM)</option>
+          <option value="BA">Bahia (BA)</option>
+          <option value="CE">Ceará (CE)</option>
+          <option value="DF">Distrito Federal (DF)</option>
+          <option value="ES">Espírito Santo (ES)</option>
+          <option value="GO">Goiás (GO)</option>
+          <option value="MA">Maranhão (MA)</option>
+          <option value="MT">Mato Grosso (MT)</option>
+          <option value="MS">Mato Grosso do Sul (MS)</option>
+          <option value="MG">Minas Gerais (MG)</option>
+          <option value="PA">Pará (PA)</option>
+          <option value="PB">Paraíba (PB)</option>
+          <option value="PR">Paraná (PR)</option>
+          <option value="PE">Pernambuco (PE)</option>
+          <option value="PI">Piauí (PI)</option>
+          <option value="RJ">Rio de Janeiro (RJ)</option>
+          <option value="RN">Rio Grande do Norte (RN)</option>
+          <option value="RS">Rio Grande do Sul (RS)</option>
+          <option value="RO">Rondônia (RO)</option>
+          <option value="RR">Roraima (RR)</option>
+          <option value="SC">Santa Catarina (SC)</option>
+          <option value="SE">Sergipe (SE)</option>
+          <option value="TO">Tocantins (TO)</option>
+        </select>
+      </div>
+      <div id="bloco-executivo-municipio" hidden>
+        <label for="executivo-municipio">Município</label>
+        <select id="executivo-municipio" style="min-width:200px"></select>
+      </div>
+      <div id="bloco-executivo-mandato" hidden>
+        <label for="executivo-mandato">Mandato / Período</label>
+        <select id="executivo-mandato" style="min-width:310px; max-width:420px"></select>
+      </div>
+      <div id="bloco-executivo-ano">
+        <label for="executivo-ano">Ano de Competência</label>
+        <select id="executivo-ano" style="min-width:110px"></select>
+      </div>
+      <div class="acao">
+        <button id="btn-atualizar-executivo" class="principal">Consultar</button>
+      </div>
+    </div>
+
+    <!-- Dashboard Principal do Chefe do Executivo / Exercício Presidencial -->
+    <div id="executivo-dashboard-principal" style="margin-bottom:18px"></div>
+
+    <!-- Painel Comparativo Interfederativo (Presidente vs Governador vs Prefeito) -->
+    <div id="executivo-painel-comparativo" style="margin-bottom:18px" hidden></div>
+
+
+    <!-- Termômetro Macroeconômico do Exercício -->
+    <div class="cartao" style="margin-bottom:16px; border-top: 3px solid var(--realce, #38bdf8);">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px">
+        <h2 id="executivo-titulo-macro" style="margin:0">🌡️ Termômetro Macroeconômico & Indicadores Chave</h2>
+        <span class="badge-metodo">IBGE · Banco Central · Tesouro Nacional · MDS / CadÚnico</span>
+      </div>
+      <p class="rodape-mapa" style="margin-top:4px; margin-bottom:12px">
+        Principais métricas macroeconômicas e sociais oficiais que determinam o custo de vida, taxa de juros, assistência social e atividade econômica no exercício.
+      </p>
+      <div class="tiras" id="executivo-termometro-macro"></div>
+    </div>
+
+    <!-- Defasagem Fiscal: Resultado Primário vs Resultado Nominal -->
+    <div class="cartao" style="margin-bottom:16px; border-top: 3px solid #10b981;">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px">
+        <h2 id="executivo-titulo-defasagem" style="margin:0">⚖️ Defasagem Fiscal: O Cálculo do Déficit ou Superávit</h2>
+        <span class="badge-metodo">Metodologia Senado / LRF</span>
+      </div>
+      <p class="rodape-mapa" style="margin-top:4px; margin-bottom:12px">
+        Análise da saúde fiscal através das duas óticas fundamentais: <strong>Resultado Primário</strong> (contas estruturais sem juros) e <strong>Resultado Nominal</strong> (fechamento global com custo da dívida).
+      </p>
+      <div id="executivo-conteudo-defasagem"></div>
+    </div>
+
+    <!-- Produto Interno Bruto (PIB) & Contas Nacionais -->
+    <div class="cartao" style="margin-bottom:16px; border-top: 3px solid #f59e0b;">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px">
+        <h2 id="executivo-titulo-pib" style="margin:0">🌐 Produto Interno Bruto (PIB) & Contas Nacionais</h2>
+        <span class="badge-metodo">Metodologia IBGE / SCN</span>
+      </div>
+      <p class="rodape-mapa" style="margin-top:4px; margin-bottom:12px">
+        Soma de todos os bens e serviços finais produzidos no exercício, decomposto pelas duas óticas equivalentes: <strong>Demanda (Despesa)</strong> e <strong>Oferta (Produção)</strong>.
+      </p>
+      <div id="executivo-conteudo-pib"></div>
+    </div>
+
+    <div class="painel" style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+      <!-- Card Fiscal: Superávit ou Déficit Orçamentário Geral -->
+      <div class="cartao" id="executivo-card-fiscal">
+        <h2 id="executivo-titulo-fiscal">Situação Orçamentária Geral</h2>
+        <div id="executivo-resultado-saldo"></div>
+      </div>
+
+      <!-- Card LRF e Gestão Fiscal -->
+      <div class="cartao" id="executivo-card-lrf">
+        <h2>Responsabilidade Fiscal & Pessoal (LRF)</h2>
+        <div id="executivo-conteudo-lrf"></div>
+      </div>
+    </div>
+
+    <div class="painel" style="margin-top:16px; display:grid; grid-template-columns: 1.2fr 1fr; gap:16px;">
+      <!-- Com o que gastaram: Funções de Governo -->
+      <div class="cartao">
+        <h2>Com o que gastaram (Áreas de Investimento)</h2>
+        <p class="rodape-mapa" style="margin-top:-6px;margin-bottom:8px">
+          Despesas públicas por função de governo (Saúde, Educação, Segurança, Transporte, etc.).
+        </p>
+        <div id="executivo-gastos-funcao" class="rolagem"></div>
+      </div>
+
+      <!-- Série Histórica Anual do Mandato -->
+      <div class="cartao">
+        <h2 id="executivo-titulo-evolucao">Evolução Anual das Contas</h2>
+        <p class="rodape-mapa" style="margin-top:-6px;margin-bottom:8px">
+          Histórico anual de receitas, despesas e saldo orçamentário.
+        </p>
+        <div id="executivo-serie-anual" class="rolagem"></div>
+      </div>
+    </div>
+
+    <!-- Bloco de Cartões Corporativos do Executivo -->
+    <div class="cartao" style="margin-top:16px" id="executivo-secao-cartoes">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px">
+        <h2 id="executivo-titulo-cartoes">💳 Gastos com Cartões de Pagamento & Suprimentos</h2>
+        <span class="badge-metodo">Transparência Pública</span>
+      </div>
+      <p id="executivo-subtitulo-cartoes" class="rodape-mapa" style="margin-top:-4px; margin-bottom:12px">
+        Gastos efetuados com cartões de pagamento e suprimentos de fundos no Poder Executivo.
+      </p>
+      
+      <div class="tiras" id="executivo-topo-cartoes"></div>
+
+      <div class="painel" style="margin-top:14px; display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+        <div class="cartao" style="background:var(--superficie-2)">
+          <h3>Maiores Favorecidos / Estabelecimentos</h3>
+          <p class="rodape-mapa">Onde os recursos do cartão foram mais utilizados.</p>
+          <div id="executivo-cartoes-favorecidos" class="rolagem"></div>
+        </div>
+
+        <div class="cartao" style="background:var(--superficie-2)">
+          <h3>Maiores Gastos por Ministério / Órgão</h3>
+          <p class="rodape-mapa">Órgãos com maior volume de gastos com cartão de pagamento.</p>
+          <div id="executivo-cartoes-orgaos" class="rolagem"></div>
+        </div>
+      </div>
+
+      <div class="cartao" style="background:var(--superficie-2); margin-top:14px">
+        <h3>Maiores Transações Individuais com Cartão</h3>
+        <div id="executivo-cartoes-transacoes" class="rolagem"></div>
+      </div>
+    </div>
+
+    <!-- Bloco de Diárias e Passagens de Viagens a Serviço -->
+    <div class="cartao" style="margin-top:16px" id="executivo-secao-viagens">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px">
+        <h2 id="executivo-titulo-viagens">✈️ Viagens a Serviço, Diárias & Passagens Oficiais</h2>
+        <span class="badge-metodo">Transparência Pública</span>
+      </div>
+      <p id="executivo-subtitulo-viagens" class="rodape-mapa" style="margin-top:-4px; margin-bottom:12px">
+        Custos de passagens aéreas, diárias e hospedagem de comitivas e viagens oficiais de gestores públicos.
+      </p>
+      <div class="tiras" id="executivo-topo-viagens"></div>
+
+      <div class="painel" style="margin-top:14px; display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+        <div class="cartao" style="background:var(--superficie-2)">
+          <h3>Destinos Mais Visitados</h3>
+          <div id="executivo-viagens-destinos" class="rolagem"></div>
+        </div>
+        <div class="cartao" style="background:var(--superficie-2)">
+          <h3>Gastos por Ministério / Secretaria</h3>
+          <div id="executivo-viagens-orgaos" class="rolagem"></div>
+        </div>
+      </div>
+
+      <div class="cartao" style="background:var(--superficie-2); margin-top:14px">
+        <h3>Maiores Viagens Oficiais Registradas</h3>
+        <div id="executivo-viagens-maiores" class="rolagem"></div>
+      </div>
+    </div>
+
+    <!-- Bloco de Contratos Públicos e Fornecedores -->
+    <div class="cartao" style="margin-top:16px" id="executivo-secao-contratos">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px">
+        <h2 id="executivo-titulo-contratos">📜 Contratos Públicos, Licitações & Fornecedores</h2>
+        <span class="badge-metodo">Compras Governamentais</span>
+      </div>
+      <p id="executivo-subtitulo-contratos" class="rodape-mapa" style="margin-top:-4px; margin-bottom:12px">
+        Contratos administrativos firmados, com destaque para dispensas, inexigibilidades e maiores fornecedores.
+      </p>
+      <div class="tiras" id="executivo-topo-contratos"></div>
+
+      <div class="painel" style="margin-top:14px; display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+        <div class="cartao" style="background:var(--superficie-2)">
+          <h3>Maiores Fornecedores Contratados</h3>
+          <div id="executivo-contratos-fornecedores" class="rolagem"></div>
+        </div>
+        <div class="cartao" style="background:var(--superficie-2)">
+          <h3>Contratos por Modalidade de Licitação</h3>
+          <div id="executivo-contratos-modalidades" class="rolagem"></div>
+        </div>
+      </div>
+
+      <div class="cartao" style="background:var(--superficie-2); margin-top:14px">
+        <h3>Maiores Contratos Firmados</h3>
+        <div id="executivo-contratos-maiores" class="rolagem"></div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- -------------------------------------------------------- legislativo -->
+  <section id="aba-legislativo" role="tabpanel" tabindex="-1"
+           aria-labelledby="aba-btn-legislativo" hidden>
+    
+    <!-- Barra de Filtros -->
+    <div class="barra">
+      <div>
+        <label for="filtro-leg-esfera">Esfera</label>
+        <select id="filtro-leg-esfera">
+          <option value="federal">Congresso Nacional (Federal)</option>
+          <option value="estadual">Assembleias Legislativas (Estadual)</option>
+          <option value="municipal">Câmaras Municipais (Municipal)</option>
+          <option value="geral">Todas as Esferas</option>
+        </select>
+      </div>
+      <div>
+        <label for="filtro-leg-casa">Casa Legislativa</label>
+        <select id="filtro-leg-casa">
+          <option value="">Todas as casas</option>
+          <option value="camara">Câmara dos Deputados</option>
+          <option value="senado">Senado Federal</option>
+        </select>
+      </div>
+      <div>
+        <label for="filtro-leg-ano">Ano de Competência</label>
+        <select id="filtro-leg-ano">
+          <option value="2026">2026</option>
+          <option value="2025">2025</option>
+          <option value="2024">2024</option>
+          <option value="2023">2023</option>
+          <option value="2022">2022</option>
+          <option value="2021">2021</option>
+          <option value="2020">2020</option>
+          <option value="2019">2019</option>
+        </select>
+      </div>
+      <div style="flex:1; min-width:200px">
+        <label for="filtro-leg-busca">Buscar Parlamentar ou Partido</label>
+        <input id="filtro-leg-busca" type="search" placeholder="Nome, partido ou estado...">
+      </div>
+      <div class="acao">
+        <button id="btn-buscar-leg" class="principal">Consultar</button>
+      </div>
+    </div>
+
+    <!-- Conteúdo do Legislativo -->
+    <div id="legislativo-conteudo"></div>
+  </section>
+
+  <!-- -------------------------------------------------------- judiciário -->
+  <section id="aba-judiciario" role="tabpanel" tabindex="-1"
+           aria-labelledby="aba-btn-judiciario" hidden>
+    
+    <!-- Barra de Filtros -->
+    <div class="barra">
+      <div style="flex:1; min-width:200px">
+        <label for="filtro-jud-busca">Buscar Magistrado / Ministro</label>
+        <input id="filtro-jud-busca" type="search" placeholder="Nome, tribunal ou vara...">
+      </div>
+      <div>
+        <label for="filtro-jud-ramo">Ramo da Justiça</label>
+        <select id="filtro-jud-ramo">
+          <option value="">Todos os ramos</option>
+          <option value="Supremo">Supremo Tribunal (STF)</option>
+          <option value="Superior">Tribunais Superiores (STJ, TST)</option>
+          <option value="Federal">Justiça Federal (TRFs)</option>
+          <option value="Estadual">Justiça Estadual (TJs)</option>
+          <option value="Trabalho">Justiça do Trabalho</option>
+        </select>
+      </div>
+      <div>
+        <label for="filtro-jud-tribunal">Tribunal</label>
+        <select id="filtro-jud-tribunal">
+          <option value="">Todos os tribunais</option>
+          <option value="STF">STF</option>
+          <option value="STJ">STJ</option>
+          <option value="TST">TST</option>
+          <option value="TJSP">TJSP</option>
+          <option value="TJRJ">TJRJ</option>
+          <option value="TJMG">TJMG</option>
+          <option value="TRF1">TRF1</option>
+          <option value="TRF3">TRF3</option>
+        </select>
+      </div>
+      <div>
+        <label for="filtro-jud-cargo">Cargo</label>
+        <select id="filtro-jud-cargo">
+          <option value="">Todos os cargos</option>
+          <option value="ministro_stf">Ministro do STF</option>
+          <option value="ministro_stj">Ministro do STJ</option>
+          <option value="ministro_tst">Ministro do TST</option>
+          <option value="desembargador">Desembargador Estadual</option>
+          <option value="desembargador_federal">Desembargador Federal</option>
+          <option value="juiz_direito">Juiz de Direito (Estadual)</option>
+          <option value="juiz_federal">Juiz Federal</option>
+        </select>
+      </div>
+      <div>
+        <label for="filtro-jud-ordem">Ordenar por</label>
+        <select id="filtro-jud-ordem">
+          <option value="remuneracao">Maior Remuneração Líquida</option>
+          <option value="nome">Nome (A - Z)</option>
+        </select>
+      </div>
+      <div class="acao">
+        <button id="filtro-jud-limpar" class="discreto">Limpar</button>
+      </div>
+    </div>
+
+    <!-- KPIs do Judiciário -->
+    <div class="tiras" id="jud-kpis" style="margin-top: 14px;">
+      <div class="tira">
+        <span class="rotulo">Magistrados Mapeados</span>
+        <span class="valor" id="jud-kpi-total">—</span>
+        <span class="detalhe">Composição nominal e folhas ativas</span>
+      </div>
+      <div class="tira">
+        <span class="rotulo">Folha Mensal Estimada</span>
+        <span class="valor" id="jud-kpi-folha">—</span>
+        <span class="detalhe">Soma de subsídios e benefícios</span>
+      </div>
+      <div class="tira">
+        <span class="rotulo">Remuneração Líquida Média</span>
+        <span class="valor" id="jud-kpi-media">—</span>
+        <span class="detalhe">Média apurada por magistrado</span>
+      </div>
+      <div class="tira">
+        <span class="rotulo">Tribunais Monitorados</span>
+        <span class="valor" id="jud-kpi-tribunais">—</span>
+        <span class="detalhe">Superiores, Federais e Estaduais</span>
+      </div>
+    </div>
+
+    <!-- Tabela de Magistrados -->
+    <div class="cartao" style="margin-top: 16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px">
+        <h2>⚖️ Ministros, Desembargadores e Juízes</h2>
+        <span class="badge-metodo" id="jud-total-filtrado">Carregando...</span>
+      </div>
+      <p class="rodape-mapa" style="margin-top:-4px; margin-bottom:12px">
+        Dados consolidados a partir do Painel de Remuneração dos Magistrados do CNJ e das composições oficiais dos Tribunais. Clique em um magistrado para ver a decomposição salarial completa.
+      </p>
+
+      <div class="rolagem">
+        <table class="tabela-dados" id="tabela-magistrados">
+          <thead>
+            <tr>
+              <th style="width:40px"></th>
+              <th>Nome & Lotação</th>
+              <th>Cargo & Grau</th>
+              <th>Tribunal</th>
+              <th class="num">Subsídio Base</th>
+              <th class="num">Penduricalhos (Auxílios)</th>
+              <th class="num">Remuneração Líquida</th>
+            </tr>
+          </thead>
+          <tbody id="tabela-magistrados-corpo">
+            <tr><td colspan="7" class="carregando">Carregando dados...</td></tr>
+          </tbody>
+          <tfoot id="tabela-magistrados-rodape"></tfoot>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- -------------------------------------------------- ministério público -->
+  <section id="aba-mp" role="tabpanel" tabindex="-1"
+           aria-labelledby="aba-btn-mp" hidden>
+    
+    <!-- Barra de Filtros -->
+    <div class="barra">
+      <div style="flex:1; min-width:200px">
+        <label for="filtro-mp-busca">Buscar Membro do MP</label>
+        <input id="filtro-mp-busca" type="search" placeholder="Nome, comarca, cargo ou lotação...">
+      </div>
+      <div>
+        <label for="filtro-mp-ramo">Ramo do Ministério Público</label>
+        <select id="filtro-mp-ramo">
+          <option value="">Todos os ramos</option>
+          <option value="Federal">MPF (Federal / PGR)</option>
+          <option value="Trabalho">MPT (Trabalho)</option>
+          <option value="Militar">MPM (Militar)</option>
+          <option value="Distrito Federal">MPDFT (Distrito Federal)</option>
+          <option value="Estadual">MPEs (Estaduais)</option>
+        </select>
+      </div>
+      <div>
+        <label for="filtro-mp-cargo">Cargo</label>
+        <select id="filtro-mp-cargo">
+          <option value="">Todos os cargos</option>
+          <option value="procurador_geral_republica">Procurador-Geral da República</option>
+          <option value="procurador_justica">Procurador de Justiça / PGJ</option>
+          <option value="subprocurador_geral_trabalho">Subprocurador-Geral</option>
+          <option value="promotor_justica">Promotor de Justiça Titular</option>
+          <option value="promotor_substituto">Promotor de Justiça Substituto</option>
+        </select>
+      </div>
+      <div>
+        <label for="filtro-mp-ordem">Ordenar por</label>
+        <select id="filtro-mp-ordem">
+          <option value="remuneracao">Maior Remuneração Líquida</option>
+          <option value="nome">Nome (A - Z)</option>
+        </select>
+      </div>
+      <div class="acao">
+        <button id="filtro-mp-limpar" class="discreto">Limpar</button>
+      </div>
+    </div>
+
+    <!-- KPIs do Ministério Público -->
+    <div class="tiras" id="mp-kpis" style="margin-top: 14px;">
+      <div class="tira">
+        <span>Membros Mapeados</span>
+        <div style="display:flex; flex-direction:column; align-items:flex-end">
+          <strong style="font-size:1.15rem; color:var(--realce, #38bdf8)" id="mp-kpi-total">—</strong>
+          <span style="font-size:0.82rem; color:var(--texto-fraco); margin-top:2px">promotores e procuradores</span>
+        </div>
+      </div>
+      <div class="tira">
+        <span>Folha Mensal Estimada</span>
+        <div style="display:flex; flex-direction:column; align-items:flex-end">
+          <strong style="font-size:1.15rem" id="mp-kpi-folha">—</strong>
+          <span style="font-size:0.82rem; color:var(--texto-fraco); margin-top:2px">subsídios e adicionais</span>
+        </div>
+      </div>
+      <div class="tira">
+        <span>Remuneração Líquida Média</span>
+        <div style="display:flex; flex-direction:column; align-items:flex-end">
+          <strong style="font-size:1.15rem; color:var(--calmo, #10b981)" id="mp-kpi-media">—</strong>
+          <span style="font-size:0.82rem; color:var(--texto-fraco); margin-top:2px">média apurada por membro</span>
+        </div>
+      </div>
+      <div class="tira">
+        <span>Volume de Penduricalhos</span>
+        <div style="display:flex; flex-direction:column; align-items:flex-end">
+          <strong style="font-size:1.15rem; color:var(--alerta, #f59e0b)" id="mp-kpi-penduricalhos">—</strong>
+          <span style="font-size:0.82rem; color:var(--texto-fraco); margin-top:2px">indenizações e gratificações</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabela de Membros do MP -->
+    <div class="cartao" style="margin-top: 16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px">
+        <h2>⚖️ Procuradores e Promotores de Justiça</h2>
+        <span class="badge-metodo" id="mp-total-filtrado">Carregando...</span>
+      </div>
+      <p class="rodape-mapa" style="margin-top:-4px; margin-bottom:12px">
+        Dados do Conselho Nacional do Ministério Público (CNMP) e das Procuradorias-Gerais. Clique em "Detalhar" para ver a composição salarial completa.
+      </p>
+
+      <div class="rolagem">
+        <table class="tabela-dados" id="tabela-mp">
+          <thead>
+            <tr>
+              <th>Nome & Lotação</th>
+              <th style="min-width:180px">Cargo & Grau</th>
+              <th style="min-width:130px">Órgão / Ramo</th>
+              <th class="num" style="min-width:115px">Subsídio Base</th>
+              <th class="num" style="min-width:115px">Penduricalhos</th>
+              <th class="num" style="min-width:145px">Remuneração Líquida</th>
+              <th style="width:110px; min-width:105px; text-align:center">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tabela-mp-corpo">
+            <tr><td colspan="7" class="carregando">Carregando dados...</td></tr>
+          </tbody>
+          <tfoot id="tabela-mp-rodape"></tfoot>
+        </table>
+      </div>
+    </div>
+  </section>
+
   <!-- ------------------------------------------------------ proposições -->
-  <section id="aba-proposicoes" hidden>
+  <section id="aba-proposicoes" role="tabpanel" tabindex="-1"
+
+           aria-labelledby="aba-btn-proposicoes" hidden>
     <div class="barra">
       <div><label for="filtro-proposicao">Texto</label>
         <input id="filtro-proposicao" placeholder="ementa ou PL 1234/2024"></div>
@@ -143,24 +1230,26 @@
         <select id="filtro-tipo"><option value="">todos</option></select></div>
       <div><label for="filtro-de">De</label><input type="date" id="filtro-de"></div>
       <div><label for="filtro-ate">Até</label><input type="date" id="filtro-ate"></div>
-      <div><label>&nbsp;</label><button id="buscar-proposicoes">Buscar</button></div>
-      <div><label>&nbsp;</label>
-        <button id="limpar-proposicoes" class="discreto">Limpar</button></div>
+      <div class="acao"><button id="buscar-proposicoes" class="principal">Buscar</button></div>
+      <div class="acao"><button id="limpar-proposicoes" class="discreto">Limpar</button></div>
     </div>
 
     <div class="cartao">
       <h2>Clique numa linha para ver etapas e quem votou a favor e contra</h2>
-      <p class="rodape-mapa" id="resumo-proposicoes"></p>
-      <table id="tabela-proposicoes">
-        <thead><tr><th>Proposição</th><th>Ementa</th><th>Autor</th>
-          <th>Apresentada</th><th>Situação</th></tr></thead>
-        <tbody></tbody>
-      </table>
+      <p class="rodape-mapa" id="resumo-proposicoes" role="status"></p>
+      <div class="rolagem">
+        <table id="tabela-proposicoes">
+          <thead><tr><th>Proposição</th><th>Ementa</th><th>Autor</th>
+            <th>Apresentada</th><th>Situação</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
     </div>
   </section>
 
   <!-- ----------------------------------------------------------- fontes -->
-  <section id="aba-fontes" hidden>
+  <section id="aba-fontes" role="tabpanel" tabindex="-1"
+           aria-labelledby="aba-btn-fontes" hidden>
     <div class="cartao">
       <h2>Última coleta por fonte</h2>
       <div id="situacao-fontes"></div>
@@ -168,53 +1257,335 @@
 
     <div class="cartao" style="margin-top:16px">
       <h2>De onde vem cada número</h2>
-      <table>
+      <div class="rolagem"><table>
         <thead><tr><th>Camada</th><th>Fonte</th><th>Cadência</th></tr></thead>
         <tbody>
           <tr><td>Geografia e malhas</td><td>IBGE — Localidades e Malhas v3</td><td>anual</td></tr>
           <tr><td>População e PIB</td><td>IBGE — Agregados/SIDRA v3</td><td>anual</td></tr>
           <tr><td>Finanças de estados e municípios</td><td>SICONFI — Tesouro Nacional</td><td>mensal/anual</td></tr>
+          <tr><td>Repasses da União</td><td>Tesouro — Transferências Constitucionais</td><td>mensal</td></tr>
+          <tr><td>Operações de crédito</td><td>Tesouro — SADIPEM</td><td>mensal</td></tr>
           <tr><td>Deputados, projetos, votos</td><td>Câmara — arquivos em lote</td><td>diária</td></tr>
           <tr><td>Senadores e votações</td><td>Senado — dados abertos</td><td>diária</td></tr>
           <tr><td>Eleitos, do presidente ao vereador</td><td>TSE — dados abertos</td><td>eleitoral</td></tr>
+          <tr><td>Despesa por função — saúde, educação</td><td>SICONFI — RREO Anexo 02</td><td>bimestral</td></tr>
+          <tr><td>Pessoal, dívida e limites da LRF</td><td>SICONFI — RGF</td><td>quadrimestral</td></tr>
+          <tr><td>Custo apurado do governo federal</td><td>Tesouro — API de Custos</td><td>mensal</td></tr>
           <tr><td>Emendas parlamentares</td><td>Portal da Transparência — CGU</td><td>mensal</td></tr>
         </tbody>
-      </table>
+      </table></div>
     </div>
   </section>
 
   <!-- ------------------------------------------------------------ custo -->
-  <section id="aba-custo" hidden>
+  <section id="aba-custo" role="tabpanel" tabindex="-1"
+           aria-labelledby="aba-btn-custo" hidden>
+    
+    <div class="barra">
+      <div>
+        <label for="custo-ano">Ano de Competência</label>
+        <select id="custo-ano"></select>
+      </div>
+      <div>
+        <label for="custo-filtro-poder">Filtrar por Poder</label>
+        <select id="custo-filtro-poder">
+          <option value="">Todos os Poderes</option>
+          <option value="Executivo">Executivo</option>
+          <option value="Legislativo">Legislativo</option>
+          <option value="Judiciário">Judiciário</option>
+          <option value="Ministério Público">Ministério Público</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="aviso" style="margin-top:10px; margin-bottom:12px">
+      <strong>Guia Rápido para o Cidadão</strong>
+      Aqui você compara três realidades financeiras no ano selecionado:
+      <strong>1. Arrecadação:</strong> Total de impostos recolhidos de estados e municípios.
+      <strong>2. Despesas Empenhadas:</strong> O total oficial que governos contrataram em obras, saúde, educação e serviços.
+      <strong>3. Remuneração dos Agentes Públicos:</strong> Salários-base oficiais (subsídios fixados por lei) das autoridades dos Três Poderes.
+    </div>
+
     <div class="tiras" id="topo-custo"></div>
     <div id="avisos-custo"></div>
 
     <div class="painel">
       <div class="cartao">
-        <h2>Subsídio por cargo</h2>
+        <h2>Salários e Subsídios Oficiais por Cargo</h2>
         <p class="rodape-mapa">
-          Custo anual estimado = ocupantes × subsídio mensal × 13,33
-          (12 meses + 13º + terço de férias). É uma <strong>conta</strong>,
-          não um valor medido: não inclui gabinete, auxílios, diárias nem
-          encargos.
+          Remuneração-base mensal fixada em lei ou norma jurídica. 
+          O <strong>custo anual estimado</strong> considera 13,33 remunerações (12 meses + 13º salário + 1/3 de férias) multiplicadas pela quantidade de ocupantes cadastrados. Não inclui verba de gabinete nem diárias.
         </p>
-        <table id="tabela-custo">
-          <thead><tr>
-            <th>Cargo</th><th>Ocupantes</th><th>Subsídio mensal</th>
-            <th>Custo anual estimado</th><th>Norma</th>
-          </tr></thead>
-          <tbody></tbody>
-        </table>
+        <div class="rolagem">
+          <table id="tabela-custo">
+            <thead><tr>
+              <th>Cargo & Poder</th><th>Ocupantes</th><th>Salário Mensal</th>
+              <th>Custo Anual da Categoria</th><th>Norma / Lei</th>
+            </tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
       </div>
 
       <div class="cartao">
-        <h2>Quanto sai dos cofres</h2>
+        <h2>Execução Real dos Gastos (Por Poder e Função)</h2>
+        <p class="rodape-mapa">
+          Valores executados e declarados no SICONFI (Tesouro Nacional) pelas administrações públicas.
+        </p>
         <div id="lateral-custo"></div>
       </div>
     </div>
   </section>
 
+  <!-- --------------------------------------------------------- glossário -->
+  <section id="aba-glossario" role="tabpanel" tabindex="-1"
+           aria-labelledby="aba-btn-glossario" hidden>
+    
+    <div class="indice-glossario">
+      <a href="#glos-abas">📑 1. Abas do Painel</a>
+      <a href="#glos-filtros">🎛️ 2. Guia de Filtros</a>
+      <a href="#glos-formulas">📐 3. Metodologia & Fórmulas</a>
+      <a href="#glos-adrs">🏛️ 4. Decisões Arquiteturais (ADRs)</a>
+      <a href="#glos-apis">🌐 5. Fontes & Roadmap de APIs</a>
+    </div>
+
+    <!-- 1. Abas -->
+    <div class="cartao secao-glossario" id="glos-abas">
+      <h2>📑 1. Estrutura e Abas do Painel</h2>
+      <p class="rodape-mapa">O Painel da Transparência organiza as finanças e a atuação pública brasileira em 7 visões complementares:</p>
+      
+      <div class="grid-glossario">
+        <div class="cartao" style="background:var(--superficie-2)">
+          <h3>🗺️ Mapa do Brasil</h3>
+          <p>Visão territorial do país, estados e municípios. Permite navegar visualmente pelo mapa interativo, consultar 14 métricas fiscais/socioeconômicas e visualizar rankings de despesa, receita e saúde fiscal.</p>
+        </div>
+        <div class="cartao" style="background:var(--superficie-2)">
+          <h3>🏛️ Políticos & Mandatos</h3>
+          <p>Catálogo unificado de governantes e parlamentares (do Presidente e Governadores a Deputados, Senadores, Prefeitos e Vereadores). Traz biografia, mandatos, votos nominais e gastos da Cota Parlamentar (CEAP).</p>
+        </div>
+        <div class="cartao" style="background:var(--superficie-2)">
+          <h3>📜 Projetos de Lei & Votações</h3>
+          <p>Acompanhamento de proposições legislativas na Câmara e no Senado, com situação de tramitação, ementa oficial, resultado de votações no plenário e índice de fidelidade partidária.</p>
+        </div>
+        <div class="cartao" style="background:var(--superficie-2)">
+          <h3>💰 Custo do Estado</h3>
+          <p>Análise comparativa das três realidades fiscais do país por <strong>Ano de Competência</strong>: Arrecadação de Tributos, Despesas Empenhadas e Salários/Subsídios Oficiais das autoridades dos Três Poderes.</p>
+        </div>
+        <div class="cartao" style="background:var(--superficie-2)">
+          <h3>📚 Glossário & Metodologia</h3>
+          <p>Documentação pública completa de todas as fórmulas matemáticas, conceitos fiscais, filtros e decisões arquiteturais do projeto.</p>
+        </div>
+        <div class="cartao" style="background:var(--superficie-2)">
+          <h3>🏢 Fontes Oficiais</h3>
+          <p>Inventário dos órgãos governamentais de onde os dados são extraídos (SICONFI, Tesouro Nacional, Câmara, Senado, TSE, IBGE e CGU), com datas e status de cada coleta.</p>
+        </div>
+        <div class="cartao" style="background:var(--superficie-2)">
+          <h3>🔄 Atualizar Dados</h3>
+          <p>Central de controle que permite disparar coletas incrementais, atualizar exercícios fiscais e gerenciar chaves de acesso a APIs governamentais.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Filtros -->
+    <div class="cartao secao-glossario" id="glos-filtros">
+      <h2>🎛️ 2. Guia de Filtros e Seletores</h2>
+      <p class="rodape-mapa">Como tirar o melhor proveito dos controles interativos disponíveis em cada tela:</p>
+
+      <div class="grid-glossario">
+        <div class="cartao" style="background:var(--superficie-2)">
+          <h3>📅 Ano de Competência / Exercício</h3>
+          <p>Presente no Mapa e no Custo do Estado. Define o ano contábil do orçamento analisado. As fontes fecham em calendários distintos (o RREO sai durante o ano corrente; o DCA fecha no ano seguinte).</p>
+        </div>
+        <div class="cartao" style="background:var(--superficie-2)">
+          <h3>📊 Seletor de Métrica (Mapa)</h3>
+          <p>Organizado em 5 grupos temáticos: <em>Quanto Gasta</em>, <em>Quanto Arrecada</em>, <em>Quanto Recebe da União</em>, <em>Em Que Gasta (Saúde/Educação)</em> e <em>Saúde Fiscal (LRF/Dívida)</em>.</p>
+        </div>
+        <div class="cartao" style="background:var(--superficie-2)">
+          <h3>🔍 Busca Textual (Políticos e Projetos)</h3>
+          <p>Filtro instantâneo sem necessidade de recarregar. Busca por nome do político, número da proposição, partido ou palavra-chave na ementa.</p>
+        </div>
+        <div class="cartao" style="background:var(--superficie-2)">
+          <h3>⚖️ Filtro por Poder (Custo do Estado)</h3>
+          <p>Permite isolar a análise de remuneração e cargos entre Executivo, Legislativo, Judiciário e Ministério Público.</p>
+        </div>
+        <div class="cartao" style="background:var(--superficie-2)">
+          <h3>🏷️ Rótulos & Destaque no Mapa</h3>
+          <p>Permite alternar entre exibição automática de siglas, exibição de todos os entes ou mapa limpo para análise de densidade de cor.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Metodologia & Fórmulas -->
+    <div class="cartao secao-glossario" id="glos-formulas">
+      <h2>📐 3. Metodologia & Fórmulas Explicadas</h2>
+      <p class="rodape-mapa">Todas as contas do painel são abertas, auditáveis e fundamentadas em normas públicas:</p>
+
+      <div class="cartao" style="background:var(--superficie-2); margin-top:12px">
+        <h3><span class="badge-metodo">Fórmula</span> Despesa e Receita por Habitante (Per Capita)</h3>
+        <div class="formula-box">Valor Per Capita = (Valor Total em R$) / (População Oficial do IBGE no Ano)</div>
+        <p><strong>Por que é feita assim?</strong> Comparar os R$ 80 bilhões de São Paulo com os R$ 15 milhões de um município de 3 mil habitantes em valores absolutos não informa nada sobre a qualidade do gasto. A divisão pela população do IBGE equilibra a régua e permite saber quanto o governo aplica por cidadão.</p>
+      </div>
+
+      <div class="cartao" style="background:var(--superficie-2); margin-top:12px">
+        <h3><span class="badge-metodo">Fórmula</span> Dependência de Transferências (%)</h3>
+        <div class="formula-box">Dependência (%) = (Transferências Recebidas da União e Estados / Arrecadação Total) × 100</div>
+        <p><strong>Por que é feita assim?</strong> Mede o grau de autonomia financeira do município. Valores acima de 80% indicam que o município quase não gera arrecadação própria (IPTU, ISS) e vive exclusivamente de repasses constitucionais como o FPM (Fundo de Participação dos Municípios).</p>
+      </div>
+
+      <div class="cartao" style="background:var(--superficie-2); margin-top:12px">
+        <h3><span class="badge-metodo">Fórmula</span> Custo Anual Estimado de Subsídios por Cargo</h3>
+        <div class="formula-box">Custo Anual Estimado = Ocupantes no Cargo × Subsídio Mensal Oficial × 13,33</div>
+        <p><strong>Por que é feita assim?</strong> O multiplicador <strong>13,33</strong> reflete o custo mínimo legal da remuneração anual: 12 meses regulares + 13º salário (1,00) + 1/3 de abono constitucional de férias (0,33). É uma estimativa da folha-base e não embute penduricalhos, diárias ou verbas indenizatórias.</p>
+      </div>
+
+      <div class="cartao" style="background:var(--superficie-2); margin-top:12px">
+        <h3><span class="badge-metodo">Fórmula</span> Despesa com Pessoal sobre a RCL (Lei de Responsabilidade Fiscal)</h3>
+        <div class="formula-box">Percentual Folha (%) = (Despesa Líquida com Pessoal / Receita Corrente Líquida - RCL) × 100</div>
+        <p><strong>Por que é feita assim?</strong> A Lei Complementar nº 101/2000 (LRF) estabelece tetos rígidos para evitar o colapso das contas públicas. No Poder Executivo Municipal, o limite máximo é <strong>54,0%</strong>, com limite prudencial em <strong>51,3%</strong> (95% do teto) e limite de alerta em <strong>48,6%</strong> (90% do teto).</p>
+      </div>
+
+      <div class="cartao" style="background:var(--superficie-2); margin-top:12px">
+        <h3><span class="badge-metodo">Fórmula</span> Reconciliação Contábil (Somado vs Declarado)</h3>
+        <div class="formula-box">Diferença = (Soma das Categorias Econômicas Nível 1) - (Total Geral Declarado pelo Ente)</div>
+        <p><strong>Por que é feita assim?</strong> Mecanismo de dupla conferência matemática nos demonstrativos do SICONFI. Se a soma das linhas de Despesas Correntes + Capital diferir do total anunciado pelo município, o painel detecta a inconsistência na hora.</p>
+      </div>
+
+      <div class="cartao" style="background:var(--superficie-2); margin-top:12px">
+        <h3><span class="badge-metodo">Conceito</span> Emendas Orçamentárias (Individuais, Pix, Bancada e Comissão)</h3>
+        <div class="formula-box">Taxa de Execução da Emenda (%) = (Valor Efetivamente Pago / Valor Total Empenhado) × 100</div>
+        <p><strong>O que é e como funciona?</strong> Emendas são parcelas do Orçamento Geral da União (OGU) cuja destinação é indicada por deputados federais e senadores para atender municípios e projetos públicos.
+        <strong>Valor Empenhado:</strong> O recurso foi reservado pelo Governo Federal e compromissado para o projeto.
+        <strong>Valor Pago:</strong> O dinheiro foi de fato transferido e creditado na conta bancária do município beneficiário.
+        <strong>Transferência Especial (Emenda Pix):</strong> Repasse direto ao caixa da prefeitura sem vinculação prévia a convênio formal, permitindo aplicação ágil sob fiscalização dos tribunais de contas.</p>
+      </div>
+
+      <div class="cartao" style="background:var(--superficie-2); margin-top:12px">
+        <h3><span class="badge-metodo">Conceito</span> Repasses e Transferências Constitucionais da União</h3>
+        <div class="formula-box">Repasses Federais = FPM + FPE + FUNDEB + Royalties (Petróleo/Mineração) + Desonerações/LC</div>
+        <p><strong>O que é e como funciona?</strong> A Constituição Federal determina a partilha de tributos federais (como Imposto de Renda e IPI) com os estados e municípios para reduzir as desigualdades regionais.
+        <strong>FPM (Fundo de Participação dos Municípios):</strong> Principal fonte de receita de mais de 80% das cidades brasileiras.
+        <strong>FUNDEB:</strong> Fundo destinado exclusivamente à manutenção da Educação Básica e remuneração dos professores.
+        <strong>Royalties:</strong> Compensação financeira paga pela exploração de recursos naturais (petróleo, gás e minérios).</p>
+      </div>
+
+      <div class="cartao" style="background:var(--superficie-2); margin-top:12px">
+        <h3><span class="badge-metodo">Conceito</span> Operações de Crédito & Endividamento (SADIPEM / Tesouro Nacional)</h3>
+        <div class="formula-box">Status do Pleito: Pleiteado (Pedido Inicial) ➔ Deferido (Autorizado pela STN) ➔ Contratado (Assinado com o Banco)</div>
+        <p><strong>O que é e como funciona?</strong> Para financiar grandes obras de infraestrutura, prefeituras e governos estaduais solicitam autorização ao Tesouro Nacional através do Sistema SADIPEM. O painel distingue o valor <strong>pleiteado</strong> (pedido), o valor <strong>deferido</strong> (aprovado após análise de capacidade de pagamento - CAPAG) e o valor <strong>contratado</strong> (efetivamente formalizado com bancos como Caixa, BNDES ou Banco Mundial).</p>
+      </div>
+
+      <div class="cartao" style="background:var(--superficie-2); margin-top:12px">
+        <h3><span class="badge-metodo">Fórmula</span> Presença Parlamentar e Fidelidade Partidária</h3>
+        <div class="formula-box">Taxa de Presença = (Sessões Deliberativas Presente) / (Sessões Deliberativas no Período de Atividade) × 100</div>
+        <p><strong>Por que é feita assim?</strong> O painel considera exclusivamente as sessões deliberativas de plenário da Câmara e do Senado durante a janela real de exercício do parlamentar (excluindo períodos de licença ou posse tardia para não criar ausências artificiais). A <strong>fidelidade partidária</strong> mede o percentual de votos em que o parlamentar acompanhou a orientação oficial da liderança da sua bancada em matérias não liberadas.</p>
+      </div>
+    </div>
+
+    <!-- 4. ADRs -->
+    <div class="cartao secao-glossario" id="glos-adrs">
+      <h2>🏛️ 4. Decisões Arquiteturais Registradas (ADRs)</h2>
+      <p class="rodape-mapa">Princípios inegociáveis de engenharia de dados do projeto:</p>
+
+      <div class="grid-glossario">
+        <div class="cartao" style="background:var(--superficie-2)">
+          <h3>ADR 1: Despesas Empenhadas como Padrão</h3>
+          <p>O estágio de <strong>Empenho</strong> é o padrão oficial de exibição de gastos, pois reflete o compromisso assumido pelo governante na competência do ano.</p>
+        </div>
+        <div class="cartao" style="background:var(--superficie-2)">
+          <h3>ADR 2: Código IBGE de 7 Dígitos Universal</h3>
+          <p>O código IBGE é a chave primária de integração de todas as tabelas territoriais. O casamento eleitoral (TSE) é auditado exclusivamente via tabela De-Para.</p>
+        </div>
+        <div class="cartao" style="background:var(--superficie-2)">
+          <h3>ADR 3: Competência Anual Estrita</h3>
+          <p>Restos a Pagar pagos de mandatos passados não são somados ao ano corrente, impedindo distorções em anos de transição eleitoral.</p>
+        </div>
+        <div class="cartao" style="background:var(--superficie-2)">
+          <h3>ADR 4: Normalização Per Capita Obrigatória</h3>
+          <p>Todo ranking comparativo municipal é obrigatoriamente exibido em Reais por habitante, prevenindo distorções populacionais.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. Fontes & Roadmap -->
+    <div class="cartao secao-glossario" id="glos-apis">
+      <h2>🌐 5. Fontes Atuais & Roadmap de Novas APIs</h2>
+      <p class="rodape-mapa">Origem das informações e próximos passos de expansão:</p>
+
+      <div class="rolagem">
+        <table>
+          <thead>
+            <tr>
+              <th>Fonte Governamental</th>
+              <th>Dados Fornecidos</th>
+              <th>Cadência</th>
+              <th>Status no Painel</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>SICONFI / Tesouro Nacional</strong></td>
+              <td>DCA (Receitas e Despesas), RREO (Saúde e Educação) e RGF (LRF e Dívida)</td>
+              <td>Mensal / Bimestral</td>
+              <td><span class="badge-metodo">Integrado (5.570 municípios)</span></td>
+            </tr>
+            <tr>
+              <td><strong>IBGE (SIDRA e Geociências)</strong></td>
+              <td>População anual oficial e malhas cartográficas GeoJSON</td>
+              <td>Anual</td>
+              <td><span class="badge-metodo">Integrado (100% Brasil)</span></td>
+            </tr>
+            <tr>
+              <td><strong>Câmara dos Deputados</strong></td>
+              <td>Deputados, Proposições, Votações nominais e Cota Parlamentar (CEAP)</td>
+              <td>Diária</td>
+              <td><span class="badge-metodo">Integrado (REST + Batch)</span></td>
+            </tr>
+            <tr>
+              <td><strong>Senado Federal</strong></td>
+              <td>Senadores, Mandatos e Votações nominais</td>
+              <td>Diária</td>
+              <td><span class="badge-metodo">Integrado</span></td>
+            </tr>
+            <tr>
+              <td><strong>TSE (Dados Abertos)</strong></td>
+              <td>Candidaturas e resultados eleitorais de prefeitos, governadores e vereadores</td>
+              <td>Bienal (Eleições)</td>
+              <td><span class="badge-metodo">Integrado (De-Para IBGE)</span></td>
+            </tr>
+            <tr>
+              <td><strong>SADIPEM / Tesouro</strong></td>
+              <td>Operações de crédito de estados e municípios (PVL)</td>
+              <td>Mensal</td>
+              <td><span class="badge-metodo">Integrado</span></td>
+            </tr>
+            <tr>
+              <td><strong>Portal da Transparência / CGU</strong></td>
+              <td>Transferências voluntárias, convênios e emendas parlamentares</td>
+              <td>Mensal</td>
+              <td><span class="badge-metodo">Integrado (com chave)</span></td>
+            </tr>
+            <tr>
+              <td><strong>Conselho Nacional de Justiça (CNJ / Datajud)</strong></td>
+              <td>Folha de pagamento e remunerações detalhadas de magistrados e tribunais</td>
+              <td>Mensal</td>
+              <td><span class="badge-metodo" style="background:var(--atencao-fraco);color:var(--atencao);border-color:var(--atencao)">Roadmap de Expansão</span></td>
+            </tr>
+            <tr>
+              <td><strong>Receita Federal (CNPJs / QSA)</strong></td>
+              <td>Quadro societário e vínculos de fornecedores das cotas parlamentares</td>
+              <td>Mensal</td>
+              <td><span class="badge-metodo" style="background:var(--atencao-fraco);color:var(--atencao);border-color:var(--atencao)">Roadmap de Expansão</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </section>
+
   <!-- -------------------------------------------------------- atualizar -->
-  <section id="aba-atualizar" hidden>
+  <section id="aba-atualizar" role="tabpanel" tabindex="-1"
+           aria-labelledby="aba-btn-atualizar" hidden>
     <div class="painel">
       <div class="cartao">
         <h2>O que atualizar</h2>
@@ -230,7 +1601,7 @@
             <label for="coleta-nivel">SICONFI — abrangência</label>
             <select id="coleta-nivel">
               <option value="estado">27 UFs (rápido)</option>
-              <option value="municipio">5.570 municípios (15–25 min)</option>
+              <option value="municipio">5.570 municípios (~3 h)</option>
               <option value="todos">UFs e municípios</option>
             </select>
           </div>
@@ -241,14 +1612,16 @@
         </div>
 
         <p class="rodape-mapa">
-          Sem ano informado, cada fonte usa o seu: Câmara e Senado o ano
-          corrente, SICONFI e emendas o exercício fechado, TSE as duas últimas
-          eleições.
+          <strong>Deixe o ano em branco</strong> para cada fonte usar o padrão
+          dela — está descrito em "Recorte do ano", acima, fonte por fonte.
+          Preencher força o mesmo ano em todas de uma vez: útil para recompor
+          um exercício antigo, ruim para a coleta do dia a dia. As fontes
+          marcadas como "ignora o campo Ano" não mudam de comportamento.
         </p>
 
         <div class="barra" style="margin-top:6px">
           <button id="botao-atualizar" class="principal">Atualizar</button>
-          <span id="aviso-coleta" class="rodape-mapa"></span>
+          <span id="aviso-coleta" class="rodape-mapa" role="status"></span>
         </div>
       </div>
 
@@ -262,10 +1635,10 @@
                    autocomplete="off" spellcheck="false"
                    placeholder="cole aqui — a chave ou o bloco de exemplo">
           </div>
-          <div><label>&nbsp;</label>
+          <div class="acao">
             <button id="salvar-chave" class="principal">Salvar</button></div>
         </div>
-        <p class="rodape-mapa" id="resposta-chave"></p>
+        <p class="rodape-mapa" id="resposta-chave" role="status"></p>
         <p class="rodape-mapa">
           Gratuita: cadastre seu e-mail em
           <a href="https://portaldatransparencia.gov.br/api-de-dados/cadastrar-email"
@@ -277,7 +1650,7 @@
 
       <div class="cartao">
         <h2>Andamento</h2>
-        <div id="progresso-coleta">
+        <div id="progresso-coleta" aria-live="polite">
           <p class="vazio">Nenhuma atualização em andamento.</p>
         </div>
         <pre id="log-coleta" class="log" hidden></pre>
@@ -285,7 +1658,337 @@
     </div>
   </section>
 
+  <!-- -------------------------------------------------------- explorador GCP -->
+  <section id="aba-explorador" role="tabpanel" tabindex="-1"
+           aria-labelledby="aba-btn-explorador" hidden>
+    <div class="gcp-layout-container">
+      <!-- Painel Esquerdo: Árvore de Recursos (Datasets e Tabelas) -->
+      <aside class="gcp-sidebar">
+        <div class="gcp-sidebar-header">
+          <h2>Explorador de Dados</h2>
+          <div class="gcp-busca-arvore-wrap">
+            <input id="filtro-arvore-tabelas" placeholder="Filtrar tabelas / colunas..." />
+          </div>
+        </div>
+        <div id="explorador-arvore" class="gcp-arvore-corpo"></div>
+      </aside>
+
+      <!-- Painel Direito: Trabalho com a Tabela / Console SQL -->
+      <main class="gcp-work-area">
+        <!-- Header da Tabela Ativa -->
+        <header class="gcp-tabela-header">
+          <div class="gcp-header-left">
+            <span class="gcp-icone-tabela-grande">📄</span>
+            <div id="explorador-tabela-titulo"></div>
+          </div>
+        </header>
+
+        <!-- Navegação de Abas da Tabela Estilo BigQuery -->
+        <div class="gcp-tabela-nav" role="tablist">
+          <button class="gcp-tab-btn" data-painel="esquema" aria-selected="true" role="tab">📋 Esquema</button>
+          <button class="gcp-tab-btn" data-painel="detalhes" aria-selected="false" role="tab">ℹ️ Detalhes</button>
+          <button class="gcp-tab-btn" data-painel="preview" aria-selected="false" role="tab">👁️ Visualização (100 linhas)</button>
+          <button class="gcp-tab-btn" data-painel="sql" aria-selected="false" role="tab">⚡ Editor SQL / Extração</button>
+        </div>
+
+        <!-- Conteúdo das Abas -->
+        <div class="gcp-tabela-paineis">
+          <!-- 1. ESQUEMA -->
+          <div id="painel-esquema" class="gcp-painel-tab">
+            <div id="painel-esquema-conteudo"></div>
+          </div>
+
+          <!-- 2. DETALHES -->
+          <div id="painel-detalhes" class="gcp-painel-tab" hidden>
+            <div id="painel-detalhes-conteudo"></div>
+          </div>
+
+          <!-- 3. PREVIEW -->
+          <div id="painel-preview" class="gcp-painel-tab" hidden>
+            <div id="painel-preview-conteudo"></div>
+          </div>
+
+          <!-- 4. EDITOR SQL -->
+          <div id="painel-sql" class="gcp-painel-tab" hidden>
+            <div class="gcp-sql-editor-container">
+              <div class="gcp-sql-toolbar">
+                <button id="btn-executar-sql" class="principal">▶ Executar Consulta</button>
+                <div class="gcp-sql-export-acoes">
+                  <button id="btn-exportar-csv" class="secundario">📥 Baixar CSV</button>
+                  <button id="btn-exportar-json" class="secundario">📥 Baixar JSON</button>
+                </div>
+                <span id="sql-status-msg" class="gcp-sql-status">Pronto para consulta (Ctrl + Enter)</span>
+              </div>
+              <textarea id="editor-sql-texto" rows="6" spellcheck="false" placeholder="SELECT * FROM ..."></textarea>
+              <div id="sql-resultado-container" class="gcp-sql-resultado">
+                <p class="vazio" style="padding:20px">Clique em "Executar Consulta" ou use Ctrl + Enter para rodar.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </section>
+
+  <!-- -------------------------------------------------------- catálogo -->
+  <section id="aba-catalogo" role="tabpanel" tabindex="-1"
+           aria-labelledby="aba-btn-catalogo" hidden>
+    
+    <!-- 1. Explicação Didática: Tabela Fato vs Tabela Dimensão -->
+    <div style="background:var(--superficie-2); border:1px solid var(--borda-forte); border-radius:var(--raio-m, 8px); padding:20px; margin-bottom:20px;">
+      <h2 style="margin:0 0 12px 0; font-size:1.25rem; display:flex; align-items:center; gap:8px">
+        <span>📚</span> Arquitetura de Dados: O que são Tabelas Dimensão e Tabelas Fato?
+      </h2>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:16px;">
+        <div style="background:var(--superficie-1, #1e293b); padding:16px; border-radius:6px; border-left:4px solid var(--azul, #3b82f6)">
+          <div style="color:var(--azul, #60a5fa); font-weight:700; font-size:1.05rem; margin-bottom:6px">
+            🏷️ Tabelas Dimensão (<code>dim_*</code>)
+          </div>
+          <p style="margin:0; font-size:0.9rem; line-height:1.45; color:var(--texto)">
+            Armazenam <strong>cadastros e entidades de referência</strong> que dão contexto aos dados (ex: Municípios do IBGE, Políticos Eleitos, Partidos, Cargos Públicos e Subsídios Fixados em Lei).
+          </p>
+          <ul style="margin:8px 0 0 18px; padding:0; font-size:0.85rem; color:var(--texto-suave); line-height:1.4">
+            <li><strong>Chave Única:</strong> Identificadores fixos (ex: <code>cod_ibge</code>, <code>id_origem</code>).</li>
+            <li><strong>Atualização:</strong> Sobrescrita integral periódica (não possuem partição Hive por ano).</li>
+          </ul>
+        </div>
+        <div style="background:var(--superficie-1, #1e293b); padding:16px; border-radius:6px; border-left:4px solid var(--verde, #10b981)">
+          <div style="color:var(--verde, #34d399); font-weight:700; font-size:1.05rem; margin-bottom:6px">
+            📈 Tabelas Fato (<code>fato_*</code>)
+          </div>
+          <p style="margin:0; font-size:0.9rem; line-height:1.45; color:var(--texto)">
+            Armazenam <strong>eventos transacionais, pagamentos e métricas quantitativas</strong> (ex: notas fiscais da CEAP, emendas pagas pela União, despesas contábeis do SICONFI, votos nominais e folhas salariais).
+          </p>
+          <ul style="margin:8px 0 0 18px; padding:0; font-size:0.85rem; color:var(--texto-suave); line-height:1.4">
+            <li><strong>Partição Hive:</strong> Organizadas fisicamente em <code>ano=YYYY/esfera=ZZ</code>.</li>
+            <li><strong>Comparabilidade:</strong> Permitem aferir completude e evolução histórica ano a ano.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Cards de Métricas e Status de Completude -->
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px; margin-bottom:20px">
+      <div class="cartao" style="padding:16px; background:var(--superficie-2); border:1px solid var(--borda); border-radius:8px">
+        <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--texto-suave); font-weight:700">Total de Tabelas</div>
+        <div id="cat-kpi-tabelas" style="font-size:1.8rem; font-weight:800; color:var(--texto-destaque); margin:4px 0">—</div>
+        <div id="cat-kpi-tabelas-sub" style="font-size:0.8rem; color:var(--texto-suave)">9 dimensões · 22 fatos</div>
+      </div>
+
+      <div class="cartao" style="padding:16px; background:var(--superficie-2); border:1px solid var(--borda); border-radius:8px">
+        <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--texto-suave); font-weight:700">Linhas no Acervo</div>
+        <div id="cat-kpi-linhas" style="font-size:1.8rem; font-weight:800; color:var(--realce, #38bdf8); margin:4px 0">—</div>
+        <div style="font-size:0.8rem; color:var(--texto-suave)">Registros em Parquet (Zstandard)</div>
+      </div>
+
+      <div class="cartao" style="padding:16px; background:var(--superficie-2); border:1px solid var(--borda); border-top:3px solid var(--verde, #10b981); border-radius:8px">
+        <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--texto-suave); font-weight:700">Anos Cobertos (Total)</div>
+        <div id="cat-kpi-total" style="font-size:1.8rem; font-weight:800; color:var(--verde, #34d399); margin:4px 0">—</div>
+        <div id="cat-kpi-total-sub" style="font-size:0.8rem; color:var(--texto-suave)">144 lotes anuais (100% consolidados)</div>
+      </div>
+
+      <div class="cartao" style="padding:16px; background:var(--superficie-2); border:1px solid var(--borda); border-top:3px solid var(--amarelo, #f59e0b); border-radius:8px">
+        <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--texto-suave); font-weight:700">Exercício em Curso (Parcial)</div>
+        <div id="cat-kpi-parcial" style="font-size:1.8rem; font-weight:800; color:var(--amarelo, #fbbf24); margin:4px 0">—</div>
+        <div id="cat-kpi-parcial-sub" style="font-size:0.8rem; color:var(--texto-suave)" title="Exercício corrente em curso ou varredura seletiva de municípios">Em andamento (5.570 municípios) ℹ️</div>
+      </div>
+    </div>
+
+    <!-- 3. Caixa Explicativa: Por que alguns dados são parciais? -->
+    <details style="background:var(--superficie-2); border:1px solid var(--borda); border-radius:8px; padding:14px 18px; margin-bottom:20px; font-size:0.9rem">
+      <summary style="cursor:pointer; font-weight:700; color:var(--texto-destaque)">
+        ❓ Por que existem anos com status "Parcial" e o que isso significa? (Clique para expandir)
+      </summary>
+      <div style="margin-top:12px; color:var(--texto); line-height:1.5">
+        <ul style="margin:0 0 0 20px; padding:0">
+          <li style="margin-bottom:8px">
+            <strong>1. Exercício Corrente em Andamento (Ano 2026):</strong> Relatórios fiscais como o <em>RREO (Relatório Resumido de Execução Orçamentária)</em> e o <em>RGF (Relatório de Gestão Fiscal)</em> do Tesouro Nacional / SICONFI são publicados ao longo do ano pelos 5.570 municípios. À medida que cada prefeitura homologa seu bimestre/quadrimestre, os dados são ingeridos de forma progressiva.
+          </li>
+          <li style="margin-bottom:8px">
+            <strong>2. Total Nacional vs Varredura Municipal:</strong> Nos anos consolidados (2015 a 2025), o acervo possui 100% das 27 UFs e a Declaração de Contas Anuais (DCA) completa. O ano corrente possui as UFs fechadas e a varredura municipal em curso.
+          </li>
+          <li>
+            <strong>3. Amostras Históricas / Regressão:</strong> Anos marcados como <code>amostra</code> (ex: legislaturas de 1998 ou amostras de contratos específicos da CGU) servem para garantir cobertura em testes e auditorias sem inflar o volume de armazenamento desnecessariamente.
+          </li>
+        </ul>
+      </div>
+    </details>
+
+    <!-- 4. Barra de Filtros do Catálogo -->
+    <div class="barra" style="margin-bottom:16px; display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end">
+      <div style="flex:1; min-width:200px">
+        <label for="cat-filtro-busca" style="display:block; font-size:0.75rem; text-transform:uppercase; font-weight:700; color:var(--texto-suave); margin-bottom:4px">Buscar Tabela / Recurso / Endpoint</label>
+        <input type="search" id="cat-filtro-busca" placeholder="Ex: despesa_parlamentar, cota, SICONFI..." style="width:100%; padding:8px 12px; border-radius:6px; border:1px solid var(--borda); background:var(--superficie); color:var(--texto)">
+      </div>
+
+      <div style="min-width:140px">
+        <label for="cat-filtro-camada" style="display:block; font-size:0.75rem; text-transform:uppercase; font-weight:700; color:var(--texto-suave); margin-bottom:4px">Camada</label>
+        <select id="cat-filtro-camada" style="width:100%; padding:8px 12px; border-radius:6px; border:1px solid var(--borda); background:var(--superficie); color:var(--texto)">
+          <option value="">Todas as Camadas</option>
+          <option value="dim">Dimensão (dim)</option>
+          <option value="fato">Fato (fato)</option>
+        </select>
+      </div>
+
+      <div style="min-width:150px">
+        <label for="cat-filtro-status" style="display:block; font-size:0.75rem; text-transform:uppercase; font-weight:700; color:var(--texto-suave); margin-bottom:4px">Status de Completude</label>
+        <select id="cat-filtro-status" style="width:100%; padding:8px 12px; border-radius:6px; border:1px solid var(--borda); background:var(--superficie); color:var(--texto)">
+          <option value="">Todos os Status</option>
+          <option value="total">Total (100%)</option>
+          <option value="parcial">Parcial (Em curso)</option>
+          <option value="amostra">Amostra</option>
+          <option value="vigente">Vigente</option>
+        </select>
+      </div>
+
+      <div style="min-width:180px">
+        <label for="cat-filtro-orgao" style="display:block; font-size:0.75rem; text-transform:uppercase; font-weight:700; color:var(--texto-suave); margin-bottom:4px">Órgão Mantenedor</label>
+        <select id="cat-filtro-orgao" style="width:100%; padding:8px 12px; border-radius:6px; border:1px solid var(--borda); background:var(--superficie); color:var(--texto)">
+          <option value="">Todos os Órgãos</option>
+          <option value="Câmara">Câmara dos Deputados</option>
+          <option value="Tesouro">Tesouro Nacional / SICONFI</option>
+          <option value="Transparência">Portal Transparência (CGU)</option>
+          <option value="IBGE">IBGE</option>
+          <option value="TSE">TSE</option>
+          <option value="CNJ">CNJ (Judiciário)</option>
+        </select>
+      </div>
+
+      <div>
+        <button id="btn-limpar-filtros-cat" class="secundario" style="padding:8px 14px; border-radius:6px; font-weight:600; cursor:pointer">
+          Limpar Filtros
+        </button>
+      </div>
+
+      <div>
+        <button id="btn-recalcular-catalogo" class="principal" style="padding:8px 16px; border-radius:6px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:6px">
+          <span>🔄</span> Recalcular Catálogo
+        </button>
+      </div>
+    </div>
+
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
+      <span id="cat-total-filtrado" style="font-size:0.85rem; color:var(--texto-suave); font-weight:600">Carregando registros...</span>
+      <span style="font-size:0.8rem; color:var(--texto-suave)">Arquivo de Origem: <code>dados/dim/dim_catalogo_tabela.parquet</code></span>
+    </div>
+
+    <!-- 5. Tabela do Catálogo Estruturado -->
+    <div class="grade" style="overflow-x:auto; background:var(--superficie); border:1px solid var(--borda); border-radius:8px; margin-bottom:28px">
+      <table style="width:100%; border-collapse:collapse">
+        <thead>
+          <tr style="background:var(--superficie-2); border-bottom:2px solid var(--borda-forte)">
+            <th style="text-align:left; padding:10px 12px">Tabela Parquet</th>
+            <th style="text-align:left; padding:10px 12px">Camada</th>
+            <th style="text-align:right; padding:10px 12px">Ano / Partição</th>
+            <th style="text-align:right; padding:10px 12px" title="Linhas gravadas localmente no Data Lakehouse Parquet">Linhas Acervo</th>
+            <th style="text-align:right; padding:10px 12px" title="Total de registros na fonte oficial da API">Linhas Origem</th>
+            <th style="text-align:left; padding:10px 12px">Status Completude</th>
+            <th style="text-align:left; padding:10px 12px">Órgão Oficial</th>
+            <th style="text-align:left; padding:10px 12px">Recurso & Endpoint da API</th>
+            <th style="text-align:center; padding:10px 12px">Ação GET</th>
+          </tr>
+        </thead>
+        <tbody id="tabela-catalogo-corpo">
+          <tr>
+            <td colspan="9" class="carregando">Carregando catálogo de dados...</td>
+          </tr>
+        </tbody>
+        <tfoot id="tabela-catalogo-rodape"></tfoot>
+      </table>
+    </div>
+
+    <!-- 6. Histórico de Auditoria & Sincronização Inteligente (Origem x Tabela) -->
+    <div class="cartao" style="margin-top:20px; border-top:3px solid var(--realce, #38bdf8)">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px; margin-bottom:16px">
+        <div>
+          <h3 style="margin:0 0 4px; font-size:1.15rem; display:flex; align-items:center; gap:8px">
+            <span>📜</span> Histórico de Auditoria & Sincronização Inteligente
+          </h3>
+          <p style="margin:0; font-size:0.85rem; color:var(--texto-suave)">
+            Validação automática <strong>Origem (API) × Acervo Local (Parquet)</strong>. Se houver divergência, a partição é apagada e recarregada; se íntegra, o processamento é ignorado.
+          </p>
+        </div>
+        <div style="display:flex; gap:10px">
+          <button id="btn-executar-validacao-carga" class="principal" style="padding:8px 16px; border-radius:6px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:6px">
+            <span>⚡</span> Validar Acervo vs. Origem
+          </button>
+        </div>
+      </div>
+
+      <!-- KPIs do Log de Auditoria -->
+      <div class="kpis" style="grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:12px; margin-bottom:16px">
+        <div class="kpi-cartao" style="background:var(--superficie-2); padding:10px 14px">
+          <div class="rotulo">Total de Auditorias</div>
+          <div class="valor" id="aud-kpi-total" style="font-size:1.3rem">0</div>
+          <div class="subtitulo">Consultas registradas</div>
+        </div>
+        <div class="kpi-cartao" style="background:var(--superficie-2); padding:10px 14px">
+          <div class="rotulo">Íntegras (Sem Alteração)</div>
+          <div class="valor" id="aud-kpi-sem-alt" style="font-size:1.3rem; color:#34d399">0</div>
+          <div class="subtitulo">Dados 100% alinhados</div>
+        </div>
+        <div class="kpi-cartao" style="background:var(--superficie-2); padding:10px 14px">
+          <div class="rotulo">Reprocessadas (Recarregadas)</div>
+          <div class="valor" id="aud-kpi-reproc" style="font-size:1.3rem; color:#38bdf8">0</div>
+          <div class="subtitulo">Partições atualizadas</div>
+        </div>
+        <div class="kpi-cartao" style="background:var(--superficie-2); padding:10px 14px">
+          <div class="rotulo">Linhas Incluídas / Excluídas</div>
+          <div class="valor" id="aud-kpi-variacao" style="font-size:1.15rem; color:var(--texto-suave)">+0 / -0</div>
+          <div class="subtitulo">Saldo de registros no acervo</div>
+        </div>
+      </div>
+
+      <!-- Tabela do Histórico de Log Parquet -->
+      <div class="grade" style="overflow-x:auto; background:var(--superficie); border:1px solid var(--borda); border-radius:8px">
+        <table style="width:100%; border-collapse:collapse; font-size:0.85rem">
+          <thead>
+            <tr style="background:var(--superficie-2); border-bottom:2px solid var(--borda-forte)">
+              <th style="text-align:left; padding:8px 10px">Data / Hora (UTC)</th>
+              <th style="text-align:left; padding:8px 10px">Tabela Parquet</th>
+              <th style="text-align:right; padding:8px 10px">Partição</th>
+              <th style="text-align:left; padding:8px 10px">Status da Validação</th>
+              <th style="text-align:right; padding:8px 10px">Antes → Atual</th>
+              <th style="text-align:right; padding:8px 10px">Variação</th>
+              <th style="text-align:left; padding:8px 10px">O que mudou (Detalhe da Auditoria)</th>
+              <th style="text-align:right; padding:8px 10px">Duração</th>
+            </tr>
+          </thead>
+          <tbody id="tabela-auditoria-corpo">
+            <tr>
+              <td colspan="8" class="carregando">Carregando log de auditoria...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="font-size:0.78rem; color:var(--texto-suave); margin-top:8px; text-align:right">
+        Log persistido em: <code>dados/_ctl/log_auditoria_carga.parquet</code> (Compressão Zstandard colunar)
+      </div>
+    </div>
+
+  </section>
+
 </main>
+
+<!-- Modal de Detalhes da Requisição GET / Origem Oficial -->
+<dialog id="modal-get-catalogo" style="border:1px solid var(--borda-forte); border-radius:10px; background:var(--superficie-1, #0f172a); color:var(--texto, #f8fafc); max-width:640px; width:90%; padding:24px; box-shadow:0 20px 40px rgba(0,0,0,0.6)">
+  <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px">
+    <div>
+      <h3 id="modal-get-titulo" style="margin:0; font-size:1.2rem; color:var(--realce, #38bdf8)">Detalhes da Requisição GET</h3>
+      <div id="modal-get-subtitulo" style="font-size:0.85rem; color:var(--texto-suave); margin-top:4px">Fonte Oficial & Auditoria de Contagem</div>
+    </div>
+    <button id="modal-get-fechar" class="secundario" style="padding:4px 10px; cursor:pointer; font-weight:700">✕</button>
+  </div>
+
+  <div id="modal-get-corpo" style="font-size:0.9rem; line-height:1.5">
+    <!-- Conteúdo preenchido dinamicamente por catalogo.js -->
+  </div>
+</dialog>
+
+<!-- Dica dos políticos. Fica no `body`, e não dentro do cartão, porque
+     `position: fixed` dentro de um contêiner com `overflow` seria recortada
+     pela borda da tabela — que é justamente onde o ponteiro está. -->
+<div class="dica dica-solta" id="dica-politico" hidden></div>
 
 <dialog id="detalhe">
   <button class="fechar" id="fechar-detalhe" aria-label="Fechar">×</button>

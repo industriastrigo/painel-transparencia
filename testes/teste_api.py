@@ -154,7 +154,19 @@ def test_saude_lista_fontes(cliente):
 
 
 def test_anos_disponiveis(cliente):
-    assert 2024 in cliente.get("/api/anos").json()
+    resposta = cliente.get("/api/anos").json()
+    assert 2024 in [a["ano"] for a in resposta["anos"]]
+    # O padrão é o ano mais recente COMPLETO, não o mais recente que alguma
+    # tabela tenha. O RREO é bimestral e já publica o exercício corrente; o
+    # DCA é anual e só sai no seguinte — sem esta distinção o painel abria
+    # num ano com metade dos cartões vazios, parecendo acervo perdido.
+    assert resposta["padrao"] is not None
+    padrao = next(a for a in resposta["anos"]
+                  if a["ano"] == resposta["padrao"])
+    completos = [a for a in resposta["anos"] if a["completo"]]
+    if completos:
+        assert padrao["completo"], "abriu num ano parcial havendo completo"
+        assert resposta["padrao"] == max(a["ano"] for a in completos)
 
 
 def test_mapa_do_pais_traz_as_ufs(cliente):
@@ -297,10 +309,16 @@ def test_ficha_de_estado_nao_traz_prefeito(cliente):
     assert "governador" in cargos
 
 
-def test_ficha_traz_financas_por_funcao(cliente):
+def test_ficha_traz_a_despesa_por_natureza(cliente):
+    """O Anexo I-D do SICONFI é despesa por NATUREZA (pessoal, juros,
+    investimentos), não por FUNÇÃO de governo. A ficha diz "natureza" porque
+    é o que o dado sustenta — chamar de função prometeria um recorte que este
+    anexo não tem."""
     f = cliente.get("/api/ente/35").json()
-    assert f["financas"][0]["funcao"] == "Saúde"
     assert f["resumo"]["despesa_total"] == 30_000_000_000
+    for linha in f["financas"]:
+        assert "natureza" in linha, "a ficha deve falar em natureza"
+        assert "funcao" not in linha
 
 
 def test_ficha_de_ente_inexistente_devolve_404(cliente):
@@ -312,3 +330,777 @@ def test_pendencias_do_de_para_sao_visiveis(cliente):
     assert [p["nome_origem"] for p in r["pendentes"]] == ["LUGAR NENHUM"]
     metodos = {m["metodo"]: m["quantidade"] for m in r["por_metodo"]}
     assert metodos == {"exata": 1, "pendente": 1}
+
+
+def test_catalogo_descreve_como_cada_fonte_atualiza():
+    """"Atualizar" não quer dizer a mesma coisa em duas fontes: a Câmara
+    republica o ano corrente todo dia, o SICONFI só fecha o exercício
+    anterior, o TSE só muda a cada eleição. A tela precisa dizer isso ANTES
+    do clique — senão a pessoa espera dado que ainda não existe."""
+    from src.api import tarefas  # noqa: PLC0415
+
+    catalogo = tarefas.catalogo()
+    assert catalogo, "catálogo vazio"
+
+    obrigatorios = {"fonte", "rotulo", "cadencia", "periodo",
+                    "granularidade", "duracao", "usa_ano"}
+    for item in catalogo:
+        faltando = obrigatorios - set(item)
+        assert not faltando, f"{item.get('fonte')} sem {faltando}"
+        for campo in ("rotulo", "cadencia", "periodo", "granularidade",
+                      "duracao"):
+            assert item[campo].strip(), f"{item['fonte']}: {campo} vazio"
+
+
+def test_fonte_que_ignora_o_ano_diz_isso():
+    """O campo Ano não tem efeito no SADIPEM nem no IBGE. Deixar a pessoa
+    preencher achando que recorta é prometer um filtro que não existe."""
+    from src.api import tarefas  # noqa: PLC0415
+
+    por_fonte = {i["fonte"]: i for i in tarefas.catalogo()}
+    assert por_fonte["sadipem"]["usa_ano"] is False
+    assert por_fonte["ibge"]["usa_ano"] is False
+    assert por_fonte["camara"]["usa_ano"] is True
+    assert por_fonte["siconfi"]["usa_ano"] is True
+
+
+def test_fonte_que_precisa_de_configuracao_avisa_no_catalogo():
+    from src.api import tarefas  # noqa: PLC0415
+
+    por_fonte = {i["fonte"]: i for i in tarefas.catalogo()}
+    assert "CGU" in por_fonte["portal_transparencia"]["requer"]
+    assert por_fonte["transferencias"]["requer"], (
+        "a API de transferências pode exigir liberação — a tela precisa dizer")
+
+
+def test_catalogo_cobre_todas_as_fontes_do_orquestrador():
+    """Uma fonte nova que entre no ORDEM e não no catálogo some da tela sem
+    ninguém notar."""
+    from src.api import tarefas  # noqa: PLC0415
+    from src.coletores import orquestrador  # noqa: PLC0415
+
+    assert [i["fonte"] for i in tarefas.catalogo()] == orquestrador.ORDEM
+
+
+# =================================================================
+#  Sprint 2 — visão macro e destaque do Executivo
+# =================================================================
+
+def _cenario_executivo():
+    """Presidente e governador, com o subsídio do presidente cadastrado."""
+    from src.nucleo import armazem  # noqa: PLC0415
+
+    armazem.remover("mandato")
+    armazem.mesclar("dim_cargo_publico", [
+        dict(cod_cargo="presidente", cargo="Presidente da República",
+             poder="executivo", esfera="federal", ramo=None),
+        dict(cod_cargo="governador", cargo="Governador", poder="executivo",
+             esfera="estadual", ramo=None)], "teste")
+    armazem.mesclar("dim_subsidio", [dict(
+        cod_cargo="presidente", vigencia_inicio="2019-01-01",
+        valor_mensal=30934.70, norma="Lei 13.752/2018",
+        url_norma="https://www.planalto.gov.br/x", conferido=False,
+        observacao="valor de rascunho", data_referencia="2019-01-01")], "teste")
+    armazem.mesclar("mandato", [
+        dict(sk_politico="pr1", cod_cargo="presidente", cargo="presidente",
+             cod_ue="0", cod_ibge="0", sigla_uf=None, nome_ente="Brasil",
+             nome="Fulana de Tal", sigla_partido="XPTO", ano_inicio=2023,
+             ano_fim=2026, data_inicio="2023-01-01", ano_eleicao=2022),
+        dict(sk_politico="gv35", cod_cargo="governador", cargo="governador",
+             cod_ue="35", cod_ibge="35", sigla_uf="SP", nome_ente="São Paulo",
+             nome="Beltrano", sigla_partido="ABC", ano_inicio=2023,
+             ano_fim=2026, data_inicio="2023-01-01", ano_eleicao=2022)], "teste")
+
+
+def test_executivo_sem_uf_e_o_presidente(cliente):
+    _cenario_executivo()
+    cliente.post("/api/recarregar")
+    dados = cliente.get("/api/politicos/executivo").json()
+    assert len(dados) == 1
+    assert dados[0]["cargo"] == "presidente"
+    assert dados[0]["nome"] == "Fulana de Tal"
+
+
+def test_executivo_com_uf_e_o_governador_daquele_estado(cliente):
+    _cenario_executivo()
+    cliente.post("/api/recarregar")
+    dados = cliente.get("/api/politicos/executivo", params={"uf": "sp"}).json()
+    assert len(dados) == 1
+    assert dados[0]["cargo"] == "governador"
+    assert dados[0]["sigla_uf"] == "SP"
+
+
+def test_o_salario_junta_por_cod_cargo_e_nao_pelo_texto(cliente):
+    """`mandato.cargo` é o apelido (`presidente`) e `dim_cargo_publico.cargo`
+    é o nome por extenso ("Presidente da República"). As duas colunas existem
+    nas duas tabelas e parecem intercambiáveis: casar por texto não encontra
+    nada, e o subsídio viria nulo para todos sem erro nenhum."""
+    _cenario_executivo()
+    cliente.post("/api/recarregar")
+    dados = cliente.get("/api/politicos/executivo").json()
+    assert dados[0]["salario"] == 30934.70
+    assert dados[0]["norma_salario"] == "Lei 13.752/2018"
+
+
+def test_subsidio_nao_conferido_chega_marcado(cliente):
+    """Todo subsídio do acervo é transcrição não verificada. Entregar o
+    número sem o aviso seria apresentar rascunho como fato apurado."""
+    _cenario_executivo()
+    cliente.post("/api/recarregar")
+    assert cliente.get("/api/politicos/executivo").json()[0][
+        "salario_conferido"] is False
+
+
+def test_cargo_sem_subsidio_cadastrado_vem_nulo_e_nao_zero(cliente):
+    _cenario_executivo()
+    cliente.post("/api/recarregar")
+    assert cliente.get("/api/politicos/executivo",
+                       params={"uf": "SP"}).json()[0]["salario"] is None
+
+
+def test_uf_sem_governador_devolve_lista_vazia(cliente):
+    _cenario_executivo()
+    cliente.post("/api/recarregar")
+    assert cliente.get("/api/politicos/executivo",
+                       params={"uf": "AC"}).json() == []
+
+
+def test_resumo_de_custo_traz_os_totais_com_a_cobertura(cliente):
+    """A soma vale o que a cobertura vale: 27 UFs e 5.570 municípios produzem
+    números muito diferentes que se parecem igualmente com "o Brasil". A
+    contagem de entes vai junto para a tela poder dizer de onde veio."""
+    from src.nucleo import armazem  # noqa: PLC0415
+
+    armazem.remover("financas_ente")
+    linhas = []
+    for cod, uf in (("35", "SP"), ("33", "RJ")):
+        for conta, rot, estagio, valor in [
+            ("DO3.0.00.00.00.00", "Correntes", "Despesas Empenhadas", 8e10),
+            ("RO1.0.0.0.00.0.0", "Receitas Correntes",
+             "Receitas Brutas Realizadas", 9e10)]:
+            linhas.append(dict(
+                cod_ibge=cod, ano=2024, periodo="anual", cod_conta=conta,
+                cod_funcao=None, funcao=None, rotulo_conta=rot,
+                estagio=estagio, valor=valor, esfera="estado", uf=uf,
+                data_referencia="2024-12-31"))
+    armazem.mesclar("financas_ente", linhas, "teste")
+    cliente.post("/api/recarregar")
+
+    r = cliente.get("/api/custo/resumo", params={"ano": 2024}).json()
+    assert r["arrecadacao"] == 1.8e11 and r["arrecadacao_entes"] == 2
+    assert r["despesa_subnacional"] == 1.6e11 and r["despesa_entes"] == 2
+    assert any("União não entra" in a for a in r["avisos"]), (
+        "a tela precisa dizer que a União está fora da soma")
+
+
+def test_o_ano_do_resumo_nao_depende_de_um_recorte_so(cliente):
+    """O exercício vinha de `vw_despesa_poder`. Com a despesa por função
+    vazia e a receita cheia, o ano vinha nulo e os totais sumiam da tela como
+    se não existissem — estando no disco."""
+    from src.nucleo import armazem  # noqa: PLC0415
+
+    armazem.remover("financas_ente")
+    armazem.mesclar("financas_ente", [dict(
+        cod_ibge="35", ano=2024, periodo="anual",
+        cod_conta="RO1.0.0.0.00.0.0", cod_funcao=None, funcao=None,
+        rotulo_conta="Receitas Correntes",
+        estagio="Receitas Brutas Realizadas", valor=5e10, esfera="estado",
+        uf="SP", data_referencia="2024-12-31")], "teste")
+    cliente.post("/api/recarregar")
+
+    r = cliente.get("/api/custo/resumo").json()
+    assert r["ano"] == 2024, "o ano sumiu porque outro recorte estava vazio"
+    assert r["arrecadacao"] == 5e10
+
+
+def test_a_lista_de_politicos_traz_o_subsidio_do_cargo(cliente):
+    """A dica ao passar o mouse mostra o subsídio, e ele vem JUNTO da lista.
+
+    Uma chamada por `mouseenter` seriam 300 requisições por busca e uma
+    corrida a cada movimento do ponteiro.
+    """
+    from src.nucleo import armazem  # noqa: PLC0415
+
+    armazem.mesclar("dim_cargo_publico", [dict(
+        cod_cargo="deputado_federal", cargo="Deputado Federal",
+        poder="legislativo", esfera="federal", ramo=None)], "teste")
+    armazem.mesclar("dim_subsidio", [dict(
+        cod_cargo="deputado_federal", vigencia_inicio="2023-02-01",
+        valor_mensal=41650.92, norma="Decreto Legislativo da Mesa",
+        url_norma=None, conferido=False, observacao=None,
+        data_referencia="2023-02-01")], "teste")
+    armazem.mesclar("dim_politico", [dict(
+        fonte_origem="camara", id_origem="204536", nome="FULANO DE TAL",
+        nome_eleitoral="Fulano", sigla_partido="ABC", sigla_uf="SP",
+        casa="camara", cargo="deputado_federal", url_foto=None)], "teste")
+    cliente.post("/api/recarregar")
+
+    linha = cliente.get("/api/politicos", params={"busca": "FULANO"}).json()[0]
+    assert linha["subsidio_cargo"] == 41650.92
+    assert linha["cargo_extenso"] == "Deputado Federal"
+    assert linha["poder"] == "legislativo"
+    # O aviso viaja junto com o número: sem ele a dica apresentaria
+    # transcrição não verificada como fato apurado.
+    assert linha["subsidio_conferido"] is False
+
+
+def test_os_filtros_de_politicos_continuam_funcionando(cliente):
+    """O `WHERE` passou a qualificar as colunas com `p.` por causa do join.
+    Um filtro que deixasse de casar sairia como 'sem resultados'."""
+    from src.nucleo import armazem  # noqa: PLC0415
+
+    armazem.remover("dim_politico")
+    armazem.mesclar("dim_politico", [
+        dict(fonte_origem="tse", id_origem="a", nome="ANA SILVA",
+             nome_eleitoral="Ana", sigla_partido="AAA", sigla_uf="SP",
+             casa=None, cargo="vereador", url_foto=None),
+        dict(fonte_origem="tse", id_origem="b", nome="BRUNO SOUZA",
+             nome_eleitoral="Bruno", sigla_partido="BBB", sigla_uf="MG",
+             casa=None, cargo="prefeito", url_foto=None)], "teste")
+    cliente.post("/api/recarregar")
+
+    pedir = lambda **p: cliente.get("/api/politicos", params=p).json()
+    assert len(pedir(uf="SP")) == 1
+    assert len(pedir(cargo="prefeito")) == 1
+    assert len(pedir(partido="bbb")) == 1
+    assert len(pedir(busca="silva")) == 1
+    assert len(pedir(uf="SP", cargo="prefeito")) == 0
+
+
+# =================================================================
+#  Cota parlamentar — a nota que chegou duas vezes
+# =================================================================
+
+def _nota(doc, valor, parcela, ano=2026, mes=1, tipo="DIVULGAÇÃO",
+          fornecedor="AGENCIA LTDA"):
+    return dict(
+        casa="camara", id_documento=str(doc), num_parcela=parcela,
+        num_ressarcimento=parcela, id_politico="204536",
+        nome_politico="Fulano", sigla_partido="ABC", sigla_uf="SP",
+        tipo_despesa=tipo, fornecedor=fornecedor,
+        cnpj_cpf_fornecedor="10.111.222/0001-00", valor_documento=valor,
+        url_documento=f"https://exemplo/{doc}.pdf", valor_liquido=valor,
+        data_emissao=f"{ano}-{mes:02d}-15T00:00:00", ano=ano, mes=mes)
+
+
+def test_a_mesma_nota_com_parcela_nula_e_zero_conta_UMA_vez(cliente):
+    """O defeito que dobrou a cota parlamentar do acervo.
+
+    A chave é `(casa, id_documento, num_parcela, num_ressarcimento)`. Uma
+    versão antiga do coletor deixava parcela NULA quando a fonte mandava
+    vazio; a atual grava "0". Nulo e "0" são chaves diferentes, então cada
+    nota coletada nas duas épocas virou duas linhas — 96.407 documentos, e a
+    despesa de 2026 saltou de R$ 121,5 mi para R$ 242,2 mi. O dobro exato.
+
+    Conferido contra a página oficial de um deputado: R$ 67.682,76 do acervo
+    limpo contra R$ 67.682,70 publicados pela Câmara.
+    """
+    from src.nucleo import armazem  # noqa: PLC0415
+
+    armazem.remover("despesa_parlamentar")
+    armazem.mesclar("despesa_parlamentar", [
+        _nota(1, 1000.0, None), _nota(1, 1000.0, "0")], "teste")
+    cliente.post("/api/recarregar")
+
+    bruto = cliente.get("/api/politicos", params={"limite": 1})  # aquece as views
+    assert bruto.status_code == 200
+
+    from src.api import servidor  # noqa: PLC0415
+    total = servidor._consultar(
+        "SELECT SUM(valor_liquido) v FROM vw_cota_parlamentar")[0]["v"]
+    assert total == 1000.0, f"a nota foi contada duas vezes: {total}"
+
+
+def test_parcelas_DE_VERDADE_continuam_separadas(cliente):
+    """A desduplicação não pode engolir parcelamento real: reembolso
+    parcelado repete o mesmo documento com números de parcela diferentes, e
+    cada parcela é um pagamento. Foi por isso que os campos entraram na
+    chave — 1.307 notas eram descartadas sem eles."""
+    from src.nucleo import armazem  # noqa: PLC0415
+    from src.api import servidor  # noqa: PLC0415
+
+    armazem.remover("despesa_parlamentar")
+    armazem.mesclar("despesa_parlamentar", [
+        _nota(2, 500.0, "1"), _nota(2, 500.0, "2"), _nota(2, 500.0, "3")], "teste")
+    cliente.post("/api/recarregar")
+
+    total = servidor._consultar(
+        "SELECT SUM(valor_liquido) v, COUNT(*) n FROM vw_cota_parlamentar")[0]
+    assert total["n"] == 3 and total["v"] == 1500.0
+
+
+def test_a_ficha_do_parlamentar_junta_tudo(cliente):
+    from src.nucleo import armazem  # noqa: PLC0415
+
+    armazem.remover("despesa_parlamentar")
+    armazem.mesclar("dim_cargo_publico", [dict(
+        cod_cargo="deputado_federal", cargo="Deputado Federal",
+        poder="legislativo", esfera="federal", ramo=None)], "teste")
+    armazem.mesclar("dim_subsidio", [dict(
+        cod_cargo="deputado_federal", vigencia_inicio="2023-02-01",
+        valor_mensal=41650.92, norma="Decreto da Mesa", url_norma=None,
+        conferido=False, observacao=None, data_referencia="2023-02-01")], "teste")
+    armazem.mesclar("dim_politico", [dict(
+        fonte_origem="camara", id_origem="204536", nome="FULANO DE TAL",
+        nome_eleitoral="Fulano", sigla_partido="ABC", sigla_uf="SP",
+        casa="camara", cargo="deputado_federal", url_foto=None)], "teste")
+    armazem.mesclar("despesa_parlamentar", [
+        _nota(10, 3000.0, "0", mes=1, tipo="DIVULGAÇÃO", fornecedor="AGENCIA"),
+        _nota(11, 1000.0, "0", mes=2, tipo="TELEFONIA", fornecedor="TELECOM"),
+        # a duplicata de novo, para a ficha não somar o dobro
+        _nota(10, 3000.0, None, mes=1, tipo="DIVULGAÇÃO", fornecedor="AGENCIA"),
+    ], "teste")
+    cliente.post("/api/recarregar")
+
+    sk = cliente.get("/api/politicos", params={"busca": "FULANO"}).json()[0]["sk"]
+    f = cliente.get(f"/api/politicos/{sk}/ficha").json()
+
+    assert f["ano"] == 2026
+    assert f["cota_por_ano"][0]["valor"] == 4000.0, "somou a duplicata"
+    assert {t["tipo_despesa"] for t in f["cota_por_tipo"]} == {"DIVULGAÇÃO", "TELEFONIA"}
+    assert len(f["fornecedores"]) == 2
+    assert f["politico"]["subsidio_cargo"] == 41650.92
+    assert f["url_oficial"] == "https://www.camara.leg.br/deputados/204536"
+
+
+def test_a_ficha_declara_o_que_o_painel_NAO_tem(cliente):
+    """Verba de gabinete, pessoal e presença existem só em HTML na página da
+    Câmara. O painel não raspa página — raspagem quebra em silêncio quando o
+    site muda — e diz isso na tela, com o link para conferir na fonte."""
+    from src.nucleo import armazem  # noqa: PLC0415
+
+    armazem.mesclar("dim_politico", [dict(
+        fonte_origem="camara", id_origem="204536", nome="FULANO DE TAL",
+        nome_eleitoral="Fulano", sigla_partido="ABC", sigla_uf="SP",
+        casa="camara", cargo="deputado_federal", url_foto=None)], "teste")
+    cliente.post("/api/recarregar")
+
+    sk = cliente.get("/api/politicos", params={"busca": "FULANO"}).json()[0]["sk"]
+    f = cliente.get(f"/api/politicos/{sk}/ficha").json()
+    itens = {x["item"] for x in f["so_na_pagina_oficial"]}
+    assert "Verba de gabinete" in itens
+    assert "Pessoal de gabinete" in itens
+    # Presença SAIU desta lista em 2026-08-28. Ela estava aqui por um erro
+    # meu: procurei frequência em `/deputados/{id}` e nos endpoints por
+    # deputado, não achei, e concluí que não existia em dado aberto. Existe
+    # — no arquivo em lote `eventosPresencaDeputados`. Enquanto isso a tela
+    # dizia ao cidadão que o dado não era público. Um item nesta lista é uma
+    # afirmação sobre o mundo, e envelhece como qualquer outra.
+    assert "Presença em plenário e comissões" not in itens
+    # O que continua faltando é a justificativa: a fonte diz quem esteve,
+    # nunca por quê faltou.
+    assert "Justificativa das faltas" in itens
+
+
+def test_quem_nao_e_da_camara_nao_ganha_avisos_da_camara(cliente):
+    """Um vereador do TSE não tem cota parlamentar nem página na Câmara."""
+    from src.nucleo import armazem  # noqa: PLC0415
+
+    armazem.remover("dim_politico")
+    armazem.mesclar("dim_politico", [dict(
+        fonte_origem="tse", id_origem="v9", nome="BELTRANO",
+        nome_eleitoral="Beltrano", sigla_partido="XYZ", sigla_uf="MA",
+        casa=None, cargo="vereador", url_foto=None)], "teste")
+    cliente.post("/api/recarregar")
+
+    sk = cliente.get("/api/politicos", params={"busca": "BELTRANO"}).json()[0]["sk"]
+    f = cliente.get(f"/api/politicos/{sk}/ficha").json()
+    assert f["so_na_pagina_oficial"] == []
+    assert f["url_oficial"] is None
+    assert f["cota_por_ano"] == []
+
+
+def test_custo_nao_esconde_arrecadacao_por_causa_de_ano_parcial(cliente):
+    """O incidente, em forma de teste.
+
+    As fontes têm calendários diferentes: o RREO é bimestral e já publica o
+    exercício corrente; o DCA, de onde vêm arrecadação e despesa total, é
+    anual e só sai no seguinte.
+
+    A aba fixava UM ano para tudo — `MAX(ano)` de todas as tabelas. Bastou a
+    despesa por função ganhar 2026 para a arrecadação de 2025 sumir da tela,
+    com o número intacto no disco. Duas correções erradas em cima do mesmo
+    lugar, em direções opostas; esta prende as duas.
+    """
+    from src.nucleo import armazem  # noqa: PLC0415
+
+    # DCA (arrecadação e despesa) só até 2025.
+    armazem.mesclar("financas_ente", [dict(
+        cod_ibge="35", ano=2025, periodo="anual",
+        cod_conta=conta, cod_funcao=None, funcao=None, rotulo_conta="x",
+        estagio=estagio, valor=1_000_000.0, esfera="estado", uf="SP",
+        data_referencia="2025-12-31")
+        for conta, estagio in (("DO3.0.00.00.00.00", "Despesas Empenhadas"),
+                               ("RO1.0.0.0.00.0.0", "Receitas Realizadas"))],
+        "teste")
+    # RREO (despesa por função) já com 2026 — é ele que empurra `vw_anos`
+    # para 2026 e fazia a aba inteira migrar para um ano sem DCA.
+    armazem.mesclar("despesa_funcao", [dict(
+        cod_ibge="35", ano=2026, periodo="bimestre_6",
+        cod_conta="exceto_intra|10|Saúde", cod_funcao="10",
+        cod_funcao_mae="10", funcao="Saúde", funcao_mae="Saúde",
+        rotulo_conta="Saúde", bloco="exceto_intra", descricao_bloco=None,
+        estagio="DESPESAS EMPENHADAS ATÉ O BIMESTRE (B)", valor=500.0,
+        esfera="estado", uf="SP", data_referencia="2026-12-01")], "teste")
+    cliente.post("/api/recarregar")
+
+    assert 2026 in [a["ano"] for a in cliente.get("/api/anos").json()["anos"]]
+
+    resumo = cliente.get("/api/custo/resumo").json()
+    assert resumo["arrecadacao"] is not None, (
+        "a arrecadação de 2025 sumiu porque 2026 existe pela metade")
+    assert resumo["ano_arrecadacao"] == 2025, (
+        "o cartão precisa dizer de que ano é o número que mostra")
+    assert resumo["despesa_subnacional"] is not None
+    assert resumo["ano_despesa_subnacional"] == 2025
+
+
+def test_custo_com_ano_pedido_explica_por_que_falta(cliente):
+    """Pedir 2026 é legítimo — mas a tela tem de dizer por que está vazio."""
+    resumo = cliente.get("/api/custo/resumo", params={"ano": 2026}).json()
+    if resumo["arrecadacao"] is None:
+        assert any("DCA" in a and "anual" in a for a in resumo["avisos"]), (
+            "o aviso precisa explicar o calendário da fonte, não só dizer "
+            "'nenhum ente com dado'")
+
+
+def test_custo_medido_carrega_a_marca_da_coleta(cliente):
+    """`pessoal_ativo` de 2025 publicava R$ 9,04 bi apoiado em 24 linhas: a
+    paginação tinha sido interrompida, `_ctl/ingestao` sabia disso e a tela
+    apresentava o piso como valor apurado. A marca da coleta agora viaja
+    colada ao número."""
+    from src.nucleo import armazem, controle  # noqa: PLC0415
+
+    armazem.remover("custo_orgao")
+    armazem.mesclar("custo_orgao", [
+        {"conjunto": "demais_custos", "orgao_nome": "Órgão A",
+         "item_custo": "diárias", "ano": 2025, "mes": 1, "valor": 100.0,
+         "data_referencia": "2025-01-31"},
+        {"conjunto": "pessoal_ativo", "orgao_nome": "Órgão B",
+         "item_custo": "vencimentos", "ano": 2025, "mes": 1, "valor": 50.0,
+         "data_referencia": "2025-01-31"},
+    ], "teste")
+    controle.gravar_marca("tesouro", "demais_custos_2025", 2025, 1,
+                          situacao="ok")
+    controle.gravar_marca("tesouro", "pessoal_ativo_2025", 2025, 1,
+                          situacao="parcial",
+                          detalhe="paginação interrompida — total é um piso")
+    cliente.post("/api/recarregar")
+
+    r = cliente.get("/api/custo/resumo", params={"ano": 2025}).json()
+    por_conjunto = {l["conjunto"]: l for l in r["custo_medido_federal"]}
+
+    assert por_conjunto["demais_custos"]["completo"] is True
+    assert por_conjunto["pessoal_ativo"]["completo"] is False
+    assert por_conjunto["pessoal_ativo"]["situacao_coleta"] == "parcial"
+    assert por_conjunto["pessoal_ativo"]["linhas"] == 1
+    assert any("PISO" in a and "pessoal_ativo" in a for a in r["avisos"]), (
+        "o aviso precisa NOMEAR o recorte incompleto — 'alguns dados podem "
+        "estar incompletos' é a frase que ninguém age em cima")
+
+
+def test_numero_de_ausencia_nunca_sai_sem_a_ressalva(cliente):
+    """Ausência é subtração NOSSA sobre uma pessoa nomeada, e a fonte não
+    publica justificativa: missão oficial, licença médica e licença-maternidade
+    ficam iguais a falta seca.
+
+    O aviso existia na tela e não no JSON. Esta API é aberta: quem consome o
+    dado direto recebia `ausencias: 13` ao lado do nome de uma pessoa real e
+    nada mais. A ressalva agora é parte do dado, e este teste é o que impede
+    que ela suma de novo."""
+    from src.nucleo import armazem  # noqa: PLC0415
+
+    armazem.mesclar("dim_politico", [{
+        "fonte_origem": "camara", "id_origem": "777", "nome": "FULANO DE TAL",
+        "nome_eleitoral": "Fulano", "sigla_partido": "XX", "sigla_uf": "SP",
+        "casa": "camara", "cargo": "deputado_federal", "url_foto": None}],
+        "teste")
+    armazem.remover("evento")
+    armazem.remover("presenca_evento")
+    armazem.mesclar("evento", [
+        {"casa": "camara", "id_evento": f"E{i}",
+         "data_hora_inicio": f"2026-0{i}-10T14:00", "data_hora_fim": None,
+         "descricao_tipo": "Sessão Deliberativa", "descricao": "Ordinária",
+         "situacao": "Encerrada", "local": "Plenário", "deliberativo": True,
+         "ano": 2026}
+        for i in (2, 3)], "teste")
+    # Presente numa das duas sessões: a outra vira "ausência", que é a
+    # subtração que este teste existe para qualificar.
+    armazem.mesclar("presenca_evento", [
+        {"casa": "camara", "id_evento": "E2", "id_politico": "777",
+         "data_hora_inicio": "2026-02-10T14:00", "ano": 2026, "mes": 2}],
+        "teste")
+    cliente.post("/api/recarregar")
+
+    achados = cliente.get("/api/politicos", params={"nome": "FULANO DE TAL"}).json()
+    # Pelo NOME exato, e não pelo primeiro da lista: outros testes deste
+    # arquivo semeiam políticos no mesmo armazém, e pegar `[0]` fazia este
+    # teste pular em silêncio quando a ordem mudava. Guarda que pula sozinha
+    # não guarda nada.
+    meu = [p for p in achados if p.get("nome") == "FULANO DE TAL"]
+    assert len(meu) == 1, f"esperava um FULANO DE TAL, achei {len(meu)}"
+    ficha = cliente.get(f"/api/politicos/{meu[0]['sk']}/ficha").json()
+
+    assert ficha.get("presenca"), (
+        "a semente tem duas sessões deliberativas e uma presença: se não há "
+        "linha de presença, o defeito está na view, não no teste")
+
+    ressalva = ficha.get("presenca_ressalva") or []
+    assert ressalva, "número de ausência sem ressalva é acusação, não informação"
+    texto = " ".join(ressalva).lower()
+    assert "justificativa" in texto
+    assert "licença" in texto or "licenca" in texto
+    assert "quem esteve" in texto
+
+    # E o denominador nunca pode faltar: "13 faltas" sozinho não é conferível.
+    for linha in ficha["presenca"]:
+        assert linha.get("sessoes_possiveis") is not None
+
+
+def test_ficha_de_vereador_explica_que_a_fonte_nao_existe(cliente):
+    """Para um vereador a ficha vinha vazia com "sem registro no acervo" — a
+    mesma frase de um deputado cujo ano ainda não foi coletado.
+
+    São coisas diferentes: um dia o deputado aparece, o vereador nunca. São 27
+    assembleias e 5.570 câmaras municipais, cada uma com o seu site, e o
+    painel não promete o que não pode entregar."""
+    from src.nucleo import armazem  # noqa: PLC0415
+
+    armazem.mesclar("dim_politico", [{
+        "fonte_origem": "tse", "id_origem": "999", "nome": "SICRANA DA SILVA",
+        "nome_eleitoral": "Sicrana", "sigla_partido": "YY", "sigla_uf": "MA",
+        "casa": None, "cargo": "vereador", "url_foto": None}], "teste")
+    cliente.post("/api/recarregar")
+
+    achados = cliente.get("/api/politicos",
+                          params={"nome": "SICRANA DA SILVA"}).json()
+    meu = [p for p in achados if p.get("nome") == "SICRANA DA SILVA"]
+    assert len(meu) == 1
+    ficha = cliente.get(f"/api/politicos/{meu[0]['sk']}/ficha").json()
+
+    assert ficha["presenca"] == []
+    motivo = ficha.get("presenca_indisponivel") or ""
+    assert "câmaras municipais" in motivo, (
+        "a tela precisa distinguir 'a fonte não publica' de 'ainda não "
+        "coletei' — a segunda frase promete um dado que nunca virá")
+    assert "acervo" not in motivo.lower()
+
+
+def test_tramitacao_sob_demanda(cliente, monkeypatch):
+    """`coletar_tramitacoes` existia e NUNCA era chamada por ninguém: a ficha
+    de toda proposição dizia "não coletadas", para sempre.
+
+    Não dá para varrer: são 153.695 proposições no acervo, uma requisição
+    cada, mais de 42 h no freio de 1 req/s. Então a ficha busca as etapas de
+    QUEM alguém abriu, no clique."""
+    from src.coletores import camara  # noqa: PLC0415
+    from src.nucleo import armazem  # noqa: PLC0415
+
+    armazem.remover("proposicao")
+    armazem.remover("tramitacao")
+    armazem.mesclar("proposicao", [{
+        "casa": "camara", "id_proposicao": "42", "identificador": "PL 1/2026",
+        "sigla_tipo": "PL", "numero": "1", "ano": 2026,
+        "ementa": "Lei de teste", "data_apresentacao": "2026-01-10",
+        "situacao": "Tramitação Finalizada"}], "teste")
+    cliente.post("/api/recarregar")
+
+    ficha = cliente.get("/api/proposicoes/camara/42").json()
+    assert ficha["tramitacoes"] == []
+    assert ficha["tramitacao_sob_demanda"] is True, (
+        "a tela precisa saber que dá para buscar, em vez de só dizer que não tem")
+
+    chamadas = []
+
+    def falso(id_proposicao):
+        chamadas.append(id_proposicao)
+        armazem.mesclar("tramitacao", [{
+            "casa": "camara", "id_proposicao": "42", "seq_tramitacao": "1",
+            "data_hora": "2026-02-01T10:00", "orgao": "CCJ",
+            "descricao_tramitacao": "Aprovado parecer", "descricao_situacao": None,
+            "despacho": "", "ano": 2026}], "teste")
+        return 1
+
+    monkeypatch.setattr(camara, "coletar_tramitacoes", falso)
+    r = cliente.post("/api/proposicoes/camara/42/tramitacoes").json()
+
+    assert chamadas == ["42"], "uma requisição, para a proposição pedida"
+    assert r["coletadas"] == 1
+    assert r["tramitacoes"][0]["orgao"] == "CCJ"
+
+    # E o acervo passa a ter: reabrir a ficha não faz nova requisição.
+    ficha = cliente.get("/api/proposicoes/camara/42").json()
+    assert len(ficha["tramitacoes"]) == 1
+    assert ficha["tramitacao_sob_demanda"] is False
+
+
+def test_tramitacao_sob_demanda_so_vale_para_a_camara(cliente):
+    """O Senado não publica esse recurso; prometer o botão lá seria oferecer
+    um caminho que termina em erro."""
+    r = cliente.post("/api/proposicoes/senado/9/tramitacoes")
+    assert r.status_code == 400
+
+
+def test_ficha_de_proposicao_acha_a_votacao_pela_relacao_da_camara(cliente):
+    """Das 21.128 votações do acervo, ZERO tinham `id_proposicao`: o coletor
+    procurava dois nomes de coluna que não existem em `votacoes-ANO.csv`. A
+    relação está num arquivo separado, `votacoesProposicoes`, que o projeto
+    nunca lia — e sem ela a promessa central do painel, "quem votou a favor e
+    contra deste projeto", não se cumpria para item nenhum."""
+    from src.nucleo import armazem  # noqa: PLC0415
+
+    for tabela in ("proposicao", "votacao", "votacao_proposicao", "voto"):
+        armazem.remover(tabela)
+
+    armazem.mesclar("proposicao", [{
+        "casa": "camara", "id_proposicao": "104333",
+        "identificador": "PL 11/2003", "sigla_tipo": "PL", "numero": "11",
+        "ano": 2003, "ementa": "Proíbe algo", "data_apresentacao": "2003-02-01",
+        "situacao": "Tramitação Finalizada"}], "teste")
+    # A votação NÃO carrega a proposição: é exatamente assim que ela vem.
+    armazem.mesclar("votacao", [{
+        "casa": "camara", "id_votacao": "104333-87",
+        "data_hora": "2026-05-13T15:00", "sigla_orgao": "PLEN",
+        "descricao": "Aprovado o Parecer.", "aprovada": "1",
+        "id_proposicao": None, "url": None, "ano": 2026}], "teste")
+    armazem.mesclar("votacao_proposicao", [{
+        "casa": "camara", "id_votacao": "104333-87",
+        "id_proposicao": "104333", "titulo": "PL 11/2003", "sigla_tipo": "PL",
+        "numero": "11", "ano_proposicao": 2003, "descricao": "Aprovado o Parecer.",
+        "data": "2026-05-13", "ano": 2026}], "teste")
+    armazem.mesclar("voto", [{
+        "casa": "camara", "id_votacao": "104333-87", "id_politico": "1",
+        "nome_politico": "Fulano", "sigla_partido": "XX", "sigla_uf": "SP",
+        "voto": "Sim", "data_hora": "2026-05-13T15:00", "ano": 2026, "mes": 5}],
+        "teste")
+    cliente.post("/api/recarregar")
+
+    ficha = cliente.get("/api/proposicoes/camara/104333").json()
+    assert len(ficha["votacoes"]) == 1, (
+        "a votação chega à proposição pela relação da Câmara, não pela coluna "
+        "que vem vazia")
+    assert ficha["votacoes"][0]["sim"] == 1
+
+
+def test_politicos_filtro_ano(cliente):
+    # Testar busca com ano
+    linhas = cliente.get("/api/politicos", params={"ano": 2025}).json()
+    assert isinstance(linhas, list)
+    if linhas:
+        assert "ano_inicio" in linhas[0]
+        assert "ano_fim" in linhas[0]
+        assert "data_inicio" in linhas[0]
+
+
+def test_politico_ficha_com_ano_e_detalhes(cliente):
+    # Obter um político qualquer
+    linhas = cliente.get("/api/politicos").json()
+    if linhas:
+        sk = linhas[0]["sk"]
+        ficha = cliente.get(f"/api/politicos/{sk}/ficha", params={"ano": 2025}).json()
+        assert "politico" in ficha
+        assert "votos" in ficha
+        assert "proposicoes" in ficha
+        assert "mandatos" in ficha
+
+
+def test_executivo_mandato_federal(cliente):
+    res = cliente.get("/api/executivo/mandato", params={"esfera": "federal"}).json()
+    assert res["esfera"] == "federal"
+    assert "governante" in res
+    assert "gastos_por_funcao" in res
+    assert "serie_anual" in res
+
+
+def test_executivo_mandato_estadual(cliente):
+    res = cliente.get("/api/executivo/mandato", params={"esfera": "estadual", "sigla_uf": "SP"}).json()
+    assert res["esfera"] == "estadual"
+    assert "governante" in res
+    assert "gastos_por_funcao" in res
+    assert "serie_anual" in res
+
+
+def test_executivo_municipios(cliente):
+    res = cliente.get("/api/executivo/municipios", params={"uf": "SP"}).json()
+    assert isinstance(res, list)
+    if res:
+        assert "cod_ibge" in res[0]
+        assert "nome" in res[0]
+
+
+def test_ficha_politico_traz_emendas(cliente):
+    linhas = cliente.get("/api/politicos").json()
+    if linhas:
+        sk = linhas[0]["sk"]
+        ficha = cliente.get(f"/api/politicos/{sk}/ficha").json()
+        assert "emendas" in ficha
+        assert "emendas_total_empenhado" in ficha
+        assert "emendas_total_pago" in ficha
+        assert isinstance(ficha["emendas"], list)
+
+
+def test_ente_detalhe_traz_transferencias_historico_e_emendas(cliente):
+    res = cliente.get("/api/ente/29").json()
+    assert "transferencias_historico" in res
+    assert "emendas_recebidas" in res
+    assert isinstance(res["transferencias_historico"], list)
+    assert isinstance(res["emendas_recebidas"], list)
+
+
+# ------------------------------------------------------------- catálogo
+def test_catalogo_retorna_kpis_e_itens(cliente):
+    # Atualiza o catálogo para o armazém isolado do teste
+    rec = cliente.post("/api/catalogo/atualizar")
+    assert rec.status_code == 200
+
+    res = cliente.get("/api/catalogo")
+    assert res.status_code == 200
+    dados = res.json()
+    assert "kpis" in dados
+    assert "itens" in dados
+    assert dados["kpis"]["total_tabelas"] >= 1
+    assert dados["total_registros_catalogo"] >= 1
+    assert isinstance(dados["itens"], list)
+
+
+def test_catalogo_filtros(cliente):
+    cliente.post("/api/catalogo/atualizar")
+    res_dim = cliente.get("/api/catalogo", params={"camada": "dim"}).json()
+    for item in res_dim["itens"]:
+        assert item["camada"] == "dim"
+
+    res_busca = cliente.get("/api/catalogo", params={"tabela": "dim_ente"}).json()
+    assert len(res_busca["itens"]) >= 1
+    assert any(i["tabela"] == "dim_ente" for i in res_busca["itens"])
+
+
+def test_catalogo_atualizar(cliente):
+    res = cliente.post("/api/catalogo/atualizar")
+    assert res.status_code == 200
+    dados = res.json()
+    assert dados["status"] == "ok"
+    assert "caminho" in dados
+
+
+def test_carga_historico_e_validacao(cliente):
+    res_val = cliente.post("/api/carga/validar", json={"tabela": "cartao_corporativo", "ano": 2026, "forcar": False})
+    assert res_val.status_code == 200
+    dados_val = res_val.json()
+    assert dados_val["status"] == "ok"
+    assert "resultado" in dados_val
+    assert dados_val["resultado"]["tabela"] == "cartao_corporativo"
+
+    res_hist = cliente.get("/api/carga/historico")
+    assert res_hist.status_code == 200
+    dados_hist = res_hist.json()
+    assert "kpis" in dados_hist
+    assert "itens" in dados_hist
+    assert dados_hist["kpis"]["total_auditorias"] >= 1
+
+
+
+
+
+
+
+
