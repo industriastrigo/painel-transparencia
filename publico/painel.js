@@ -51,6 +51,10 @@ import {
   carregarExplorador
 } from './secoes/explorador.js';
 
+import {
+  carregarCatalogo, configurarEventosCatalogo
+} from './secoes/catalogo.js';
+
 // Registro dos ganchos de carregamento preguiçoso por aba
 registrarGanchoAba('politicos', carregarPoliticos);
 registrarGanchoAba('executivo', carregarExecutivo);
@@ -61,6 +65,7 @@ registrarGanchoAba('proposicoes', () => montarFiltrosDeProposicao().then(carrega
 registrarGanchoAba('custo', carregarCusto);
 registrarGanchoAba('atualizar', () => Promise.all([montarCatalogo(), mostrarEstadoDaChave()]));
 registrarGanchoAba('fontes', carregarSituacao);
+registrarGanchoAba('catalogo', carregarCatalogo);
 registrarGanchoAba('explorador', carregarExplorador);
 
 
@@ -116,6 +121,7 @@ async function iniciar() {
   inicializarEventosLegislativo();
   configurarEventosJudiciario();
   inicializarEventosMp();
+  configurarEventosCatalogo();
 
   $('#fechar-detalhe').addEventListener('click', () => $('#detalhe').close());
   $('#botao-atualizar').addEventListener('click', dispararColeta);

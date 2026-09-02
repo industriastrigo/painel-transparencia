@@ -111,8 +111,9 @@ def obter_catalogo_tabelas(
     camada: str | None = None,
     ano: int | None = None,
     orgao: str | None = None,
+    status: str | None = None,
 ):
-    """Retorna inventário estruturado do acervo de dados com uma linha por tabela × ano."""
+    """Retorna inventário estruturado do acervo de dados com uma linha por tabela × ano e KPIs."""
     from ...nucleo.catalogo import salvar_catalogo, construir_catalogo
     
     condicoes = []
@@ -130,6 +131,9 @@ def obter_catalogo_tabelas(
     if orgao:
         condicoes.append("orgao_origem ILIKE ?")
         params.append(f"%{orgao}%")
+    if status:
+        condicoes.append("status_completude ILIKE ?")
+        params.append(f"%{status}%")
 
     where_sql = f"WHERE {' AND '.join(condicoes)}" if condicoes else ""
     
@@ -139,6 +143,18 @@ def obter_catalogo_tabelas(
             {where_sql}
             ORDER BY camada, tabela, ano DESC NULLS LAST
         """, params)
+        resumo_geral = _consultar("""
+            SELECT 
+                COUNT(DISTINCT tabela) AS total_tabelas,
+                COUNT(DISTINCT CASE WHEN camada = 'dim' THEN tabela END) AS total_dim,
+                COUNT(DISTINCT CASE WHEN camada = 'fato' THEN tabela END) AS total_fato,
+                SUM(total_linhas) AS total_linhas_global,
+                COUNT(CASE WHEN status_completude = 'total' OR status_completude = 'total_ufs' THEN 1 END) AS qtd_total,
+                COUNT(CASE WHEN status_completude ILIKE 'parcial%' THEN 1 END) AS qtd_parcial,
+                COUNT(CASE WHEN status_completude ILIKE 'amostra%' THEN 1 END) AS qtd_amostra,
+                COUNT(CASE WHEN status_completude = 'vigente' THEN 1 END) AS qtd_vigente
+            FROM dim_catalogo_tabela
+        """)
     except Exception:
         # Se ainda não foi lida na view, gera sob demanda
         salvar_catalogo()
@@ -148,12 +164,35 @@ def obter_catalogo_tabelas(
             {where_sql}
             ORDER BY camada, tabela, ano DESC NULLS LAST
         """, params)
+        resumo_geral = _consultar("""
+            SELECT 
+                COUNT(DISTINCT tabela) AS total_tabelas,
+                COUNT(DISTINCT CASE WHEN camada = 'dim' THEN tabela END) AS total_dim,
+                COUNT(DISTINCT CASE WHEN camada = 'fato' THEN tabela END) AS total_fato,
+                SUM(total_linhas) AS total_linhas_global,
+                COUNT(CASE WHEN status_completude = 'total' OR status_completude = 'total_ufs' THEN 1 END) AS qtd_total,
+                COUNT(CASE WHEN status_completude ILIKE 'parcial%' THEN 1 END) AS qtd_parcial,
+                COUNT(CASE WHEN status_completude ILIKE 'amostra%' THEN 1 END) AS qtd_amostra,
+                COUNT(CASE WHEN status_completude = 'vigente' THEN 1 END) AS qtd_vigente
+            FROM dim_catalogo_tabela
+        """)
 
-    total_linhas_acervo = sum(int(l.get("total_linhas") or 0) for l in linhas)
+    tot = resumo_geral[0] if resumo_geral else {}
+    total_linhas_filtradas = sum(int(l.get("total_linhas") or 0) for l in linhas)
     
     return {
+        "kpis": {
+            "total_tabelas": int(tot.get("total_tabelas") or 0),
+            "total_dim": int(tot.get("total_dim") or 0),
+            "total_fato": int(tot.get("total_fato") or 0),
+            "total_linhas_global": int(tot.get("total_linhas_global") or 0),
+            "qtd_total": int(tot.get("qtd_total") or 0),
+            "qtd_parcial": int(tot.get("qtd_parcial") or 0),
+            "qtd_amostra": int(tot.get("qtd_amostra") or 0),
+            "qtd_vigente": int(tot.get("qtd_vigente") or 0),
+        },
         "total_registros_catalogo": len(linhas),
-        "total_linhas_acervo": total_linhas_acervo,
+        "total_linhas_filtradas": total_linhas_filtradas,
         "itens": linhas,
     }
 
@@ -165,4 +204,5 @@ def atualizar_catalogo_acervo():
     p = salvar_catalogo()
     criadas = recarregar_views()
     return {"status": "ok", "caminho": str(p), "views_recarregadas": len(criadas)}
+
 

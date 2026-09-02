@@ -40,6 +40,8 @@
             aria-controls="aba-fontes" aria-selected="false" tabindex="-1">Fontes</button>
     <button role="tab" id="aba-btn-atualizar" data-aba="atualizar"
             aria-controls="aba-atualizar" aria-selected="false" tabindex="-1">Atualizar</button>
+    <button role="tab" id="aba-btn-catalogo" data-aba="catalogo"
+            aria-controls="aba-catalogo" aria-selected="false" tabindex="-1">Catálogo de Tabelas</button>
     <button role="tab" id="aba-btn-explorador" data-aba="explorador"
             aria-controls="aba-explorador" aria-selected="false" tabindex="-1">Banco de Dados (GCP)</button>
   </nav>
@@ -1291,6 +1293,173 @@
         </div>
       </main>
     </div>
+  </section>
+
+  <!-- -------------------------------------------------------- catálogo -->
+  <section id="aba-catalogo" role="tabpanel" tabindex="-1"
+           aria-labelledby="aba-btn-catalogo" hidden>
+    
+    <!-- 1. Explicação Didática: Tabela Fato vs Tabela Dimensão -->
+    <div style="background:var(--superficie-2); border:1px solid var(--borda-forte); border-radius:var(--raio-m, 8px); padding:20px; margin-bottom:20px;">
+      <h2 style="margin:0 0 12px 0; font-size:1.25rem; display:flex; align-items:center; gap:8px">
+        <span>📚</span> Arquitetura de Dados: O que são Tabelas Dimensão e Tabelas Fato?
+      </h2>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:16px;">
+        <div style="background:var(--superficie-1, #1e293b); padding:16px; border-radius:6px; border-left:4px solid var(--azul, #3b82f6)">
+          <div style="color:var(--azul, #60a5fa); font-weight:700; font-size:1.05rem; margin-bottom:6px">
+            🏷️ Tabelas Dimensão (<code>dim_*</code>)
+          </div>
+          <p style="margin:0; font-size:0.9rem; line-height:1.45; color:var(--texto)">
+            Armazenam <strong>cadastros e entidades de referência</strong> que dão contexto aos dados (ex: Municípios do IBGE, Políticos Eleitos, Partidos, Cargos Públicos e Subsídios Fixados em Lei).
+          </p>
+          <ul style="margin:8px 0 0 18px; padding:0; font-size:0.85rem; color:var(--texto-suave); line-height:1.4">
+            <li><strong>Chave Única:</strong> Identificadores fixos (ex: <code>cod_ibge</code>, <code>id_origem</code>).</li>
+            <li><strong>Atualização:</strong> Sobrescrita integral periódica (não possuem partição Hive por ano).</li>
+          </ul>
+        </div>
+        <div style="background:var(--superficie-1, #1e293b); padding:16px; border-radius:6px; border-left:4px solid var(--verde, #10b981)">
+          <div style="color:var(--verde, #34d399); font-weight:700; font-size:1.05rem; margin-bottom:6px">
+            📈 Tabelas Fato (<code>fato_*</code>)
+          </div>
+          <p style="margin:0; font-size:0.9rem; line-height:1.45; color:var(--texto)">
+            Armazenam <strong>eventos transacionais, pagamentos e métricas quantitativas</strong> (ex: notas fiscais da CEAP, emendas pagas pela União, despesas contábeis do SICONFI, votos nominais e folhas salariais).
+          </p>
+          <ul style="margin:8px 0 0 18px; padding:0; font-size:0.85rem; color:var(--texto-suave); line-height:1.4">
+            <li><strong>Partição Hive:</strong> Organizadas fisicamente em <code>ano=YYYY/esfera=ZZ</code>.</li>
+            <li><strong>Comparabilidade:</strong> Permitem aferir completude e evolução histórica ano a ano.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Cards de Métricas e Status de Completude -->
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px; margin-bottom:20px">
+      <div class="cartao" style="padding:16px; background:var(--superficie-2); border:1px solid var(--borda); border-radius:8px">
+        <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--texto-suave); font-weight:700">Total de Tabelas</div>
+        <div id="cat-kpi-tabelas" style="font-size:1.8rem; font-weight:800; color:var(--texto-destaque); margin:4px 0">—</div>
+        <div id="cat-kpi-tabelas-sub" style="font-size:0.8rem; color:var(--texto-suave)">9 dimensões · 22 fatos</div>
+      </div>
+
+      <div class="cartao" style="padding:16px; background:var(--superficie-2); border:1px solid var(--borda); border-radius:8px">
+        <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--texto-suave); font-weight:700">Linhas no Acervo</div>
+        <div id="cat-kpi-linhas" style="font-size:1.8rem; font-weight:800; color:var(--realce, #38bdf8); margin:4px 0">—</div>
+        <div style="font-size:0.8rem; color:var(--texto-suave)">Registros em Parquet (Zstandard)</div>
+      </div>
+
+      <div class="cartao" style="padding:16px; background:var(--superficie-2); border:1px solid var(--borda); border-top:3px solid var(--verde, #10b981); border-radius:8px">
+        <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--texto-suave); font-weight:700">Lotes / Anos Totais</div>
+        <div id="cat-kpi-total" style="font-size:1.8rem; font-weight:800; color:var(--verde, #34d399); margin:4px 0">—</div>
+        <div style="font-size:0.8rem; color:var(--texto-suave)">100% dos dados consolidados</div>
+      </div>
+
+      <div class="cartao" style="padding:16px; background:var(--superficie-2); border:1px solid var(--borda); border-top:3px solid var(--amarelo, #f59e0b); border-radius:8px">
+        <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--texto-suave); font-weight:700">Lotes / Anos Parciais</div>
+        <div id="cat-kpi-parcial" style="font-size:1.8rem; font-weight:800; color:var(--amarelo, #fbbf24); margin:4px 0">—</div>
+        <div style="font-size:0.8rem; color:var(--texto-suave)" title="Exercício corrente em curso ou varredura seletiva de municípios">Ex: 2026 em curso (RREO/RGF) ℹ️</div>
+      </div>
+    </div>
+
+    <!-- 3. Caixa Explicativa: Por que alguns dados são parciais? -->
+    <details style="background:var(--superficie-2); border:1px solid var(--borda); border-radius:8px; padding:14px 18px; margin-bottom:20px; font-size:0.9rem">
+      <summary style="cursor:pointer; font-weight:700; color:var(--texto-destaque)">
+        ❓ Por que existem anos com status "Parcial" e o que isso significa? (Clique para expandir)
+      </summary>
+      <div style="margin-top:12px; color:var(--texto); line-height:1.5">
+        <ul style="margin:0 0 0 20px; padding:0">
+          <li style="margin-bottom:8px">
+            <strong>1. Exercício Corrente em Andamento (Ano 2026):</strong> Relatórios fiscais como o <em>RREO (Relatório Resumido de Execução Orçamentária)</em> e o <em>RGF (Relatório de Gestão Fiscal)</em> do Tesouro Nacional / SICONFI são publicados ao longo do ano pelos 5.570 municípios. À medida que cada prefeitura homologa seu bimestre/quadrimestre, os dados são ingeridos de forma progressiva.
+          </li>
+          <li style="margin-bottom:8px">
+            <strong>2. Total Nacional vs Varredura Municipal:</strong> Nos anos consolidados (2015 a 2025), o acervo possui 100% das 27 UFs e a Declaração de Contas Anuais (DCA) completa. O ano corrente possui as UFs fechadas e a varredura municipal em curso.
+          </li>
+          <li>
+            <strong>3. Amostras Históricas / Regressão:</strong> Anos marcados como <code>amostra</code> (ex: legislaturas de 1998 ou amostras de contratos específicos da CGU) servem para garantir cobertura em testes e auditorias sem inflar o volume de armazenamento desnecessariamente.
+          </li>
+        </ul>
+      </div>
+    </details>
+
+    <!-- 4. Barra de Filtros do Catálogo -->
+    <div class="barra" style="margin-bottom:16px; display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end">
+      <div style="flex:1; min-width:200px">
+        <label for="cat-filtro-busca" style="display:block; font-size:0.75rem; text-transform:uppercase; font-weight:700; color:var(--texto-suave); margin-bottom:4px">Buscar Tabela / Recurso / Endpoint</label>
+        <input type="search" id="cat-filtro-busca" placeholder="Ex: despesa_parlamentar, cota, SICONFI..." style="width:100%; padding:8px 12px; border-radius:6px; border:1px solid var(--borda); background:var(--superficie); color:var(--texto)">
+      </div>
+
+      <div style="min-width:140px">
+        <label for="cat-filtro-camada" style="display:block; font-size:0.75rem; text-transform:uppercase; font-weight:700; color:var(--texto-suave); margin-bottom:4px">Camada</label>
+        <select id="cat-filtro-camada" style="width:100%; padding:8px 12px; border-radius:6px; border:1px solid var(--borda); background:var(--superficie); color:var(--texto)">
+          <option value="">Todas as Camadas</option>
+          <option value="dim">Dimensão (dim)</option>
+          <option value="fato">Fato (fato)</option>
+        </select>
+      </div>
+
+      <div style="min-width:150px">
+        <label for="cat-filtro-status" style="display:block; font-size:0.75rem; text-transform:uppercase; font-weight:700; color:var(--texto-suave); margin-bottom:4px">Status de Completude</label>
+        <select id="cat-filtro-status" style="width:100%; padding:8px 12px; border-radius:6px; border:1px solid var(--borda); background:var(--superficie); color:var(--texto)">
+          <option value="">Todos os Status</option>
+          <option value="total">Total (100%)</option>
+          <option value="parcial">Parcial (Em curso)</option>
+          <option value="amostra">Amostra</option>
+          <option value="vigente">Vigente</option>
+        </select>
+      </div>
+
+      <div style="min-width:180px">
+        <label for="cat-filtro-orgao" style="display:block; font-size:0.75rem; text-transform:uppercase; font-weight:700; color:var(--texto-suave); margin-bottom:4px">Órgão Mantenedor</label>
+        <select id="cat-filtro-orgao" style="width:100%; padding:8px 12px; border-radius:6px; border:1px solid var(--borda); background:var(--superficie); color:var(--texto)">
+          <option value="">Todos os Órgãos</option>
+          <option value="Câmara">Câmara dos Deputados</option>
+          <option value="Tesouro">Tesouro Nacional / SICONFI</option>
+          <option value="Transparência">Portal Transparência (CGU)</option>
+          <option value="IBGE">IBGE</option>
+          <option value="TSE">TSE</option>
+          <option value="CNJ">CNJ (Judiciário)</option>
+        </select>
+      </div>
+
+      <div>
+        <button id="btn-limpar-filtros-cat" class="secundario" style="padding:8px 14px; border-radius:6px; font-weight:600; cursor:pointer">
+          Limpar Filtros
+        </button>
+      </div>
+
+      <div>
+        <button id="btn-recalcular-catalogo" class="principal" style="padding:8px 16px; border-radius:6px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:6px">
+          <span>🔄</span> Recalcular Catálogo
+        </button>
+      </div>
+    </div>
+
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
+      <span id="cat-total-filtrado" style="font-size:0.85rem; color:var(--texto-suave); font-weight:600">Carregando registros...</span>
+      <span style="font-size:0.8rem; color:var(--texto-suave)">Arquivo de Origem: <code>dados/dim/dim_catalogo_tabela.parquet</code></span>
+    </div>
+
+    <!-- 5. Tabela do Catálogo Estruturado -->
+    <div class="grade" style="overflow-x:auto; background:var(--superficie); border:1px solid var(--borda); border-radius:8px">
+      <table style="width:100%; border-collapse:collapse">
+        <thead>
+          <tr style="background:var(--superficie-2); border-bottom:2px solid var(--borda-forte)">
+            <th style="text-align:left; padding:10px 12px">Tabela Parquet</th>
+            <th style="text-align:left; padding:10px 12px">Camada</th>
+            <th style="text-align:right; padding:10px 12px">Ano / Partição</th>
+            <th style="text-align:right; padding:10px 12px">Total Linhas</th>
+            <th style="text-align:left; padding:10px 12px">Status Completude</th>
+            <th style="text-align:left; padding:10px 12px">Órgão Oficial</th>
+            <th style="text-align:left; padding:10px 12px">Recurso & Endpoint da API</th>
+          </tr>
+        </thead>
+        <tbody id="tabela-catalogo-corpo">
+          <tr>
+            <td colspan="7" class="carregando">Carregando catálogo de dados...</td>
+          </tr>
+        </tbody>
+        <tfoot id="tabela-catalogo-rodape"></tfoot>
+      </table>
+    </div>
+
   </section>
 
 </main>

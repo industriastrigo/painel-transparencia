@@ -1047,6 +1047,43 @@ def test_ente_detalhe_traz_transferencias_historico_e_emendas(cliente):
     assert isinstance(res["emendas_recebidas"], list)
 
 
+# ------------------------------------------------------------- catálogo
+def test_catalogo_retorna_kpis_e_itens(cliente):
+    # Atualiza o catálogo para o armazém isolado do teste
+    rec = cliente.post("/api/catalogo/atualizar")
+    assert rec.status_code == 200
+
+    res = cliente.get("/api/catalogo")
+    assert res.status_code == 200
+    dados = res.json()
+    assert "kpis" in dados
+    assert "itens" in dados
+    assert dados["kpis"]["total_tabelas"] >= 1
+    assert dados["total_registros_catalogo"] >= 1
+    assert isinstance(dados["itens"], list)
+
+
+def test_catalogo_filtros(cliente):
+    cliente.post("/api/catalogo/atualizar")
+    res_dim = cliente.get("/api/catalogo", params={"camada": "dim"}).json()
+    for item in res_dim["itens"]:
+        assert item["camada"] == "dim"
+
+    res_busca = cliente.get("/api/catalogo", params={"tabela": "dim_ente"}).json()
+    assert len(res_busca["itens"]) >= 1
+    assert any(i["tabela"] == "dim_ente" for i in res_busca["itens"])
+
+
+def test_catalogo_atualizar(cliente):
+    res = cliente.post("/api/catalogo/atualizar")
+    assert res.status_code == 200
+    dados = res.json()
+    assert dados["status"] == "ok"
+    assert "caminho" in dados
+
+
+
+
 
 
 
