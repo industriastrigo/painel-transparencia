@@ -60,12 +60,15 @@ function aplicarTema(tema) {
   atualizarIconesTema(tema, efetivo);
 
   // Troca sutil da logo conforme o tema efetivo
-  const logoImg = document.getElementById('topbar-logo-img');
-  if (logoImg) {
-    logoImg.src = efetivo === 'dark'
-      ? 'ativos/logos/icone_trigo_dark.png'
-      : 'ativos/logos/icone_trigo_light.jpg';
-  }
+  const srcIcone = efetivo === 'dark'
+    ? 'ativos/logos/icone_trigo_transparente.png'
+    : 'ativos/logos/icone_trigo_light_transparente.png';
+
+  const logoTop = document.getElementById('topbar-logo-img');
+  if (logoTop) logoTop.src = srcIcone;
+
+  const logoDrawer = document.getElementById('drawer-logo-img');
+  if (logoDrawer) logoDrawer.src = srcIcone;
 }
 
 function atualizarIconesTema(modo, efetivo) {
