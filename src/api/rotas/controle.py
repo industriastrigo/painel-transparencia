@@ -103,3 +103,66 @@ def coleta_por_id(id_tarefa: int):
 def rota_recarregar():
     criadas = recarregar_views()
     return {"recarregadas": len(criadas), "views": criadas}
+
+
+@router.get("/api/catalogo")
+def obter_catalogo_tabelas(
+    tabela: str | None = None,
+    camada: str | None = None,
+    ano: int | None = None,
+    orgao: str | None = None,
+):
+    """Retorna inventário estruturado do acervo de dados com uma linha por tabela × ano."""
+    from ...nucleo.catalogo import salvar_catalogo, construir_catalogo
+    
+    condicoes = []
+    params = []
+    
+    if tabela:
+        condicoes.append("tabela ILIKE ?")
+        params.append(f"%{tabela}%")
+    if camada:
+        condicoes.append("camada = ?")
+        params.append(camada.lower())
+    if ano:
+        condicoes.append("ano = ?")
+        params.append(ano)
+    if orgao:
+        condicoes.append("orgao_origem ILIKE ?")
+        params.append(f"%{orgao}%")
+
+    where_sql = f"WHERE {' AND '.join(condicoes)}" if condicoes else ""
+    
+    try:
+        linhas = _consultar(f"""
+            SELECT * FROM dim_catalogo_tabela
+            {where_sql}
+            ORDER BY camada, tabela, ano DESC NULLS LAST
+        """, params)
+    except Exception:
+        # Se ainda não foi lida na view, gera sob demanda
+        salvar_catalogo()
+        recarregar_views()
+        linhas = _consultar(f"""
+            SELECT * FROM dim_catalogo_tabela
+            {where_sql}
+            ORDER BY camada, tabela, ano DESC NULLS LAST
+        """, params)
+
+    total_linhas_acervo = sum(int(l.get("total_linhas") or 0) for l in linhas)
+    
+    return {
+        "total_registros_catalogo": len(linhas),
+        "total_linhas_acervo": total_linhas_acervo,
+        "itens": linhas,
+    }
+
+
+@router.post("/api/catalogo/atualizar")
+def atualizar_catalogo_acervo():
+    """Gera novamente o arquivo Parquet e atualiza as views DuckDB do catálogo."""
+    from ...nucleo.catalogo import salvar_catalogo
+    p = salvar_catalogo()
+    criadas = recarregar_views()
+    return {"status": "ok", "caminho": str(p), "views_recarregadas": len(criadas)}
+

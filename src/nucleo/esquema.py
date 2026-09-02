@@ -168,6 +168,29 @@ dim_membro_mp = _registrar(Tabela(
     ),
 ))
 
+dim_catalogo_tabela = _registrar(Tabela(
+    nome="dim_catalogo_tabela",
+    camada="dim",
+    campos_pk=("tabela", "ano_particao", "camada"),
+    descricao="Catálogo e inventário do acervo de dados coletados por tabela e ano.",
+    cadencia="a cada carga",
+    colunas=(
+        ("sk", "VARCHAR"),
+        ("tabela", "VARCHAR"),
+        ("camada", "VARCHAR"),
+        ("ano_particao", "VARCHAR"),
+        ("ano", "INTEGER"),
+        ("total_linhas", "BIGINT"),
+        ("fontes", "VARCHAR"),
+        ("status_completude", "VARCHAR"),
+        ("orgao_origem", "VARCHAR"),
+        ("descricao_recurso", "VARCHAR"),
+        ("endpoint_recurso", "VARCHAR"),
+        ("granularidade", "VARCHAR"),
+        ("data_atualizacao", "VARCHAR"),
+    ),
+))
+
 # --------------------------------------------------------------- fatos
 
 fato_remuneracao_magistrado = _registrar(Tabela(
