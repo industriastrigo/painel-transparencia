@@ -45,6 +45,10 @@ import {
   carregarInicio
 } from './secoes/inicio.js';
 
+import {
+  carregarGlossario
+} from './secoes/glossario.js';
+
 // Registro dos ganchos de carregamento preguiçoso por aba (Produção)
 registrarGanchoAba('inicio', carregarInicio);
 registrarGanchoAba('politicos', carregarPoliticos);
@@ -54,6 +58,7 @@ registrarGanchoAba('judiciario', carregarJudiciario);
 registrarGanchoAba('mp', carregarMp);
 registrarGanchoAba('proposicoes', () => montarFiltrosDeProposicao().then(carregarProposicoes));
 registrarGanchoAba('custo', carregarCusto);
+registrarGanchoAba('glossario', carregarGlossario);
 
 
 async function iniciar() {

@@ -93,6 +93,18 @@ app.add_middleware(
 app.include_router(auth_router)
 
 
+# 4. Inicialização de dados e views no startup
+@app.on_event("startup")
+def inicializar_dados():
+    """Garante auto-semeadura dos dados essenciais e criação das views DuckDB."""
+    try:
+        from ..coletores.semeador import semear_se_vazio
+        semear_se_vazio()
+        recarregar_views()
+    except Exception as erro:
+        log.warning("Aviso durante inicialização de dados: %s", erro)
+
+
 # 5. Rota de saúde para o Cloud Run / Balanceadores
 @app.get("/saude", tags=["Monitoramento"])
 def saude() -> dict:

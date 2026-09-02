@@ -10,14 +10,25 @@ export function registrarGanchoAba(nome, fn) {
   ganchosDeAba[nome] = fn;
 }
 
+export function normalizarNomeAba(destino) {
+  if (!destino) return 'inicio';
+  // Sub-âncoras de glossário mapeiam para a aba glossario
+  if (destino.startsWith('glos-') || destino.startsWith('glossario-')) {
+    return 'glossario';
+  }
+  return destino;
+}
+
 export function trocarAba(destino, { focar = false } = {}) {
   if (!destino) return;
 
+  const subAncora = (destino.startsWith('glos-') || destino.startsWith('glossario-')) ? destino : null;
+  const abaReal = normalizarNomeAba(destino);
+
   // Intercepta tentativas de acesso a abas de dados sem autenticação
-  if (abaRequerAuth(destino) && !usuarioAutenticado()) {
-    abrirModalAvisoRegistro(destino);
-    // Se a página já está no início ou glossário, permanece nela
-    const abaAtual = location.hash.slice(1);
+  if (abaRequerAuth(abaReal) && !usuarioAutenticado()) {
+    abrirModalAvisoRegistro(abaReal);
+    const abaAtual = normalizarNomeAba(location.hash.slice(1));
     if (!abaAtual || abaRequerAuth(abaAtual)) {
       destino = 'inicio';
     } else {
@@ -25,31 +36,40 @@ export function trocarAba(destino, { focar = false } = {}) {
     }
   }
 
+  const abaAlvo = normalizarNomeAba(destino);
+
   $$('header nav button[data-aba], .drawer-nav-item[data-aba]').forEach((b) => {
-    const ativa = b.dataset.aba === destino;
+    const ativa = b.dataset.aba === abaAlvo;
     b.setAttribute('aria-selected', String(ativa));
     b.tabIndex = ativa ? 0 : -1;
   });
   $$('main > section').forEach((sec) => {
-    const ativa = sec.id === `aba-${destino}`;
+    const ativa = sec.id === `aba-${abaAlvo}`;
     sec.hidden = !ativa;
     sec.style.display = ativa ? 'block' : 'none';
     if (ativa) sec.classList.add('aba-ativa');
     else sec.classList.remove('aba-ativa');
   });
 
-  atualizarItemAtivoDrawer(destino);
+  atualizarItemAtivoDrawer(abaAlvo);
 
-  if (focar) $(`#aba-${destino}`)?.focus();
+  if (focar) $(`#aba-${abaAlvo}`)?.focus();
   if (location.hash.slice(1) !== destino) history.replaceState(null, '', `#${destino}`);
 
-  const carregar = ganchosDeAba[destino];
+  if (subAncora) {
+    setTimeout(() => {
+      const el = document.getElementById(subAncora) || document.querySelector(`[data-ancora="${subAncora}"]`);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+  }
 
-  if (carregar && !abasCarregadas.has(destino)) {
-    abasCarregadas.add(destino);
+  const carregar = ganchosDeAba[abaAlvo];
+
+  if (carregar && !abasCarregadas.has(abaAlvo)) {
+    abasCarregadas.add(abaAlvo);
     Promise.resolve(carregar()).catch((erro) => {
-      abasCarregadas.delete(destino);
-      console.error(`aba ${destino}`, erro);
+      abasCarregadas.delete(abaAlvo);
+      console.error(`aba ${abaAlvo}`, erro);
     });
   }
 }

@@ -18,9 +18,10 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Copia código da aplicação e frontend
+# Copia código da aplicação, frontend e referências
 COPY src/ ./src/
 COPY publico/ ./publico/
+COPY referencias/ ./referencias/
 
 # Cria diretório de dados para inicialização em nuvem
 RUN mkdir -p dados
