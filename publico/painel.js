@@ -42,27 +42,10 @@ import {
 } from './secoes/custo.js';
 
 import {
-  carregarSituacao
-} from './secoes/fontes.js';
-
-import {
-  montarCatalogo, mostrarEstadoDaChave, dispararColeta, salvarChave,
-  renderizarColeta, acompanharColeta
-} from './secoes/atualizar.js';
-
-import {
-  carregarExplorador
-} from './secoes/explorador.js';
-
-import {
-  carregarCatalogo, configurarEventosCatalogo
-} from './secoes/catalogo.js';
-
-import {
   carregarInicio
 } from './secoes/inicio.js';
 
-// Registro dos ganchos de carregamento preguiçoso por aba
+// Registro dos ganchos de carregamento preguiçoso por aba (Produção)
 registrarGanchoAba('inicio', carregarInicio);
 registrarGanchoAba('politicos', carregarPoliticos);
 registrarGanchoAba('executivo', carregarExecutivo);
@@ -71,10 +54,6 @@ registrarGanchoAba('judiciario', carregarJudiciario);
 registrarGanchoAba('mp', carregarMp);
 registrarGanchoAba('proposicoes', () => montarFiltrosDeProposicao().then(carregarProposicoes));
 registrarGanchoAba('custo', carregarCusto);
-registrarGanchoAba('atualizar', () => Promise.all([montarCatalogo(), mostrarEstadoDaChave()]));
-registrarGanchoAba('fontes', carregarSituacao);
-registrarGanchoAba('catalogo', carregarCatalogo);
-registrarGanchoAba('explorador', carregarExplorador);
 
 
 async function iniciar() {
