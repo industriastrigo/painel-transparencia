@@ -53,6 +53,15 @@ function renderizarLegislativo(sumario, cotas, dadosParlamentares) {
   const fornecedoresCota = cotas?.fornecedores || [];
   const listaParlamentares = dadosParlamentares?.parlamentares || [];
 
+  const totalCadeirasBancadas = bancadas.reduce((acc, b) => acc + (b.vagas || 0), 0);
+  const totalPctBancadas = (totalCadeirasBancadas / (k.total_parlamentares || totalCadeirasBancadas || 1)) * 100;
+
+  const totalNotasCota = categoriasCota.reduce((acc, c) => acc + (c.documentos || 0), 0);
+  const totalGastoCota = categoriasCota.reduce((acc, c) => acc + (c.total_gasto || 0), 0);
+
+  const totalTransacoesForn = fornecedoresCota.reduce((acc, f) => acc + (f.transacoes || 0), 0);
+  const totalRecebidoForn = fornecedoresCota.reduce((acc, f) => acc + (f.total_recebido || 0), 0);
+
   container.innerHTML = `
     <!-- KPIs do Poder Legislativo -->
     <div class="tiras" style="margin-top:14px; margin-bottom:18px">
@@ -87,13 +96,15 @@ function renderizarLegislativo(sumario, cotas, dadosParlamentares) {
     </div>
 
     <!-- Painel de Bancadas e Cotas Parlamentares -->
-    <div class="painel" style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-bottom:18px">
+    <div class="painel" style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-bottom:18px; align-items:stretch">
       <!-- Distribuição por Bancada -->
-      <div class="cartao" style="background:var(--superficie-2)">
-        <h3>Composição das Bancadas Partidárias</h3>
-        <p class="rodape-mapa" style="margin-top:-4px; margin-bottom:12px">Distribuição de cadeiras por partido na casa legislativa.</p>
-        <div class="rolagem">
-          <table class="tabela">
+      <div class="cartao" style="background:var(--superficie-2); display:flex; flex-direction:column; justify-content:space-between; height:100%; min-height:480px">
+        <div>
+          <h3>Composição das Bancadas Partidárias</h3>
+          <p class="rodape-mapa" style="margin-top:-4px; margin-bottom:12px">Distribuição de cadeiras por partido na casa legislativa.</p>
+        </div>
+        <div class="rolagem" style="flex:1; max-height:420px; overflow-y:auto; display:flex; flex-direction:column; justify-content:space-between">
+          <table class="tabela" style="width:100%">
             <thead>
               <tr>
                 <th>Partido</th>
@@ -114,16 +125,25 @@ function renderizarLegislativo(sumario, cotas, dadosParlamentares) {
                 `;
               }).join('')}
             </tbody>
+            <tfoot>
+              <tr style="border-top:2px solid var(--borda-forte, #475569); background:var(--superficie-3, rgba(255,255,255,0.06)); font-weight:bold">
+                <td><strong>TOTAL / SOMA</strong></td>
+                <td class="num"><strong style="color:var(--realce, #38bdf8)">${contagem(totalCadeirasBancadas)}</strong></td>
+                <td class="num"><strong>${porcentoExato.format(totalPctBancadas)}%</strong></td>
+              </tr>
+            </tfoot>
           </table>
         </div>
       </div>
 
       <!-- Maiores Tipos de Gastos na Cota Parlamentar -->
-      <div class="cartao" style="background:var(--superficie-2)">
-        <h3>Gastos por Tipo de Cota Parlamentar (CEAP)</h3>
-        <p class="rodape-mapa" style="margin-top:-4px; margin-bottom:12px">Principais despesas indenizadas do mandato parlamentar.</p>
-        <div class="rolagem">
-          <table class="tabela">
+      <div class="cartao" style="background:var(--superficie-2); display:flex; flex-direction:column; justify-content:space-between; height:100%; min-height:480px">
+        <div>
+          <h3>Gastos por Tipo de Cota Parlamentar (CEAP)</h3>
+          <p class="rodape-mapa" style="margin-top:-4px; margin-bottom:12px">Principais despesas indenizadas do mandato parlamentar.</p>
+        </div>
+        <div class="rolagem" style="flex:1; max-height:420px; overflow-y:auto; display:flex; flex-direction:column; justify-content:space-between">
+          <table class="tabela" style="width:100%">
             <thead>
               <tr>
                 <th>Categoria da Despesa</th>
@@ -140,6 +160,13 @@ function renderizarLegislativo(sumario, cotas, dadosParlamentares) {
                 </tr>
               `).join('')}
             </tbody>
+            <tfoot>
+              <tr style="border-top:2px solid var(--borda-forte, #475569); background:var(--superficie-3, rgba(255,255,255,0.06)); font-weight:bold">
+                <td><strong>TOTAL / SOMA</strong></td>
+                <td class="num"><strong style="color:var(--realce, #38bdf8)">${contagem(totalNotasCota)}</strong></td>
+                <td class="num"><strong style="color:var(--calmo, #10b981)">${dinheiro.format(totalGastoCota)}</strong></td>
+              </tr>
+            </tfoot>
           </table>
         </div>
       </div>
@@ -169,6 +196,13 @@ function renderizarLegislativo(sumario, cotas, dadosParlamentares) {
               </tr>
             `).join('')}
           </tbody>
+          <tfoot>
+            <tr style="border-top:2px solid var(--borda-forte, #475569); background:var(--superficie-3, rgba(255,255,255,0.06)); font-weight:bold">
+              <td colspan="2"><strong>TOTAL / SOMA (Maiores Favorecidos)</strong></td>
+              <td class="num"><strong style="color:var(--realce, #38bdf8)">${contagem(totalTransacoesForn)}</strong></td>
+              <td class="num"><strong style="color:var(--calmo, #10b981)">${dinheiro.format(totalRecebidoForn)}</strong></td>
+            </tr>
+          </tfoot>
         </table>
       </div>
     </div>

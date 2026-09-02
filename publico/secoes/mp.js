@@ -107,6 +107,24 @@ function renderizarTabelaMembrosMp(lista) {
 
   container.innerHTML = linhas;
 
+  const rodape = $('#tabela-mp-rodape');
+  if (rodape && lista && lista.length > 0) {
+    const totalSubsidio = lista.reduce((acc, m) => acc + (m.subsidio || 0), 0);
+    const totalPenduricalhos = lista.reduce((acc, m) => acc + (m.indenizacoes || 0) + (m.gratificacoes || 0), 0);
+    const totalLiquido = lista.reduce((acc, m) => acc + (m.total_liquido || 0), 0);
+    rodape.innerHTML = `
+      <tr style="border-top:2px solid var(--borda-forte, #475569); background:var(--superficie-3, rgba(255,255,255,0.06)); font-weight:bold">
+        <td colspan="3"><strong>TOTAL / SOMA (${contagem(lista.length)} membros listados)</strong></td>
+        <td class="num"><strong style="color:var(--realce, #38bdf8)">${dinheiro.format(totalSubsidio)}</strong></td>
+        <td class="num"><strong style="color:var(--alerta, #f59e0b)">${dinheiro.format(totalPenduricalhos)}</strong></td>
+        <td class="num"><strong style="color:var(--calmo, #10b981)">${dinheiro.format(totalLiquido)}</strong></td>
+        <td></td>
+      </tr>
+    `;
+  } else if (rodape) {
+    rodape.innerHTML = '';
+  }
+
   $$('.btn-detalhe-mp').forEach((btn) => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
