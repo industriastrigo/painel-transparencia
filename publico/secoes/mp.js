@@ -98,8 +98,8 @@ function renderizarTabelaMembrosMp(lista) {
         <td class="num col-liquido">
           <strong style="color:var(--calmo, #10b981)">${dinheiro.format(m.total_liquido || 0)}</strong>
         </td>
-        <td class="col-acoes">
-          <button class="btn-detalhe-mp discreto" data-sk="${escapar(m.sk)}">Detalhar</button>
+        <td class="col-acoes" style="text-align:center; white-space:nowrap">
+          <button class="btn-detalhe-mp discreto" data-sk="${escapar(m.sk)}" style="white-space:nowrap; padding:4px 12px">Detalhar</button>
         </td>
       </tr>
     `;
@@ -125,6 +125,12 @@ function renderizarTabelaMembrosMp(lista) {
     rodape.innerHTML = '';
   }
 
+  container.querySelectorAll('tr[data-sk]').forEach((tr) => {
+    tr.addEventListener('click', () => {
+      abrirModalMembroMp(tr.dataset.sk);
+    });
+  });
+
   $$('.btn-detalhe-mp').forEach((btn) => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -135,12 +141,13 @@ function renderizarTabelaMembrosMp(lista) {
 }
 
 async function abrirModalMembroMp(sk) {
-  const modal = $('#modal-mp-detalhe');
-  const corpo = $('#modal-mp-corpo');
+  if (!sk) return;
+  const modal = $('#detalhe');
+  const corpo = $('#detalhe-conteudo');
   if (!modal || !corpo) return;
 
   corpo.innerHTML = '<div class="carregando">Carregando ficha e histórico remuneratório...</div>';
-  modal.removeAttribute('hidden');
+  modal.showModal();
 
   try {
     const dados = await buscar(`/api/mp/membros/${sk}`);
@@ -202,8 +209,6 @@ export function inicializarEventosMp() {
   const seletorRamo = $('#filtro-mp-ramo');
   const seletorCargo = $('#filtro-mp-cargo');
   const seletorOrdem = $('#filtro-mp-ordem');
-  const modal = $('#modal-mp-detalhe');
-  const btnFecharModal = $('#modal-mp-fechar');
 
   if (btnLimpar) {
     btnLimpar.addEventListener('click', () => {
@@ -225,8 +230,4 @@ export function inicializarEventosMp() {
   if (seletorRamo) seletorRamo.addEventListener('change', carregarListaMembrosMp);
   if (seletorCargo) seletorCargo.addEventListener('change', carregarListaMembrosMp);
   if (seletorOrdem) seletorOrdem.addEventListener('change', carregarListaMembrosMp);
-
-  if (btnFecharModal && modal) {
-    btnFecharModal.addEventListener('click', () => modal.setAttribute('hidden', ''));
-  }
 }

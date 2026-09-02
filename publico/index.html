@@ -761,12 +761,12 @@
           <thead>
             <tr>
               <th>Nome & Lotação</th>
-              <th>Cargo & Grau</th>
-              <th>Órgão / Ramo</th>
-              <th class="num">Subsídio Base</th>
-              <th class="num">Penduricalhos</th>
-              <th class="num">Remuneração Líquida</th>
-              <th style="width:90px">Ações</th>
+              <th style="min-width:180px">Cargo & Grau</th>
+              <th style="min-width:130px">Órgão / Ramo</th>
+              <th class="num" style="min-width:115px">Subsídio Base</th>
+              <th class="num" style="min-width:115px">Penduricalhos</th>
+              <th class="num" style="min-width:145px">Remuneração Líquida</th>
+              <th style="width:110px; min-width:105px; text-align:center">Ações</th>
             </tr>
           </thead>
           <tbody id="tabela-mp-corpo">
@@ -774,14 +774,6 @@
           </tbody>
           <tfoot id="tabela-mp-rodape"></tfoot>
         </table>
-      </div>
-    </div>
-
-    <!-- Modal de Detalhe do Membro do MP -->
-    <div id="modal-mp-detalhe" class="modal" hidden style="position:fixed; inset:0; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; z-index:999">
-      <div class="cartao" style="max-width:650px; width:90%; max-height:85vh; overflow-y:auto; position:relative; background:var(--superficie)">
-        <button id="modal-mp-fechar" style="position:absolute; right:16px; top:16px; border:none; background:none; font-size:1.4rem; cursor:pointer; color:var(--texto)">✖</button>
-        <div id="modal-mp-corpo"></div>
       </div>
     </div>
   </section>
