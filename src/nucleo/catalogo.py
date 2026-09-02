@@ -485,7 +485,18 @@ def construir_catalogo() -> pd.DataFrame:
                     elif tabela in ("proposicao", "votacao") and ano_int == 1998:
                         completude = "amostra_historica"
 
-                    url_req = meta.get("url_template", "").format(ano=ano_str) if ano_str else meta.get("url_template", "")
+                    if tabela == "despesa_funcao":
+                        periodo = "1" if ano_int == 2026 else "6"
+                        url_req = f"https://apidatalake.tesouro.gov.br/ords/siconfi/tt/rreo?an_exercicio={ano_str}&id_ente=35&nr_periodo={periodo}&co_tipo_demonstrativo=RREO&no_anexo=RREO-Anexo%2002"
+                    elif tabela == "indicador_fiscal":
+                        periodo = "1" if ano_int == 2026 else "3"
+                        url_req = f"https://apidatalake.tesouro.gov.br/ords/siconfi/tt/rgf?an_exercicio={ano_str}&id_ente=35&in_periodicidade=Q&nr_periodo={periodo}&co_tipo_demonstrativo=RGF&no_anexo=RGF-Anexo%2001&co_poder=E"
+                    elif tabela == "financas_ente":
+                        url_req = f"https://apidatalake.tesouro.gov.br/ords/siconfi/tt/dca?an_exercicio={ano_str}&id_ente=35&no_anexo=DCA-Anexo%20I-C"
+                    elif tabela == "custo_orgao":
+                        url_req = f"https://apidatalake.tesouro.gov.br/ords/custos/tt/demais?an_lanc={ano_str}"
+                    else:
+                        url_req = meta.get("url_template", "").format(ano=ano_str) if ano_str else meta.get("url_template", "")
 
                     # Estima/calcula linhas na origem oficial
                     linhas_origem = qtd_linhas

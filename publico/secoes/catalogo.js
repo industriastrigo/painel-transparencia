@@ -289,13 +289,19 @@ function abrirModalGet(item) {
 
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px">
       <div style="background:var(--superficie); padding:10px; border-radius:6px; border:1px solid var(--borda)">
-        <div style="font-size:0.75rem; color:var(--texto-suave); font-weight:700">Linhas no Acervo Local</div>
+        <div style="font-size:0.75rem; color:var(--texto-suave); font-weight:700">Linhas no Acervo Local (Ano)</div>
         <div style="font-size:1.2rem; font-weight:800; color:var(--realce, #38bdf8)">${(item.total_linhas || 0).toLocaleString('pt-BR')}</div>
+        <div style="font-size:0.75rem; color:var(--texto-suave); margin-top:2px">Soma consolidada de todos os entes</div>
       </div>
       <div style="background:var(--superficie); padding:10px; border-radius:6px; border:1px solid var(--borda)">
         <div style="font-size:0.75rem; color:var(--texto-suave); font-weight:700">Linhas na Origem Oficial</div>
         <div style="font-size:1.2rem; font-weight:800; color:var(--texto)">${(item.linhas_origem || item.total_linhas || 0).toLocaleString('pt-BR')}</div>
+        <div style="font-size:0.75rem; color:var(--texto-suave); margin-top:2px">Universo total esperado na federação</div>
       </div>
+    </div>
+
+    <div style="background:var(--superficie-2); border:1px solid var(--borda); border-radius:6px; padding:10px 12px; margin-bottom:14px; font-size:0.8rem; color:var(--texto-suave)">
+      💡 <strong>Como ler a contagem no retorno da API:</strong> No JSON retornado, a quantidade de linhas desta requisição vem indicada no campo <code>"count"</code> e no tamanho do array <code>"items"</code>. O acervo local consolida o somatório das varreduras de todos os entes federativos.
     </div>
 
     <div style="margin-bottom:16px">
