@@ -152,7 +152,10 @@ def obter_catalogo_tabelas(
                 COUNT(CASE WHEN status_completude = 'total' OR status_completude = 'total_ufs' THEN 1 END) AS qtd_total,
                 COUNT(CASE WHEN status_completude ILIKE 'parcial%' THEN 1 END) AS qtd_parcial,
                 COUNT(CASE WHEN status_completude ILIKE 'amostra%' THEN 1 END) AS qtd_amostra,
-                COUNT(CASE WHEN status_completude = 'vigente' THEN 1 END) AS qtd_vigente
+                COUNT(CASE WHEN status_completude = 'vigente' THEN 1 END) AS qtd_vigente,
+                MIN(ano) AS ano_min,
+                MAX(ano) AS ano_max,
+                COUNT(DISTINCT ano) AS total_anos_distintos
             FROM dim_catalogo_tabela
         """)
     except Exception:
@@ -173,7 +176,10 @@ def obter_catalogo_tabelas(
                 COUNT(CASE WHEN status_completude = 'total' OR status_completude = 'total_ufs' THEN 1 END) AS qtd_total,
                 COUNT(CASE WHEN status_completude ILIKE 'parcial%' THEN 1 END) AS qtd_parcial,
                 COUNT(CASE WHEN status_completude ILIKE 'amostra%' THEN 1 END) AS qtd_amostra,
-                COUNT(CASE WHEN status_completude = 'vigente' THEN 1 END) AS qtd_vigente
+                COUNT(CASE WHEN status_completude = 'vigente' THEN 1 END) AS qtd_vigente,
+                MIN(ano) AS ano_min,
+                MAX(ano) AS ano_max,
+                COUNT(DISTINCT ano) AS total_anos_distintos
             FROM dim_catalogo_tabela
         """)
 
@@ -190,6 +196,9 @@ def obter_catalogo_tabelas(
             "qtd_parcial": int(tot.get("qtd_parcial") or 0),
             "qtd_amostra": int(tot.get("qtd_amostra") or 0),
             "qtd_vigente": int(tot.get("qtd_vigente") or 0),
+            "ano_min": int(tot["ano_min"]) if tot.get("ano_min") is not None else 1996,
+            "ano_max": int(tot["ano_max"]) if tot.get("ano_max") is not None else 2026,
+            "total_anos_distintos": int(tot.get("total_anos_distintos") or 0),
         },
         "total_registros_catalogo": len(linhas),
         "total_linhas_filtradas": total_linhas_filtradas,
