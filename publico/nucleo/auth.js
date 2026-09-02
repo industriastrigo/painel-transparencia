@@ -4,7 +4,12 @@ const CLIENT_ID_GOOGLE = '557640394651-7p5hjc27lsjj2s3eklm3d3q97pvc412g.apps.goo
 const CHAVE_STORAGE_USUARIO = 'painel_usuario_google';
 const CHAVE_STORAGE_CGU = 'painel_chave_cgu_pessoal';
 
+// Abas públicas que não exigem registro
+const ABAS_PUBLICAS = new Set(['inicio', 'glossario']);
+
 let usuarioAtual = null;
+let destinoPendenteAposLogin = null;
+const ouvintesAuth = [];
 
 export function inicializarAuth() {
   // Carrega usuário salvo na sessão
@@ -19,6 +24,7 @@ export function inicializarAuth() {
 
   renderizarWidgetAuth();
   configurarEventosAuth();
+  notificarMudancaAuth();
 
   // Inicializa Google Identity Services se disponível
   if (window.google?.accounts?.id) {
@@ -39,6 +45,28 @@ export function inicializarAuth() {
       }
     });
   }
+}
+
+export function usuarioAutenticado() {
+  return Boolean(usuarioAtual);
+}
+
+export function abaRequerAuth(aba) {
+  if (!aba) return false;
+  return !ABAS_PUBLICAS.has(aba);
+}
+
+export function aoMudarAuth(callback) {
+  if (typeof callback === 'function') {
+    ouvintesAuth.push(callback);
+    callback(usuarioAtual);
+  }
+}
+
+function notificarMudancaAuth() {
+  ouvintesAuth.forEach((fn) => {
+    try { fn(usuarioAtual); } catch (e) { console.error('Erro em ouvinte auth:', e); }
+  });
 }
 
 export function obterUsuarioAtual() {
@@ -73,6 +101,18 @@ function lidarComRespostaGoogle(resposta) {
 
     localStorage.setItem(CHAVE_STORAGE_USUARIO, JSON.stringify(usuarioAtual));
     renderizarWidgetAuth();
+    notificarMudancaAuth();
+
+    // Fecha modal de aviso se estiver aberto
+    const modalAviso = document.getElementById('modal-aviso-registro');
+    if (modalAviso && modalAviso.close) modalAviso.close();
+
+    // Redireciona para o destino desejado se houver
+    if (destinoPendenteAposLogin) {
+      const destino = destinoPendenteAposLogin;
+      destinoPendenteAposLogin = null;
+      import('./abas.js').then((m) => m.trocarAba(destino));
+    }
   } catch (erro) {
     console.error('Erro ao processar login Google:', erro);
   }
@@ -104,7 +144,7 @@ export function renderizarWidgetAuth() {
     `;
   } else {
     container.innerHTML = `
-      <button id="btn-login-google" class="btn-login-google-topbar" title="Entrar com conta para personalizar o painel">
+      <button id="btn-login-google" class="btn-login-google-topbar" title="Entrar com conta Google para ter acesso ao painel">
         <span>Entrar</span>
       </button>
     `;
@@ -116,7 +156,7 @@ export function renderizarWidgetAuth() {
 
 function configurarEventosAuth() {
   document.addEventListener('click', (e) => {
-    if (e.target.closest('#btn-login-google')) {
+    if (e.target.closest('#btn-login-google') || e.target.closest('#btn-login-modal-aviso') || e.target.closest('#btn-entrar-hero-inicio') || e.target.closest('#btn-aderir-hero-inicio')) {
       dispararLoginGoogle();
     } else if (e.target.closest('#btn-abrir-perfil')) {
       abrirModalPerfil();
@@ -137,12 +177,16 @@ function configurarEventosAuth() {
   });
 }
 
-function dispararLoginGoogle() {
+export function dispararLoginGoogle(destinoAposLogin = null) {
+  if (destinoAposLogin) {
+    destinoPendenteAposLogin = destinoAposLogin;
+  }
+
   if (window.google?.accounts?.id) {
     window.google.accounts.id.prompt();
   } else {
-    // Fallback simulado
-    const nomeDemo = prompt('Digite seu nome para login no painel:', 'Johnny Trigo');
+    // Fallback amigável de demonstração
+    const nomeDemo = prompt('Digite seu nome para login no Painel da Transparência:', 'Johnny Trigo');
     if (nomeDemo) {
       usuarioAtual = {
         id: 'demo_' + Date.now(),
@@ -154,16 +198,43 @@ function dispararLoginGoogle() {
       };
       localStorage.setItem(CHAVE_STORAGE_USUARIO, JSON.stringify(usuarioAtual));
       renderizarWidgetAuth();
+      notificarMudancaAuth();
+
+      const modalAviso = document.getElementById('modal-aviso-registro');
+      if (modalAviso && modalAviso.close) modalAviso.close();
+
+      if (destinoPendenteAposLogin) {
+        const destino = destinoPendenteAposLogin;
+        destinoPendenteAposLogin = null;
+        import('./abas.js').then((m) => m.trocarAba(destino));
+      }
     }
   }
 }
 
-function desconectarUsuario() {
+export function abrirModalAvisoRegistro(destinoDesejado = null) {
+  if (destinoDesejado) {
+    destinoPendenteAposLogin = destinoDesejado;
+  }
+  const modal = document.getElementById('modal-aviso-registro');
+  if (modal && modal.showModal) {
+    modal.showModal();
+  } else {
+    dispararLoginGoogle(destinoDesejado);
+  }
+}
+
+export function desconectarUsuario() {
   usuarioAtual = null;
   localStorage.removeItem(CHAVE_STORAGE_USUARIO);
   renderizarWidgetAuth();
+  notificarMudancaAuth();
+
   const modal = document.getElementById('modal-perfil-usuario');
   if (modal && modal.close) modal.close();
+
+  // Força retorno à página inicial aberta
+  import('./abas.js').then((m) => m.trocarAba('inicio'));
 }
 
 function abrirModalPerfil() {
@@ -184,3 +255,4 @@ function atualizarModalPerfil() {
   if (email) email.textContent = usuarioAtual?.email || 'Acesso não autenticado';
   if (inputCgu) inputCgu.value = obterChaveCguPessoal();
 }
+

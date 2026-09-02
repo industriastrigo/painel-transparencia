@@ -2215,6 +2215,23 @@ a:hover { color: var(--realce-vivo); }
   font-weight: 700;
 }
 
+.drawer-nav-item.item-bloqueado {
+  opacity: 0.88;
+}
+
+.badge-lock-drawer {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--realce-dourado);
+  opacity: 0.75;
+}
+
+.drawer-nav-item:hover .badge-lock-drawer {
+  opacity: 1;
+}
+
 .item-icone {
   display: inline-flex;
   align-items: center;

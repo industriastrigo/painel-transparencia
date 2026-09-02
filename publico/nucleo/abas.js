@@ -1,6 +1,7 @@
 /* Controle de abas e atalhos de teclado (WAI-ARIA). */
 import { $, $$ } from './ui.js';
 import { atualizarItemAtivoDrawer } from './drawer.js';
+import { usuarioAutenticado, abaRequerAuth, abrirModalAvisoRegistro } from './auth.js';
 
 export const abasCarregadas = new Set();
 export const ganchosDeAba = {};
@@ -11,6 +12,18 @@ export function registrarGanchoAba(nome, fn) {
 
 export function trocarAba(destino, { focar = false } = {}) {
   if (!destino) return;
+
+  // Intercepta tentativas de acesso a abas de dados sem autenticação
+  if (abaRequerAuth(destino) && !usuarioAutenticado()) {
+    abrirModalAvisoRegistro(destino);
+    // Se a página já está no início ou glossário, permanece nela
+    const abaAtual = location.hash.slice(1);
+    if (!abaAtual || abaRequerAuth(abaAtual)) {
+      destino = 'inicio';
+    } else {
+      return;
+    }
+  }
 
   $$('header nav button[data-aba], .drawer-nav-item[data-aba]').forEach((b) => {
     const ativa = b.dataset.aba === destino;
