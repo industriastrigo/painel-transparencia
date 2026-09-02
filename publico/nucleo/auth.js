@@ -1,6 +1,6 @@
 /* Módulo de Autenticação Google & Perfil do Usuário - Indústrias Trigo */
 
-const CLIENT_ID_GOOGLE = '135523961227-ge34sl0k0h1cglv54g1k1sv31topdi7r.apps.googleusercontent.com';
+const CLIENT_ID_GOOGLE = '135523961227-4dpue1mbjro08dsri6oggu9np2dthfmg.apps.googleusercontent.com';
 const CHAVE_STORAGE_USUARIO = 'painel_usuario_google';
 const CHAVE_STORAGE_CGU = 'painel_chave_cgu_pessoal';
 
