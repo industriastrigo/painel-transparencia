@@ -96,7 +96,7 @@ function renderizarLegislativo(sumario, cotas, dadosParlamentares) {
     </div>
 
     <!-- Painel de Bancadas e Cotas Parlamentares -->
-    <div class="painel" style="display:grid; grid-template-columns: minmax(320px, 1fr) minmax(480px, 1.4fr); gap:20px; margin-bottom:18px; align-items:stretch">
+    <div class="painel grid-bancadas-gastos">
       <!-- Distribuição por Bancada -->
       <div class="cartao" style="background:var(--superficie-2); display:flex; flex-direction:column; justify-content:space-between; height:100%; min-height:480px">
         <div>

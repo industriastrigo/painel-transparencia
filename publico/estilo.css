@@ -233,6 +233,21 @@ input::placeholder { color: var(--texto-sutil); }
 }
 @media (max-width: 980px) { .painel { grid-template-columns: 1fr; } }
 
+.grid-duas-colunas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: stretch;
+}
+
+.grid-bancadas-gastos {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr);
+  gap: 20px;
+  margin-bottom: 18px;
+  align-items: stretch;
+}
+
 .cartao {
   background: var(--superficie); border: 1px solid var(--borda);
   border-radius: var(--raio); padding: var(--e5);
@@ -2991,9 +3006,10 @@ a:hover { color: var(--realce-vivo); }
 
   /* 9. CONTROLES E FILTROS DAS ABAS (MAPA, PODERES, POLÍTICOS, GASTOS) */
   .barra {
-    flex-direction: column;
-    align-items: stretch;
-    gap: var(--e3);
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin-bottom: var(--e4);
   }
 
   .barra > div {
@@ -3004,21 +3020,30 @@ a:hover { color: var(--realce-vivo); }
   .barra input,
   .barra button {
     width: 100%;
-    font-size: 16px; /* Touch-friendly e sem zoom no iOS */
+    font-size: 15px; /* Touch-friendly e sem zoom no iOS */
+    padding: 9px 12px;
+  }
+
+  /* Grids de Cards Lado a Lado empilhados em 1 coluna no mobile */
+  .grid-duas-colunas,
+  .grid-bancadas-gastos,
+  .painel {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
   }
 
   .tiras {
-    grid-template-columns: 1fr;
-    gap: 10px;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 8px;
   }
 
   .tira {
-    padding: 12px 14px;
+    padding: 10px 12px;
   }
 
   .tira strong,
   .tira .valor {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
   }
 
   /* 10. TABELAS COM SCROLL HORIZONTAL SUAVE */
@@ -3028,6 +3053,12 @@ a:hover { color: var(--realce-vivo); }
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     white-space: nowrap;
+    border-collapse: collapse;
+  }
+
+  table th, table td {
+    padding: 8px 10px;
+    font-size: 0.84rem;
   }
 
   /* 11. MODAL PERFIL MOBILE */

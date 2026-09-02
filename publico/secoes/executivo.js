@@ -306,7 +306,7 @@ export async function carregarExecutivo() {
       const pctPrim = (f.receita_primaria && f.receita_primaria > 0) ? (f.resultado_primario / f.receita_primaria * 100) : 0;
       const pctNom = (f.receita_primaria && f.receita_primaria > 0) ? (f.resultado_nominal / f.receita_primaria * 100) : 0;
       alvoDefasagem.innerHTML = `
-        <div class="painel" style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+        <div class="painel grid-duas-colunas">
           <!-- Resultado Primário -->
           <div class="cartao" style="background:var(--superficie-2); border-left:4px solid ${supPrim ? '#10b981' : '#ef4444'}">
             <div style="display:flex; justify-content:space-between; align-items:flex-start">
@@ -389,7 +389,7 @@ export async function carregarExecutivo() {
           </div>
         </div>
 
-        <div class="painel" style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+        <div class="painel grid-duas-colunas">
           <!-- Ótica da Demanda -->
           <div class="cartao" style="background:var(--superficie-2)">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px">
