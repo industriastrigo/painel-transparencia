@@ -365,7 +365,7 @@ def mesclar(
             con.close()
 
     _medir(nome_tabela, "gravadas", sum(total.values()))
-    log.info("%s ← %s: %d novos, %d alterados, %d inalterados",
+    log.info("%s <- %s: %d novos, %d alterados, %d inalterados",
              nome_tabela, fonte, total["inseridos"], total["alterados"],
              total["inalterados"])
     return total
@@ -441,3 +441,22 @@ def remover(nome_tabela: str) -> None:
         shutil.rmtree(caminho_base(tabela), ignore_errors=True)
     else:
         caminho_particao(tabela, {}).unlink(missing_ok=True)
+
+
+def remover_particao(nome_tabela: str, valores_particao: Mapping[str, Any]) -> bool:
+    """Apaga uma partição específica de uma tabela fato (ex: ano=2025)."""
+    tabela = obter(nome_tabela)
+    if tabela.camada != "fato":
+        caminho_particao(tabela, {}).unlink(missing_ok=True)
+        return True
+    
+    destino = caminho_base(tabela)
+    for coluna in tabela.particoes:
+        if coluna in valores_particao:
+            destino = destino / f"{coluna}={valores_particao[coluna]}"
+    
+    if destino.exists():
+        shutil.rmtree(destino, ignore_errors=True)
+        return True
+    return False
+

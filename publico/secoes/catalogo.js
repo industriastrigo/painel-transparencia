@@ -1,4 +1,4 @@
-/* Seção Catálogo de Tabelas & Inventário de Dados (dim/fato). */
+/* Seção Catálogo de Tabelas & Inventário de Dados (dim/fato) + Log de Auditoria. */
 
 import { $, $$ } from '../nucleo/ui.js';
 import { buscar } from '../nucleo/api.js';
@@ -47,6 +47,9 @@ export async function carregarCatalogo() {
 
     catalogoCache = dados.itens || [];
     renderizarTabelaCatalogo(catalogoCache, dados.total_linhas_filtradas || 0);
+
+    // Carrega o histórico de auditoria em paralelo
+    await carregarHistoricoAuditoria();
   } catch (erro) {
     console.error('Erro ao carregar catálogo:', erro);
     corpo.innerHTML = `<tr><td colspan="9" class="erro">Falha ao carregar catálogo: ${escapar(erro.message)}</td></tr>`;
@@ -153,6 +156,73 @@ function renderizarTabelaCatalogo(lista, somaLinhas) {
         </td>
       </tr>
     `;
+  }
+}
+
+export async function carregarHistoricoAuditoria() {
+  const corpo = $('#tabela-auditoria-corpo');
+  if (!corpo) return;
+
+  try {
+    const dados = await buscar('/api/carga/historico?limite=50');
+    if (!dados) return;
+
+    if (dados.kpis) {
+      const k = dados.kpis;
+      if ($('#aud-kpi-total')) $('#aud-kpi-total').textContent = (k.total_auditorias || 0).toLocaleString('pt-BR');
+      if ($('#aud-kpi-sem-alt')) $('#aud-kpi-sem-alt').textContent = (k.total_sem_alteracao || 0).toLocaleString('pt-BR');
+      if ($('#aud-kpi-reproc')) $('#aud-kpi-reproc').textContent = (k.total_reprocessados || 0).toLocaleString('pt-BR');
+      if ($('#aud-kpi-variacao')) {
+        $('#aud-kpi-variacao').innerHTML = `
+          <span style="color:#34d399">+${(k.total_linhas_incluidas || 0).toLocaleString('pt-BR')}</span> / 
+          <span style="color:#f87171">-${(k.total_linhas_excluidas || 0).toLocaleString('pt-BR')}</span>
+        `;
+      }
+    }
+
+    const lista = dados.itens || [];
+    if (lista.length === 0) {
+      corpo.innerHTML = '<tr><td colspan="8" class="vazio">Nenhuma validação registrada ainda. Clique em "Validar Acervo vs. Origem" para iniciar.</td></tr>';
+      return;
+    }
+
+    corpo.innerHTML = lista.map((item) => {
+      let badgeStatus = '';
+      const st = item.status_validacao || 'sem_alteracao';
+      if (st === 'sem_alteracao') {
+        badgeStatus = '<span class="selo" style="background:rgba(16,185,129,0.15); color:#34d399; border:1px solid rgba(16,185,129,0.4)">✓ Sem Alteração (Íntegro)</span>';
+      } else if (st === 'reprocessado') {
+        badgeStatus = '<span class="selo" style="background:rgba(56,189,248,0.15); color:#38bdf8; border:1px solid rgba(56,189,248,0.4)">🔄 Reprocessado</span>';
+      } else {
+        badgeStatus = '<span class="selo" style="background:rgba(239,68,68,0.15); color:#f87171; border:1px solid rgba(239,68,68,0.4)">❌ Falha / Erro</span>';
+      }
+
+      const inc = Number(item.linhas_incluidas) || 0;
+      const exc = Number(item.linhas_excluidas) || 0;
+      let varStr = '<span style="color:var(--texto-suave)">0</span>';
+      if (inc > 0 || exc > 0) {
+        varStr = `<span style="color:#34d399">+${inc.toLocaleString('pt-BR')}</span> / <span style="color:#f87171">-${exc.toLocaleString('pt-BR')}</span>`;
+      }
+
+      const antes = Number(item.linhas_anterior) || 0;
+      const atual = Number(item.linhas_atual) || antes;
+
+      return `
+        <tr>
+          <td style="color:var(--texto-suave); font-family:monospace">${escapar(item.data_hora || '')}</td>
+          <td style="font-family:monospace; font-weight:700; color:var(--texto-destaque)">${escapar(item.tabela || '')}</td>
+          <td class="num">${escapar(item.ano_particao || '—')}</td>
+          <td>${badgeStatus}</td>
+          <td class="num" style="color:var(--texto-suave)">${antes.toLocaleString('pt-BR')} &rarr; <strong>${atual.toLocaleString('pt-BR')}</strong></td>
+          <td class="num">${varStr}</td>
+          <td style="font-size:0.8rem; color:var(--texto); max-width:320px">${escapar(item.detalhe_mudanca || '')}</td>
+          <td class="num" style="color:var(--texto-suave); font-family:monospace">${item.duracao_ms || 0}ms</td>
+        </tr>
+      `;
+    }).join('');
+  } catch (e) {
+    console.error('Erro ao carregar historico de auditoria:', e);
+    corpo.innerHTML = `<tr><td colspan="8" class="erro">Falha ao carregar log de auditoria: ${escapar(e.message)}</td></tr>`;
   }
 }
 
@@ -282,6 +352,29 @@ export function configurarEventosCatalogo() {
       console.error('Falha ao recalcular catalogo:', e);
     } finally {
       if (btn) btn.disabled = false;
+    }
+  });
+
+  $('#btn-executar-validacao-carga')?.addEventListener('click', async () => {
+    const btn = $('#btn-executar-validacao-carga');
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<span>⏳</span> Validando Acervo vs. Origem...';
+    }
+    try {
+      await fetch('/api/carga/validar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ forcar: false }),
+      });
+      await carregarCatalogo();
+    } catch (e) {
+      console.error('Falha na validação de carga:', e);
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<span>⚡</span> Validar Acervo vs. Origem';
+      }
     }
   });
 }

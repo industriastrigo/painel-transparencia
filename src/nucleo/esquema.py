@@ -555,6 +555,15 @@ qualidade = Tabela(
 )
 TABELAS[qualidade.nome] = qualidade
 
+log_auditoria_carga = Tabela(
+    nome="log_auditoria_carga",
+    camada="_ctl",
+    campos_pk=("id_auditoria",),
+    descricao="Histórico de auditoria, validação origem x tabela e reprocessamento inteligente de cargas.",
+)
+TABELAS[log_auditoria_carga.nome] = log_auditoria_carga
+
+
 
 # --------------------------------------------------------------- contratos
 # Só as colunas que as views e a API consultam. Coletor pode trazer mais.
@@ -786,6 +795,23 @@ _COLUNAS: dict[str, tuple[tuple[str, str], ...]] = {
         ("valor_inicial", "DOUBLE"), ("valor_atualizado", "DOUBLE"),
         ("data_inicio_vigencia", "VARCHAR"), ("data_fim_vigencia", "VARCHAR"),
         ("data_referencia", "VARCHAR"),
+    ),
+    "log_auditoria_carga": (
+        ("id_auditoria", "VARCHAR"),
+        ("data_hora", "VARCHAR"),
+        ("tabela", "VARCHAR"),
+        ("camada", "VARCHAR"),
+        ("ano_particao", "VARCHAR"),
+        ("status_validacao", "VARCHAR"),
+        ("linhas_anterior", "INTEGER"),
+        ("linhas_origem", "INTEGER"),
+        ("linhas_atual", "INTEGER"),
+        ("linhas_incluidas", "INTEGER"),
+        ("linhas_excluidas", "INTEGER"),
+        ("detalhe_mudanca", "VARCHAR"),
+        ("duracao_ms", "INTEGER"),
+        ("fonte_origem", "VARCHAR"),
+        ("endpoint", "VARCHAR"),
     ),
 }
 

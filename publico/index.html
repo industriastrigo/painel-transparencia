@@ -1438,7 +1438,7 @@
     </div>
 
     <!-- 5. Tabela do Catálogo Estruturado -->
-    <div class="grade" style="overflow-x:auto; background:var(--superficie); border:1px solid var(--borda); border-radius:8px">
+    <div class="grade" style="overflow-x:auto; background:var(--superficie); border:1px solid var(--borda); border-radius:8px; margin-bottom:28px">
       <table style="width:100%; border-collapse:collapse">
         <thead>
           <tr style="background:var(--superficie-2); border-bottom:2px solid var(--borda-forte)">
@@ -1460,6 +1460,75 @@
         </tbody>
         <tfoot id="tabela-catalogo-rodape"></tfoot>
       </table>
+    </div>
+
+    <!-- 6. Histórico de Auditoria & Sincronização Inteligente (Origem x Tabela) -->
+    <div class="cartao" style="margin-top:20px; border-top:3px solid var(--realce, #38bdf8)">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px; margin-bottom:16px">
+        <div>
+          <h3 style="margin:0 0 4px; font-size:1.15rem; display:flex; align-items:center; gap:8px">
+            <span>📜</span> Histórico de Auditoria & Sincronização Inteligente
+          </h3>
+          <p style="margin:0; font-size:0.85rem; color:var(--texto-suave)">
+            Validação automática <strong>Origem (API) × Acervo Local (Parquet)</strong>. Se houver divergência, a partição é apagada e recarregada; se íntegra, o processamento é ignorado.
+          </p>
+        </div>
+        <div style="display:flex; gap:10px">
+          <button id="btn-executar-validacao-carga" class="principal" style="padding:8px 16px; border-radius:6px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:6px">
+            <span>⚡</span> Validar Acervo vs. Origem
+          </button>
+        </div>
+      </div>
+
+      <!-- KPIs do Log de Auditoria -->
+      <div class="kpis" style="grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:12px; margin-bottom:16px">
+        <div class="kpi-cartao" style="background:var(--superficie-2); padding:10px 14px">
+          <div class="rotulo">Total de Auditorias</div>
+          <div class="valor" id="aud-kpi-total" style="font-size:1.3rem">0</div>
+          <div class="subtitulo">Consultas registradas</div>
+        </div>
+        <div class="kpi-cartao" style="background:var(--superficie-2); padding:10px 14px">
+          <div class="rotulo">Íntegras (Sem Alteração)</div>
+          <div class="valor" id="aud-kpi-sem-alt" style="font-size:1.3rem; color:#34d399">0</div>
+          <div class="subtitulo">Dados 100% alinhados</div>
+        </div>
+        <div class="kpi-cartao" style="background:var(--superficie-2); padding:10px 14px">
+          <div class="rotulo">Reprocessadas (Recarregadas)</div>
+          <div class="valor" id="aud-kpi-reproc" style="font-size:1.3rem; color:#38bdf8">0</div>
+          <div class="subtitulo">Partições atualizadas</div>
+        </div>
+        <div class="kpi-cartao" style="background:var(--superficie-2); padding:10px 14px">
+          <div class="rotulo">Linhas Incluídas / Excluídas</div>
+          <div class="valor" id="aud-kpi-variacao" style="font-size:1.15rem; color:var(--texto-suave)">+0 / -0</div>
+          <div class="subtitulo">Saldo de registros no acervo</div>
+        </div>
+      </div>
+
+      <!-- Tabela do Histórico de Log Parquet -->
+      <div class="grade" style="overflow-x:auto; background:var(--superficie); border:1px solid var(--borda); border-radius:8px">
+        <table style="width:100%; border-collapse:collapse; font-size:0.85rem">
+          <thead>
+            <tr style="background:var(--superficie-2); border-bottom:2px solid var(--borda-forte)">
+              <th style="text-align:left; padding:8px 10px">Data / Hora (UTC)</th>
+              <th style="text-align:left; padding:8px 10px">Tabela Parquet</th>
+              <th style="text-align:right; padding:8px 10px">Partição</th>
+              <th style="text-align:left; padding:8px 10px">Status da Validação</th>
+              <th style="text-align:right; padding:8px 10px">Antes → Atual</th>
+              <th style="text-align:right; padding:8px 10px">Variação</th>
+              <th style="text-align:left; padding:8px 10px">O que mudou (Detalhe da Auditoria)</th>
+              <th style="text-align:right; padding:8px 10px">Duração</th>
+            </tr>
+          </thead>
+          <tbody id="tabela-auditoria-corpo">
+            <tr>
+              <td colspan="8" class="carregando">Carregando log de auditoria...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="font-size:0.78rem; color:var(--texto-suave); margin-top:8px; text-align:right">
+        Log persistido em: <code>dados/_ctl/log_auditoria_carga.parquet</code> (Compressão Zstandard colunar)
+      </div>
     </div>
 
   </section>

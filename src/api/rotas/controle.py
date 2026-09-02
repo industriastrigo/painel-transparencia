@@ -215,3 +215,36 @@ def atualizar_catalogo_acervo():
     return {"status": "ok", "caminho": str(p), "views_recarregadas": len(criadas)}
 
 
+@router.get("/api/carga/historico")
+def obter_historico_carga(
+    limite: int = 100,
+    tabela: str | None = None,
+    status: str | None = None,
+):
+    """Consulta o log Parquet de auditoria e validação de carga histórica."""
+    from ...nucleo.auditoria_carga import consultar_historico_auditoria
+    return consultar_historico_auditoria(limite=limite, tabela=tabela, status=status)
+
+
+@router.post("/api/carga/validar")
+def executar_validacao_carga(payload: dict | None = None):
+    """Executa a validação acervo x origem: se houver diferença, apaga e recarrega; se íntegro, pula com log."""
+    from ...nucleo.auditoria_carga import validar_e_sincronizar_tabela, executar_auditoria_completa
+    
+    dados = payload or {}
+    tabela = dados.get("tabela")
+    ano = dados.get("ano")
+    forcar = bool(dados.get("forcar", False))
+
+    if tabela:
+        ano_int = int(ano) if ano and str(ano).isdigit() else None
+        res = validar_e_sincronizar_tabela(tabela, ano_int, forcar=forcar)
+        recarregar_views()
+        return {"status": "ok", "resultado": res}
+    
+    resultados = executar_auditoria_completa(forcar=forcar)
+    recarregar_views()
+    return {"status": "ok", "total_validados": len(resultados), "resultados": resultados}
+
+
+

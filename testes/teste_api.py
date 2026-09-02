@@ -1082,6 +1082,23 @@ def test_catalogo_atualizar(cliente):
     assert "caminho" in dados
 
 
+def test_carga_historico_e_validacao(cliente):
+    res_val = cliente.post("/api/carga/validar", json={"tabela": "cartao_corporativo", "ano": 2026, "forcar": False})
+    assert res_val.status_code == 200
+    dados_val = res_val.json()
+    assert dados_val["status"] == "ok"
+    assert "resultado" in dados_val
+    assert dados_val["resultado"]["tabela"] == "cartao_corporativo"
+
+    res_hist = cliente.get("/api/carga/historico")
+    assert res_hist.status_code == 200
+    dados_hist = res_hist.json()
+    assert "kpis" in dados_hist
+    assert "itens" in dados_hist
+    assert dados_hist["kpis"]["total_auditorias"] >= 1
+
+
+
 
 
 

@@ -89,9 +89,13 @@ def _etapa(nome: str, funcao) -> tuple[str, int, str]:
 
 def principal(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(
-        description="Carga histórica retomável do Painel da Transparência")
+        description="Carga histórica retomável e validação inteligente do Painel da Transparência")
     p.add_argument("--tudo", action="store_true",
                    help="todas as fontes com série histórica")
+    p.add_argument("--validar", action="store_true",
+                   help="executa validação acervo x origem: apaga e refaz se houver divergência, pula se íntegro")
+    p.add_argument("--tabela", type=str,
+                   help="executa apenas para a tabela especificada")
     p.add_argument("--desde", type=int,
                    help="primeiro ano (padrão: o início da série de cada fonte)")
     p.add_argument("--ate", type=int, default=date.today().year - 1)
@@ -109,9 +113,30 @@ def principal(argv: list[str] | None = None) -> int:
                    help="desliga o arquivo bruto mesmo se o .env o ligar")
     args = p.parse_args(argv)
 
-    if not args.tudo:
+    if not args.tudo and not args.validar and not args.tabela:
         p.print_help()
         return 1
+
+    if args.validar or args.tabela:
+        from ..nucleo.auditoria_carga import validar_e_sincronizar_tabela, executar_auditoria_completa
+        anos_lista = list(range(args.desde or 2015, (args.ate or date.today().year) + 1))
+        
+        if args.tabela:
+            log.info("Iniciando validação inteligente para tabela: %s", args.tabela)
+            if args.tabela.startswith("dim_"):
+                res = validar_e_sincronizar_tabela(args.tabela, None, forcar=args.refazer)
+                log.info("Resultado %s: %s (status=%s)", args.tabela, res.get("detalhe_mudanca"), res.get("status_validacao"))
+            else:
+                for a in anos_lista:
+                    res = validar_e_sincronizar_tabela(args.tabela, a, forcar=args.refazer)
+                    log.info("Resultado %s/%d: %s (status=%s)", args.tabela, a, res.get("detalhe_mudanca"), res.get("status_validacao"))
+            return 0
+        else:
+            log.info("Iniciando auditoria e validação inteligente de todas as tabelas...")
+            res_lista = executar_auditoria_completa(anos=anos_lista, forcar=args.refazer)
+            log.info("Auditoria concluída: %d partições validadas.", len(res_lista))
+            return 0
+
 
     if args.bruto and not args.sem_bruto:
         bruto.ligar(True)
