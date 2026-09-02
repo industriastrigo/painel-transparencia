@@ -3,49 +3,207 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Painel da Transparência — Brasil</title>
+<title>Indústrias Trigo — Painel de Transparência & Controle</title>
 <link rel="stylesheet" href="estilo.css">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
 
-<header>
-  <h1>Painel da Transparência</h1>
-  <p>Dados políticos, socioeconômicos e orçamentários do Brasil, a partir de fontes oficiais.</p>
-  <!-- `role="tab"` de verdade, com `aria-controls` e painéis rotulados. Antes
-       havia `role="tablist"` e `aria-selected` em botões SEM `role="tab"` —
-       e `aria-selected` é inválido num botão comum, então o leitor de tela
-       ignorava e nunca anunciava qual aba estava aberta. Meio caminho é pior
-       que nenhum dos dois. O `tabindex` é gerido em painel.js (roving). -->
-  <nav class="abas" role="tablist" aria-label="Seções do painel">
-    <button role="tab" id="aba-btn-mapa" data-aba="mapa"
-            aria-controls="aba-mapa" aria-selected="true" tabindex="0">Mapa</button>
-    <button role="tab" id="aba-btn-politicos" data-aba="politicos"
-            aria-controls="aba-politicos" aria-selected="false" tabindex="-1">Políticos</button>
-    <button role="tab" id="aba-btn-executivo" data-aba="executivo"
-            aria-controls="aba-executivo" aria-selected="false" tabindex="-1">Poder Executivo</button>
-    <button role="tab" id="aba-btn-legislativo" data-aba="legislativo"
-            aria-controls="aba-legislativo" aria-selected="false" tabindex="-1">Poder Legislativo</button>
-    <button role="tab" id="aba-btn-judiciario" data-aba="judiciario"
-            aria-controls="aba-judiciario" aria-selected="false" tabindex="-1">Poder Judiciário</button>
-    <button role="tab" id="aba-btn-mp" data-aba="mp"
-            aria-controls="aba-mp" aria-selected="false" tabindex="-1">Ministério Público</button>
-    <button role="tab" id="aba-btn-proposicoes" data-aba="proposicoes"
+<header class="topbar-trigo">
+  <div class="topbar-esquerda">
+    <button id="btn-menu-hamburguer" class="btn-hamburguer" aria-label="Abrir menu de navegação">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+    <a href="#mapa" class="brand-link">
+      <img id="topbar-logo-img" src="ativos/logos/logo_trigo_dark.png" alt="Indústrias Trigo" class="topbar-logo" />
+      <div class="brand-text">
+        <span class="brand-title">INDÚSTRIAS TRIGO</span>
+        <span class="brand-subtitle">Data Lakehouse & Transparência</span>
+      </div>
+    </a>
+  </div>
 
-            aria-controls="aba-proposicoes" aria-selected="false" tabindex="-1">Projetos de lei</button>
-    <button role="tab" id="aba-btn-custo" data-aba="custo"
-            aria-controls="aba-custo" aria-selected="false" tabindex="-1">Custo do Estado</button>
-    <button role="tab" id="aba-btn-glossario" data-aba="glossario"
-            aria-controls="aba-glossario" aria-selected="false" tabindex="-1">Glossário & Metodologia</button>
-    <button role="tab" id="aba-btn-fontes" data-aba="fontes"
-            aria-controls="aba-fontes" aria-selected="false" tabindex="-1">Fontes</button>
-    <button role="tab" id="aba-btn-atualizar" data-aba="atualizar"
-            aria-controls="aba-atualizar" aria-selected="false" tabindex="-1">Atualizar</button>
-    <button role="tab" id="aba-btn-catalogo" data-aba="catalogo"
-            aria-controls="aba-catalogo" aria-selected="false" tabindex="-1">Catálogo de Tabelas</button>
-    <button role="tab" id="aba-btn-explorador" data-aba="explorador"
-            aria-controls="aba-explorador" aria-selected="false" tabindex="-1">Banco de Dados (GCP)</button>
-  </nav>
+  <div class="topbar-centro">
+    <div class="topbar-pagina-ativa" id="topbar-titulo-pagina">
+      <span>🗺️</span> <strong>Mapa da Federação</strong>
+    </div>
+  </div>
+
+  <div class="topbar-direita">
+    <button class="btn-toggle-tema btn-icone-topbar" title="Alternar tema (Claro / Escuro / Sistema)">
+      <span>🌓</span>
+    </button>
+    <div id="topbar-auth-widget"></div>
+  </div>
 </header>
+
+<div id="drawer-backdrop" class="drawer-backdrop"></div>
+
+<aside id="drawer-menu" class="drawer-trigo" aria-label="Menu de Navegação Principal">
+  <div class="drawer-header">
+    <a href="#mapa" class="brand-link" style="gap:10px">
+      <img src="ativos/logos/icone_trigo_dark.png" alt="Trigo" style="height:32px; border-radius:4px" />
+      <div class="brand-text">
+        <span class="brand-title" style="font-size:0.85rem">INDÚSTRIAS TRIGO</span>
+        <span class="brand-subtitle" style="font-size:0.68rem">Governança Pública</span>
+      </div>
+    </a>
+    <button id="btn-fechar-drawer" class="drawer-fechar" aria-label="Fechar menu">✕</button>
+  </div>
+
+  <div class="drawer-corpo">
+    <!-- 1. TERRITÓRIO & FEDERAÇÃO -->
+    <div>
+      <div class="drawer-secao-rotulo">🗺️ Território & Federação</div>
+      <nav class="drawer-nav-lista">
+        <a href="#mapa" class="drawer-nav-item ativo" data-aba="mapa">
+          <span class="item-icone">🗺️</span>
+          <span class="item-texto">Mapa Interativo & Rankings</span>
+        </a>
+      </nav>
+    </div>
+
+    <!-- 2. PODERES DA REPÚBLICA -->
+    <div>
+      <div class="drawer-secao-rotulo">🏛️ Poderes da República</div>
+      <nav class="drawer-nav-lista">
+        <a href="#executivo" class="drawer-nav-item" data-aba="executivo">
+          <span class="item-icone">🏛️</span>
+          <span class="item-texto">Poder Executivo</span>
+        </a>
+        <a href="#legislativo" class="drawer-nav-item" data-aba="legislativo">
+          <span class="item-icone">⚖️</span>
+          <span class="item-texto">Poder Legislativo</span>
+        </a>
+        <a href="#judiciario" class="drawer-nav-item" data-aba="judiciario">
+          <span class="item-icone">⚖️</span>
+          <span class="item-texto">Poder Judiciário</span>
+        </a>
+        <a href="#mp" class="drawer-nav-item" data-aba="mp">
+          <span class="item-icone">🛡️</span>
+          <span class="item-texto">Ministério Público</span>
+        </a>
+      </nav>
+    </div>
+
+    <!-- 3. PARLAMENTO & GASTOS -->
+    <div>
+      <div class="drawer-secao-rotulo">👥 Parlamento & Gastos</div>
+      <nav class="drawer-nav-lista">
+        <a href="#politicos" class="drawer-nav-item" data-aba="politicos">
+          <span class="item-icone">👥</span>
+          <span class="item-texto">Políticos & Mandatos</span>
+        </a>
+        <a href="#proposicoes" class="drawer-nav-item" data-aba="proposicoes">
+          <span class="item-icone">📜</span>
+          <span class="item-texto">Projetos de Lei & Votações</span>
+        </a>
+        <a href="#custo" class="drawer-nav-item" data-aba="custo">
+          <span class="item-icone">💰</span>
+          <span class="item-texto">Custo do Estado & Subsídios</span>
+        </a>
+      </nav>
+    </div>
+
+    <!-- 4. ENGENHARIA & LAKEHOUSE -->
+    <div>
+      <div class="drawer-secao-rotulo">🔬 Engenharia & Lakehouse</div>
+      <nav class="drawer-nav-lista">
+        <a href="#catalogo" class="drawer-nav-item" data-aba="catalogo">
+          <span class="item-icone">📜</span>
+          <span class="item-texto">Catálogo de Tabelas (Parquet)</span>
+        </a>
+        <a href="#explorador" class="drawer-nav-item" data-aba="explorador">
+          <span class="item-icone">💻</span>
+          <span class="item-texto">Explorador GCP & SQL Studio</span>
+        </a>
+        <a href="#fontes" class="drawer-nav-item" data-aba="fontes">
+          <span class="item-icone">🌐</span>
+          <span class="item-texto">Fontes Oficiais & Conectores</span>
+        </a>
+        <a href="#atualizar" class="drawer-nav-item" data-aba="atualizar">
+          <span class="item-icone">⚡</span>
+          <span class="item-texto">Carga, Auditoria & Sincronização</span>
+        </a>
+      </nav>
+    </div>
+
+    <!-- 5. DOCUMENTAÇÃO -->
+    <div>
+      <div class="drawer-secao-rotulo">📚 Documentação & Metodologia</div>
+      <nav class="drawer-nav-lista">
+        <a href="#glossario" class="drawer-nav-item" data-aba="glossario">
+          <span class="item-icone">📖</span>
+          <span class="item-texto">Glossário & Metodologia</span>
+        </a>
+      </nav>
+    </div>
+  </div>
+
+  <div class="drawer-footer">
+    <strong>Indústrias Trigo</strong> · Data Lakehouse 2.0<br>
+    <span style="opacity:0.8">DuckDB + Parquet Zstandard</span>
+  </div>
+</aside>
+
+<dialog id="modal-perfil-usuario" class="modal-trigo">
+  <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px">
+    <div style="font-size:0.8rem; font-weight:800; text-transform:uppercase; color:var(--realce-dourado); letter-spacing:0.05em">
+      Perfil do Auditor
+    </div>
+    <button onclick="document.getElementById('modal-perfil-usuario').close()" style="background:transparent; border:none; color:var(--texto-fraco); font-size:1.2rem; cursor:pointer">✕</button>
+  </div>
+
+  <div class="perfil-card-header">
+    <img id="perfil-modal-avatar" src="ativos/logos/icone_trigo_dark.png" alt="Avatar" class="perfil-avatar-grande" />
+    <div class="perfil-dados">
+      <h3 id="perfil-modal-nome">Johnny Trigo</h3>
+      <p id="perfil-modal-email">johnny.trigo@industriastrigo.com.br</p>
+      <div style="display:inline-block; margin-top:6px; background:rgba(197,160,89,0.18); border:1px solid rgba(197,160,89,0.4); border-radius:12px; padding:2px 10px; font-size:0.75rem; font-weight:700; color:var(--realce-dourado)">
+        ✦ Auditor Verificado
+      </div>
+    </div>
+  </div>
+
+  <!-- Preferências de Tema -->
+  <div class="perfil-secao">
+    <div class="perfil-secao-titulo">🌓 Modo Visual & Tema</div>
+    <div style="display:flex; align-items:center; justify-content:space-between; background:var(--superficie-2); padding:10px 14px; border-radius:var(--raio); border:1px solid var(--borda)">
+      <div>
+        <div style="font-weight:600; font-size:0.9rem">Esquema de Cores</div>
+        <div id="perfil-tema-rotulo" style="font-size:0.75rem; color:var(--texto-sutil)">Automático (Sistêmico)</div>
+      </div>
+      <button class="btn-toggle-tema secundario" style="padding:6px 12px; border-radius:var(--raio); font-size:0.85rem; font-weight:600; cursor:pointer">
+        Alternar Tema
+      </button>
+    </div>
+  </div>
+
+  <!-- Chave CGU Individual -->
+  <div class="perfil-secao">
+    <div class="perfil-secao-titulo">🔒 Chave Pessoal do Portal da Transparência (CGU)</div>
+    <p style="font-size:0.8rem; color:var(--texto-fraco); margin:0 0 8px">
+      Sua chave individual é armazenada localmente com total segurança no seu navegador.
+    </p>
+    <div style="display:flex; gap:8px">
+      <input type="password" id="input-chave-cgu-perfil" placeholder="Cole sua chave da API da CGU aqui" style="flex:1; padding:8px 12px; border-radius:var(--raio); border:1px solid var(--borda); background:var(--superficie-3); color:var(--texto); font-size:0.85rem" />
+      <button id="btn-salvar-chave-cgu" class="principal" style="padding:8px 14px; border-radius:var(--raio); font-weight:700; cursor:pointer">Salvar</button>
+    </div>
+    <div id="feedback-chave-cgu" style="display:none; color:var(--favor); font-size:0.8rem; margin-top:6px; font-weight:600"></div>
+  </div>
+
+  <!-- Ações do Perfil -->
+  <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--borda); padding-top:14px; margin-top:16px">
+    <button id="btn-logout-perfil" style="background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.3); color:#ef4444; padding:8px 14px; border-radius:var(--raio); font-weight:600; cursor:pointer; font-size:0.85rem">
+      🚪 Desconectar
+    </button>
+    <button onclick="document.getElementById('modal-perfil-usuario').close()" class="secundario" style="padding:8px 16px; border-radius:var(--raio); font-weight:600; cursor:pointer">
+      Fechar
+    </button>
+  </div>
+</dialog>
 
 <main>
 

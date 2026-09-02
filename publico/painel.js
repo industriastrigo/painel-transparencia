@@ -4,6 +4,9 @@ import { $, $$ } from './nucleo/ui.js';
 import { buscar } from './nucleo/api.js';
 import { trocarAba, ligarTeclasDasAbas, registrarGanchoAba, forcarRecargaAba } from './nucleo/abas.js';
 import { reavaliarTema } from './mapa.js';
+import { inicializarTema, alternarTema, definirTema } from './nucleo/tema.js';
+import { inicializarAuth } from './nucleo/auth.js';
+import { inicializarDrawer } from './nucleo/drawer.js';
 
 import {
   estado, carregarAnos, avisarAnoParcial, carregarMapa,
@@ -70,15 +73,30 @@ registrarGanchoAba('explorador', carregarExplorador);
 
 
 async function iniciar() {
-  const botoesAbas = $$('header nav button[data-aba]');
+  // Inicialização do Design System Indústrias Trigo
+  inicializarTema();
+  inicializarAuth();
+  inicializarDrawer();
+
+  // Evento do botão de alternância de tema
+  $$('.btn-toggle-tema').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      alternarTema();
+      reavaliarTema();
+      if (estado.entes && estado.entes.length) carregarMapa().catch(() => {});
+    });
+  });
+
+  const botoesAbas = $$('header nav button[data-aba], .drawer-nav-item[data-aba]');
   botoesAbas.forEach((b) => b.addEventListener('click', () => trocarAba(b.dataset.aba)));
   ligarTeclasDasAbas();
 
-  const abaInicial = location.hash.slice(1);
-  if (botoesAbas.some((b) => b.dataset.aba === abaInicial)) trocarAba(abaInicial);
+  const abaInicial = location.hash.slice(1) || 'mapa';
+  trocarAba(abaInicial);
+
   window.addEventListener('hashchange', () => {
     const aba = location.hash.slice(1);
-    if (botoesAbas.some((b) => b.dataset.aba === aba)) trocarAba(aba);
+    if (aba) trocarAba(aba);
   });
 
   $('#ano').addEventListener('change', (e) => {

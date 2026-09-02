@@ -1,5 +1,6 @@
 /* Controle de abas e atalhos de teclado (WAI-ARIA). */
 import { $, $$ } from './ui.js';
+import { atualizarItemAtivoDrawer } from './drawer.js';
 
 export const abasCarregadas = new Set();
 export const ganchosDeAba = {};
@@ -11,12 +12,14 @@ export function registrarGanchoAba(nome, fn) {
 export function trocarAba(destino, { focar = false } = {}) {
   if (!destino) return;
 
-  $$('header nav button[data-aba]').forEach((b) => {
+  $$('header nav button[data-aba], .drawer-nav-item[data-aba]').forEach((b) => {
     const ativa = b.dataset.aba === destino;
     b.setAttribute('aria-selected', String(ativa));
     b.tabIndex = ativa ? 0 : -1;
   });
   $$('main > section').forEach((sec) => { sec.hidden = sec.id !== `aba-${destino}`; });
+
+  atualizarItemAtivoDrawer(destino);
 
   if (focar) $(`#aba-${destino}`)?.focus();
   if (location.hash.slice(1) !== destino) history.replaceState(null, '', `#${destino}`);

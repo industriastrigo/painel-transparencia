@@ -145,21 +145,24 @@ export function desenharGeoJson(geojson, { largura, altura, margem = 8 }) {
  *  = mais valor") invertida junto com o papel.
  */
 const RAMPA_CLARA = [
-  '#e4efeb', '#c2ded6', '#9bcabd', '#72b3a2', '#4b9884', '#2b7a67', '#175a4c',
+  '#fbf6ea', '#f5e4bc', '#ebcd88', '#dda84e', '#c5a059', '#997a35', '#634e1d',
 ];
 const RAMPA_ESCURA = [
-  '#12312a', '#17453a', '#1c5b4b', '#22745e', '#2e9077', '#4bae92', '#78cbb2',
+  '#201a11', '#3d301c', '#614d28', '#8a6e37', '#b89347', '#d4af37', '#f4da8a',
 ];
 
-const _escuro = () => typeof matchMedia === 'function'
-  && matchMedia('(prefers-color-scheme: dark)').matches;
+const _escuro = () => {
+  const temaRaiz = document.documentElement.getAttribute('data-tema');
+  if (temaRaiz) return temaRaiz === 'dark';
+  return typeof matchMedia === 'function' && matchMedia('(prefers-color-scheme: dark)').matches;
+};
 
 /** A rampa do tema em vigor. É `let` + getter para o painel poder redesenhar
  *  quando o usuário troca o tema do sistema com a página aberta. */
 export let RAMPA = _escuro() ? RAMPA_ESCURA : RAMPA_CLARA;
 
-const TINTA_ESCURA = '#0d241e';
-const TINTA_CLARA = '#f2faf7';
+const TINTA_ESCURA = '#1c1407';
+const TINTA_CLARA = '#fcf8ee';
 
 /** Luminância relativa (WCAG). */
 function luminancia(hex) {

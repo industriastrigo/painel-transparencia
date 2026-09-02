@@ -1,143 +1,137 @@
-/* Painel da Transparência — sistema visual.
- *
- * Tudo aqui é token. A regra: nenhuma cor, medida ou sombra literal no meio
- * das regras. Um valor solto é um valor que não tem contraparte no tema
- * escuro — e foi exatamente isso que deixou o botão principal com 2,18:1 de
- * contraste no escuro (branco fixo sobre um verde que clareia) e os avisos
- * amarelos com 3,03:1 no claro. Os dois passavam despercebidos porque não
- * eram token.
- *
- * A escala tipográfica e a de espaçamento existem pelo mesmo motivo: número
- * escolhido a olho, uma regra de cada vez, é como uma tela fica quase
- * alinhada em toda parte e alinhada em nenhuma.
- */
+/* ==========================================================================
+   INDÚSTRIAS TRIGO — SISTEMA DE DESIGN & TRANSPARÊNCIA GOVERNAMENTAL
+   Paleta Oficial: Dourado Nobre / Ouro Acetinado + Azul Safira / Tech Blue
+   Temas: Dark Ônix Profundo & Light Marfim Nobre (Detecção Sistêmica)
+   ========================================================================== */
 
-:root {
-  color-scheme: light dark;
+:root, [data-tema="light"] {
+  color-scheme: light;
 
-  /* ---------------------------------------------------------- superfície
-     Quatro degraus, não dois. O painel empilha cartão sobre fundo, e dentro
-     do cartão empilha tabela e log — sem um terceiro degrau, tudo isso
-     acontece na mesma cor e a profundidade some. */
-  --fundo: #f6f6f4;
+  /* Superfícies Light Marfim */
+  --fundo: #f8f9fa;
   --superficie: #ffffff;
-  --superficie-2: #fbfbf9;
-  --superficie-3: #f1f1ee;
+  --superficie-2: #f1f4f9;
+  --superficie-3: #e8edf5;
 
-  --borda: #e5e5e0;
-  --borda-forte: #d2d2cb;
+  --borda: rgba(15, 23, 42, 0.12);
+  --borda-forte: rgba(15, 23, 42, 0.24);
 
-  /* ------------------------------------------------------------- texto
-     Três pesos de tinta. `--texto-sutil` é para rótulo de eixo e unidade —
-     nunca para conteúdo, porque não passa em AA a 12px. */
-  --texto: #171715;
-  --texto-fraco: #63635d;
-  --texto-sutil: #8a8a83;
+  /* Texto */
+  --texto: #0f172a;
+  --texto-fraco: #475569;
+  --texto-sutil: #64748b;
 
-  /* -------------------------------------------------------------- marca */
-  --realce: #1f6152;
-  --realce-vivo: #2b8570;
-  --realce-fraco: #e8f0ed;
-  --realce-borda: #bcd8ce;
-  /* A tinta que vai SOBRE o realce. Existe como token justamente porque no
-     escuro ela não pode continuar branca. */
+  /* Marca Indústrias Trigo (Dourado Nobre & Azul Tech) */
+  --realce: #b48c36;
+  --realce-vivo: #c5a059;
+  --realce-dourado: #c5a059;
+  --realce-azul: #2563eb;
+  --realce-fraco: rgba(197, 160, 89, 0.14);
+  --realce-borda: rgba(197, 160, 89, 0.40);
   --sobre-realce: #ffffff;
 
-  /* ------------------------------------------------------------- estado
-     `--atencao` era o literal `#b8860b`, repetido em cinco regras e sem
-     contraparte no escuro. Como token, ele tem os dois valores e passa em AA
-     nos dois temas. */
-  --favor: #1f6152;
-  --contra: #9c3d33;
-  --contra-fraco: #fbeceb;
-  --atencao: #8a6100;
-  --atencao-fraco: #fdf3dd;
-  --sem-dado: #dcdcd6;
+  /* Estado & Semântica */
+  --favor: #059669;
+  --contra: #dc2626;
+  --contra-fraco: #fef2f2;
+  --atencao: #d97706;
+  --atencao-fraco: #fef3c7;
+  --sem-dado: #cbd5e1;
 
-  /* -------------------------------------------------------------- forma */
+  /* Formas & Elevações */
   --raio-p: 6px;
   --raio: 10px;
   --raio-g: 14px;
 
-  /* Espaçamento em passos de 4. Toda margem e todo padding sai daqui. */
   --e1: 4px;  --e2: 8px;   --e3: 12px; --e4: 16px;
   --e5: 20px; --e6: 24px;  --e7: 32px; --e8: 44px;
 
-  /* Escala tipográfica, razão ~1,2. */
   --t-micro: 11px; --t-mini: 12px; --t-p: 13px; --t-base: 14px;
-  --t-m: 16px; --t-g: 19px; --t-gg: 24px; --t-titulo: 30px;
+  --t-m: 16px; --t-g: 19px; --t-gg: 24px; --t-titulo: 28px;
 
-  /* Elevação. Duas camadas cada: uma sombra de contato curta e fechada, e
-     uma de ambiente longa e aberta. Uma sombra só sempre parece adesivo. */
-  --sombra-1: 0 1px 2px rgba(23, 23, 21, .05);
-  --sombra-2: 0 1px 2px rgba(23, 23, 21, .06), 0 4px 12px rgba(23, 23, 21, .06);
-  --sombra-3: 0 2px 4px rgba(23, 23, 21, .07), 0 16px 40px rgba(23, 23, 21, .14);
+  --sombra-1: 0 1px 3px rgba(15, 23, 42, 0.08);
+  --sombra-2: 0 4px 14px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --sombra-3: 0 16px 36px rgba(15, 23, 42, 0.12), 0 2px 6px rgba(15, 23, 42, 0.06);
 
-  --anel: 0 0 0 2px var(--superficie), 0 0 0 4px var(--realce-vivo);
-  --transicao: 140ms cubic-bezier(.2, .6, .3, 1);
+  --anel: 0 0 0 2px var(--superficie), 0 0 0 4px var(--realce-dourado);
+  --transicao: 200ms cubic-bezier(.16, 1, .3, 1);
 
-  --fonte: "Montserrat Painel", Montserrat, ui-sans-serif, system-ui,
-           "Segoe UI", Roboto, Arial, sans-serif;
+  --fonte: "Montserrat Painel", Montserrat, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
-/* Montserrat sem CDN. Um @import do Google Fonts quebraria a promessa de abrir
-   offline e avisaria o Google a cada abertura do painel — num projeto de
-   transparência, isso é o oposto do combinado.
-   Ordem: usa a fonte instalada no sistema; se não houver, procura o arquivo
-   em publico/fontes/. Sem nenhum dos dois, cai para a fonte do sistema e o
-   painel continua legível. */
-@font-face {
-  font-family: "Montserrat Painel";
-  src: local("Montserrat"), local("Montserrat Regular"),
-       url("fontes/montserrat.woff2") format("woff2");
-  font-weight: 400;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Montserrat Painel";
-  src: local("Montserrat SemiBold"), local("Montserrat Medium"),
-       url("fontes/montserrat.woff2") format("woff2");
-  font-weight: 600;
-  font-display: swap;
+:root[data-tema="dark"], [data-tema="dark"] {
+  color-scheme: dark;
+
+  /* Superfícies Dark Ônix */
+  --fundo: #0b0e14;
+  --superficie: #111622;
+  --superficie-2: #182030;
+  --superficie-3: #1e293b;
+
+  --borda: rgba(197, 160, 89, 0.18);
+  --borda-forte: rgba(197, 160, 89, 0.35);
+
+  /* Texto */
+  --texto: #f8fafc;
+  --texto-fraco: #94a3b8;
+  --texto-sutil: #64748b;
+
+  /* Marca Indústrias Trigo */
+  --realce: #c5a059;
+  --realce-vivo: #d4af37;
+  --realce-dourado: #d4af37;
+  --realce-azul: #38bdf8;
+  --realce-fraco: rgba(197, 160, 89, 0.16);
+  --realce-borda: rgba(197, 160, 89, 0.38);
+  --sobre-realce: #0b0e14;
+
+  /* Estado */
+  --favor: #10b981;
+  --contra: #f43f5e;
+  --contra-fraco: rgba(244, 63, 94, 0.15);
+  --atencao: #f59e0b;
+  --atencao-fraco: rgba(245, 158, 11, 0.15);
+  --sem-dado: #334155;
+
+  --sombra-1: 0 1px 3px rgba(0, 0, 0, 0.5);
+  --sombra-2: 0 4px 18px rgba(0, 0, 0, 0.45), 0 1px 3px rgba(0, 0, 0, 0.3);
+  --sombra-3: 0 18px 44px rgba(0, 0, 0, 0.65), 0 4px 12px rgba(0, 0, 0, 0.4);
+
+  --anel: 0 0 0 2px var(--superficie), 0 0 0 4px var(--realce-dourado);
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --fundo: #101214;
-    --superficie: #191c1f;
-    --superficie-2: #1f2327;
-    --superficie-3: #14171a;
-
-    --borda: #2b3035;
-    --borda-forte: #3a4046;
-
-    --texto: #eeeee9;
-    --texto-fraco: #a2a29b;
-    --texto-sutil: #82827c;
-
-    --realce: #63c4a8;
-    --realce-vivo: #7ad4b9;
-    --realce-fraco: #17302a;
-    --realce-borda: #2c5348;
-    /* AQUI está o conserto: sobre um verde claro, a tinta é escura. Fixar
-       #fff dava 2,18:1 no botão principal — quase ilegível. */
-    --sobre-realce: #08211b;
-
-    --favor: #63c4a8;
-    --contra: #ef9a90;
-    --contra-fraco: #34211f;
-    --atencao: #e3b451;
-    --atencao-fraco: #2e2612;
-    --sem-dado: #2f353a;
-
-    --sombra-1: 0 1px 2px rgba(0, 0, 0, .4);
-    --sombra-2: 0 1px 2px rgba(0, 0, 0, .4), 0 4px 14px rgba(0, 0, 0, .34);
-    --sombra-3: 0 2px 6px rgba(0, 0, 0, .5), 0 18px 44px rgba(0, 0, 0, .55);
-    --anel: 0 0 0 2px var(--superficie), 0 0 0 4px var(--realce-vivo);
+  :root:not([data-tema-modo="light"]):not([data-tema-modo="dark"]) {
+    color-scheme: dark;
+    --fundo: #0b0e14;
+    --superficie: #111622;
+    --superficie-2: #182030;
+    --superficie-3: #1e293b;
+    --borda: rgba(197, 160, 89, 0.18);
+    --borda-forte: rgba(197, 160, 89, 0.35);
+    --texto: #f8fafc;
+    --texto-fraco: #94a3b8;
+    --texto-sutil: #64748b;
+    --realce: #c5a059;
+    --realce-vivo: #d4af37;
+    --realce-dourado: #d4af37;
+    --realce-azul: #38bdf8;
+    --realce-fraco: rgba(197, 160, 89, 0.16);
+    --realce-borda: rgba(197, 160, 89, 0.38);
+    --sobre-realce: #0b0e14;
+    --favor: #10b981;
+    --contra: #f43f5e;
+    --contra-fraco: rgba(244, 63, 94, 0.15);
+    --atencao: #f59e0b;
+    --atencao-fraco: rgba(245, 158, 11, 0.15);
+    --sem-dado: #334155;
+    --sombra-1: 0 1px 3px rgba(0, 0, 0, 0.5);
+    --sombra-2: 0 4px 18px rgba(0, 0, 0, 0.45);
+    --sombra-3: 0 18px 44px rgba(0, 0, 0, 0.65);
+    --anel: 0 0 0 2px var(--superficie), 0 0 0 4px var(--realce-dourado);
   }
 }
-
 *, *::before, *::after { box-sizing: border-box; }
 
 body {
@@ -178,49 +172,17 @@ ol.ranking .valor, ol.ranking .pos, .dica dd { font-variant-numeric: tabular-num
 
    Trocar de aba custa uma rolagem ao topo. Ver o filtro que se está usando
    vale mais. */
-header {
+header:not(.topbar-trigo) {
   padding: var(--e5) var(--e7) 0;
   border-bottom: 1px solid var(--borda);
   background: var(--superficie);
 }
 
-/* Âncora e foco não podem parar embaixo da barra grudada. */
-
-
-h1 {
-  font-size: var(--t-g); margin: 0 0 2px;
-  letter-spacing: -0.02em; font-weight: 600;
+main {
+  padding: var(--e6) var(--e7) var(--e8);
+  max-width: 1560px;
+  margin: 0 auto;
 }
-header > p {
-  margin: 0 0 var(--e4); color: var(--texto-fraco);
-  font-size: var(--t-p); max-width: 62ch;
-}
-
-/* A barra de abas somava ~610px e o `<body>` ganhava rolagem horizontal
-   abaixo de 620px — as últimas abas ficavam fora da tela sem nenhum sinal.
-   Agora quem rola é a própria barra, e o degradê na borda diz que há mais. */
-nav {
-  display: flex; gap: 2px;
-  overflow-x: auto; scrollbar-width: none;
-  margin: 0 calc(var(--e7) * -1); padding: 0 var(--e7);
-  scroll-snap-type: x proximity;
-}
-nav::-webkit-scrollbar { display: none; }
-
-nav button {
-  background: none; border: 0; border-bottom: 2px solid transparent;
-  padding: var(--e3) var(--e4); font: inherit; font-size: var(--t-base);
-  color: var(--texto-fraco); cursor: pointer; white-space: nowrap;
-  transition: color var(--transicao), border-color var(--transicao);
-  scroll-snap-align: start; border-radius: var(--raio-p) var(--raio-p) 0 0;
-}
-nav button:hover { color: var(--texto); }
-nav button[aria-selected="true"] {
-  color: var(--texto); border-bottom-color: var(--realce-vivo); font-weight: 600;
-}
-nav button:focus-visible { box-shadow: var(--anel); }
-
-main { padding: var(--e6) var(--e7) var(--e8); max-width: 1560px; }
 section[hidden] { display: none; }
 section:focus { outline: none; }
 
@@ -1913,3 +1875,404 @@ a:hover { color: var(--realce-vivo); }
 }
 
 
+/* ------------------------------------------------------------------ TOPBAR SLIM */
+.topbar-trigo {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  height: 62px;
+  background: var(--superficie);
+  border-bottom: 1px solid var(--borda);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--e5);
+  box-shadow: var(--sombra-1);
+  backdrop-filter: blur(12px);
+}
+
+.topbar-esquerda {
+  display: flex;
+  align-items: center;
+  gap: var(--e3);
+}
+
+.btn-hamburguer {
+  background: transparent;
+  border: 1px solid var(--borda);
+  color: var(--texto);
+  width: 40px;
+  height: 40px;
+  border-radius: var(--raio);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  padding: 0;
+  transition: all var(--transicao);
+}
+
+.btn-hamburguer span {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: var(--texto);
+  border-radius: 2px;
+  transition: all var(--transicao);
+}
+
+.btn-hamburguer:hover {
+  border-color: var(--realce-dourado);
+  background: var(--realce-fraco);
+}
+
+.btn-hamburguer.ativo span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+.btn-hamburguer.ativo span:nth-child(2) {
+  opacity: 0;
+}
+.btn-hamburguer.ativo span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+.brand-link {
+  display: flex;
+  align-items: center;
+  gap: var(--e3);
+  text-decoration: none;
+  color: inherit;
+}
+
+.topbar-logo {
+  height: 38px;
+  width: auto;
+  object-fit: contain;
+  border-radius: var(--raio-p);
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.brand-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  background: linear-gradient(135deg, var(--realce-dourado) 0%, #ffffff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+[data-tema="light"] .brand-title {
+  background: linear-gradient(135deg, #997A35 0%, #0F172A 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.brand-subtitle {
+  font-size: 0.72rem;
+  color: var(--texto-sutil);
+  font-weight: 600;
+}
+
+.topbar-centro {
+  display: flex;
+  align-items: center;
+}
+
+.topbar-pagina-ativa {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: var(--texto);
+  background: var(--superficie-2);
+  padding: 6px 14px;
+  border-radius: var(--raio);
+  border: 1px solid var(--borda);
+}
+
+.topbar-direita {
+  display: flex;
+  align-items: center;
+  gap: var(--e3);
+}
+
+.btn-icone-topbar {
+  background: var(--superficie-2);
+  border: 1px solid var(--borda);
+  color: var(--texto);
+  width: 38px;
+  height: 38px;
+  border-radius: var(--raio);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  transition: all var(--transicao);
+}
+
+.btn-icone-topbar:hover {
+  border-color: var(--realce-dourado);
+  transform: translateY(-1px);
+}
+
+/* ------------------------------------------------------------------ GOOGLE AUTH */
+.btn-login-google-topbar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--superficie-2);
+  border: 1px solid var(--borda-forte);
+  color: var(--texto);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: var(--raio);
+  cursor: pointer;
+  transition: all var(--transicao);
+}
+
+.btn-login-google-topbar:hover {
+  background: var(--superficie-3);
+  border-color: var(--realce-azul);
+  box-shadow: var(--sombra-1);
+}
+
+.btn-perfil-topbar {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--superficie-2);
+  border: 1px solid var(--borda);
+  color: var(--texto);
+  padding: 4px 10px 4px 4px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all var(--transicao);
+}
+
+.btn-perfil-topbar:hover {
+  border-color: var(--realce-dourado);
+  background: var(--superficie-3);
+}
+
+.avatar-topbar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--realce-dourado);
+}
+
+.nome-perfil-topbar {
+  font-size: 0.82rem;
+  font-weight: 700;
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.seta-perfil {
+  font-size: 0.7rem;
+  color: var(--texto-sutil);
+}
+
+/* ------------------------------------------------------------------ DRAWER LATERAL */
+.drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(5px);
+  z-index: 1100;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 280ms cubic-bezier(.16, 1, .3, 1);
+}
+
+.drawer-backdrop.ativo {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.drawer-trigo {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 320px;
+  max-width: 85vw;
+  background: var(--superficie);
+  border-right: 1px solid var(--borda-forte);
+  z-index: 1200;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(-100%);
+  transition: transform 300ms cubic-bezier(.16, 1, .3, 1);
+  box-shadow: var(--sombra-3);
+  overflow-y: auto;
+}
+
+.drawer-trigo.aberto {
+  transform: translateX(0);
+}
+
+.drawer-header {
+  padding: var(--e5);
+  border-bottom: 1px solid var(--borda);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.drawer-fechar {
+  background: transparent;
+  border: 1px solid var(--borda);
+  color: var(--texto-fraco);
+  font-size: 1.1rem;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--raio-p);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transicao);
+}
+
+.drawer-fechar:hover {
+  color: var(--texto);
+  border-color: var(--realce-dourado);
+}
+
+.drawer-corpo {
+  flex: 1;
+  padding: var(--e4) var(--e3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--e4);
+}
+
+.drawer-secao-rotulo {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--realce-dourado);
+  padding: 0 var(--e3);
+  margin-bottom: var(--e1);
+}
+
+.drawer-nav-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-bottom: var(--e3);
+}
+
+.drawer-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: var(--raio);
+  color: var(--texto-fraco);
+  text-decoration: none;
+  font-size: 0.88rem;
+  font-weight: 600;
+  transition: all var(--transicao);
+  border: 1px solid transparent;
+}
+
+.drawer-nav-item:hover {
+  color: var(--texto);
+  background: var(--superficie-2);
+  transform: translateX(3px);
+}
+
+.drawer-nav-item.ativo {
+  color: var(--texto);
+  background: var(--realce-fraco);
+  border-color: var(--realce-borda);
+  font-weight: 700;
+}
+
+.drawer-nav-item .item-icone {
+  font-size: 1.1rem;
+  width: 24px;
+  text-align: center;
+}
+
+.drawer-footer {
+  padding: var(--e4);
+  border-top: 1px solid var(--borda);
+  font-size: 0.75rem;
+  color: var(--texto-sutil);
+  text-align: center;
+  background: var(--superficie-2);
+}
+
+/* ------------------------------------------------------------------ MODAL PERFIL */
+.modal-trigo {
+  border: 1px solid var(--borda-forte);
+  border-radius: var(--raio-g);
+  background: var(--superficie);
+  color: var(--texto);
+  max-width: 480px;
+  width: 90%;
+  padding: var(--e6);
+  box-shadow: var(--sombra-3);
+}
+
+.modal-trigo::backdrop {
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(6px);
+}
+
+.perfil-card-header {
+  display: flex;
+  align-items: center;
+  gap: var(--e4);
+  margin-bottom: var(--e5);
+  padding-bottom: var(--e4);
+  border-bottom: 1px solid var(--borda);
+}
+
+.perfil-avatar-grande {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--realce-dourado);
+  box-shadow: var(--sombra-2);
+}
+
+.perfil-dados h3 {
+  margin: 0 0 4px;
+  font-size: 1.15rem;
+  color: var(--texto);
+}
+
+.perfil-dados p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--texto-fraco);
+}
+
+.perfil-secao {
+  margin-bottom: var(--e5);
+}
+
+.perfil-secao-titulo {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--realce-dourado);
+  margin-bottom: var(--e2);
+}
