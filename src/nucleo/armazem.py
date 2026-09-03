@@ -167,6 +167,10 @@ def preparar(
         if coluna in df.columns:
             df.drop(columns=[coluna], inplace=True)
 
+    for c in tabela.campos_pk:
+        if c not in df.columns:
+            df[c] = None
+
     campos_negocio = list(tabela.campos_negocio) or [
         c for c in df.columns if not c.startswith("_")
     ]

@@ -122,6 +122,14 @@ dim_cargo = _registrar(Tabela(
     cadencia="manual",
 ))
 
+dim_transferencia = _registrar(Tabela(
+    nome="dim_transferencia",
+    camada="dim",
+    campos_pk=("cod_transferencia",),
+    descricao="Modalidades de transferências constitucionais e legais da União.",
+    cadencia="estática",
+))
+
 dim_magistrado = _registrar(Tabela(
     nome="dim_magistrado",
     camada="dim",
@@ -311,13 +319,10 @@ indicador_fiscal = _registrar(Tabela(
     # `medida` ENTRA na chave: a mesma conta aparece em R$ e em % sobre a
     # RCL, e sem ela as duas colidiriam — o merge guardaria a última que
     # chegasse, que é como o percentual sumia do acervo.
-    # `anexo` e `secao` na chave: a mesma conta aparece nos dois anexos do
-    # RGF e se repete entre seções do mesmo anexo. Sem elas, 953 linhas por
-    # carga colidiam. `rotulo` (a descrição por extenso) fica FORA da chave:
-    # texto de apresentação muda de redação entre exercícios, e uma chave que
-    # depende de prosa transforma reedição em linha nova.
+    # `anexo`, `secao`, `coluna` e `rotulo` na chave: a mesma conta aparece nos
+    # anexos do RGF e se repete entre seções e colunas do demonstrativo.
     campos_pk=("cod_ibge", "ano", "periodo", "poder", "indicador", "medida",
-               "anexo", "secao"),
+               "anexo", "secao", "coluna", "rotulo"),
     particoes=("ano",),
     data_referencia="data_referencia",
     descricao="RGF: despesa com pessoal sobre a receita corrente líquida (o "
@@ -464,7 +469,7 @@ despesa_parlamentar = _registrar(Tabela(
 custo_orgao = _registrar(Tabela(
     nome="custo_orgao",
     camada="fato",
-    campos_pk=("conjunto", "orgao_nome", "item_custo", "ano", "mes"),
+    campos_pk=("ano", "mes", "conjunto", "orgao_codigo", "orgao_nome", "orgao_n2", "orgao_n3", "item_custo", "natureza_juridica"),
     particoes=("ano", "conjunto"),
     data_referencia="data_referencia",
     descricao="Custo apurado do Governo Federal por órgão e item, do SIC "
@@ -477,7 +482,7 @@ custo_orgao = _registrar(Tabela(
 emenda_parlamentar = _registrar(Tabela(
     nome="emenda_parlamentar",
     camada="fato",
-    campos_pk=("ano", "codigo_emenda"),
+    campos_pk=("ano", "codigo_emenda", "funcao", "localidade"),
     particoes=("ano",),
     data_referencia="data_referencia",
     descricao="Emendas individuais, de bancada, de comissão e transferências "
@@ -586,6 +591,10 @@ _COLUNAS: dict[str, tuple[tuple[str, str], ...]] = {
     ),
     "dim_cargo": (("cod_cargo", "VARCHAR"), ("cargo", "VARCHAR"),
                   ("nivel_ente", "VARCHAR"), ("poder", "VARCHAR")),
+    "dim_transferencia": (
+        ("cod_transferencia", "VARCHAR"),
+        ("nome", "VARCHAR"),
+    ),
     "dim_cargo_publico": (
         ("cod_cargo", "VARCHAR"), ("cargo", "VARCHAR"), ("poder", "VARCHAR"),
         ("esfera", "VARCHAR"), ("ramo", "VARCHAR"),
@@ -660,7 +669,7 @@ _COLUNAS: dict[str, tuple[tuple[str, str], ...]] = {
         ("medida", "VARCHAR"),
         ("rotulo", "VARCHAR"),
         # Seção do demonstrativo (campo `rotulo` da fonte), não a descrição.
-        ("secao", "VARCHAR"), ("anexo", "VARCHAR"),
+        ("secao", "VARCHAR"), ("anexo", "VARCHAR"), ("coluna", "VARCHAR"),
         ("valor", "DOUBLE"), ("esfera", "VARCHAR"), ("uf", "VARCHAR"),
         ("data_referencia", "VARCHAR"),
     ),
@@ -754,7 +763,9 @@ _COLUNAS: dict[str, tuple[tuple[str, str], ...]] = {
     ),
     "custo_orgao": (
         ("conjunto", "VARCHAR"), ("orgao_nome", "VARCHAR"),
-        ("orgao_codigo", "VARCHAR"), ("item_custo", "VARCHAR"),
+        ("orgao_codigo", "VARCHAR"), ("orgao_n2", "VARCHAR"),
+        ("orgao_n3", "VARCHAR"), ("item_custo", "VARCHAR"),
+        ("natureza_juridica", "VARCHAR"),
         ("ano", "INTEGER"), ("mes", "INTEGER"), ("valor", "DOUBLE"),
         ("data_referencia", "VARCHAR"),
     ),

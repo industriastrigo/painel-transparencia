@@ -164,6 +164,7 @@ def interpretar_funcao(itens: list, ano: int, bimestre: int, cod_ibge: str) -> l
         rotulo = item.get("conta")
         bloco = _bloco_de(item)
         chave_conta = f"{bloco}|{funcao_mae_cod or '00'}|{rotulo}"
+        desc_bloco = "Despesas Intra-Orçamentárias" if bloco == "intra" else "Despesas (Exceto Intra-Orçamentárias)"
 
         linhas.append({
             "cod_ibge": str(cod_ibge),
@@ -176,6 +177,7 @@ def interpretar_funcao(itens: list, ano: int, bimestre: int, cod_ibge: str) -> l
             "funcao": FUNCOES_OFICIAIS.get(cod_funcao),
             "rotulo_conta": rotulo,
             "bloco": bloco,
+            "descricao_bloco": desc_bloco,
             "estagio": coluna,
             "valor": numero(item.get("valor")),
             "esfera": esfera(cod_ibge),
