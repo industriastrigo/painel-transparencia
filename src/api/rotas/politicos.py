@@ -280,20 +280,21 @@ def ficha_do_politico(sk: str, ano: int | None = None):
           LEFT JOIN orientacao_bancada o
             ON o.casa = v.casa AND o.id_votacao = v.id_votacao
            AND upper(trim(o.sigla_bancada)) = upper(trim(v.sigla_partido))
-         WHERE (CAST(v.id_politico AS VARCHAR) = ? OR CAST(v.id_politico AS VARCHAR) = ?)
+         WHERE (CAST(v.id_politico AS VARCHAR) = ? OR CAST(v.id_politico AS VARCHAR) = ? OR v.nome_politico ILIKE ?)
            AND (v.ano = ? OR ? IS NULL)
          ORDER BY v.data_hora DESC LIMIT 100
-    """, [id_camara, id_sk, ano, ano])
+    """, [id_camara, id_sk, f"%{politico.get('nome_eleitoral') or politico.get('nome') or ''}%", ano, ano])
 
-    nome_politico = politico.get("nome_eleitoral") or politico.get("nome") or ""
+    nome_eleitoral_pol = politico.get("nome_eleitoral") or ""
+    nome_civil_pol = politico.get("nome") or ""
     proposicoes_ano = _consultar("""
         SELECT casa, id_proposicao, sigla_tipo, numero, ano,
                ementa, data_apresentacao, situacao, url
           FROM proposicao
-         WHERE nome_autor ILIKE ?
+         WHERE (nome_autor ILIKE ? OR nome_autor ILIKE ?)
            AND (ano = ? OR ? IS NULL)
          ORDER BY data_apresentacao DESC LIMIT 50
-    """, [f"%{nome_politico}%", ano, ano]) if nome_politico else []
+    """, [f"%{nome_eleitoral_pol}%", f"%{nome_civil_pol}%", ano, ano]) if (nome_eleitoral_pol or nome_civil_pol) else []
 
     nome_busca = politico.get("nome") or ""
     nome_eleitoral_busca = politico.get("nome_eleitoral") or ""
