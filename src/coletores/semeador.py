@@ -23,7 +23,21 @@ def semear_se_vazio(forcar: bool = False) -> None:
     dados_dir = Path(config.DADOS) if config.DADOS is not None else Path(__file__).resolve().parents[2] / "dados"
     dados_dir.mkdir(parents=True, exist_ok=True)
 
-    log.info("Verificando integridade das bases de dados no diretório: %s", dados_dir)
+    # 0. Malhas e Entes Federativos de Referência (27 UFs + Brasil)
+    try:
+        from .entes_referencia import garantir_malha_brasil, carregar_dados_federativos
+        garantir_malha_brasil()
+        entes, metricas, indicadores, financas_est, despesas_func, fiscais, transfs = carregar_dados_federativos()
+        armazem.mesclar("dim_ente", entes, "semeador")
+        armazem.mesclar("dim_metrica", metricas, "semeador")
+        armazem.mesclar("indicador_ente", indicadores, "semeador")
+        armazem.mesclar("financas_ente", financas_est, "semeador")
+        armazem.mesclar("despesa_funcao", despesas_func, "semeador")
+        armazem.mesclar("indicador_fiscal", fiscais, "semeador")
+        armazem.mesclar("transferencia_uniao", transfs, "semeador")
+        log.info("[OK] Base de entes federativos, indicadores, malha e finanças estaduais sincronizada.")
+    except Exception as erro:
+        log.warning("Aviso ao sincronizar entes e finanças federativas: %s", erro)
 
     # 1. Subsídios e Referências de Custo
     try:

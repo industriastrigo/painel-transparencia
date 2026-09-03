@@ -124,13 +124,27 @@ def malha(escopo: str):
     if escopo.lower() == "brasil":
         arquivo = config.MALHAS / "brasil-uf.json"
         if not arquivo.exists():
-            coletor_ibge.coletar_malha_brasil()
+            ref = config.RAIZ / "referencias" / "malhas" / "brasil-uf.json"
+            if ref.exists():
+                import shutil
+                shutil.copy(ref, arquivo)
+            else:
+                try:
+                    coletor_ibge.coletar_malha_brasil()
+                except Exception:
+                    pass
     else:
         arquivo = config.MALHAS / f"uf-{escopo.upper()}.json"
         if not arquivo.exists():
-            coletor_ibge.coletar_malha_uf(escopo)
+            try:
+                coletor_ibge.coletar_malha_uf(escopo)
+            except Exception:
+                pass
 
     if not arquivo.exists():
+        ref = config.RAIZ / "referencias" / "malhas" / "brasil-uf.json"
+        if ref.exists():
+            return FileResponse(ref, media_type="application/geo+json")
         raise HTTPException(404, f"malha indisponível: {escopo}")
     return FileResponse(arquivo, media_type="application/geo+json")
 
