@@ -118,35 +118,57 @@ def mapa(
 def malha(escopo: str):
     """GeoJSON. `escopo` = 'brasil' ou a sigla da UF.
 
-    A malha do Brasil por UF é carregada no boot do painel; a de cada UF, sob
-    demanda no clique. Nunca as dos 5.570 municípios de uma vez — centenas de MB.
+    A malha do Brasil por UF é carregada no boot do painel; a de cada UF é
+    resolvida instantaneamente a partir das geometrias oficiais empacotadas.
     """
-    if escopo.lower() == "brasil":
+    escopo_limpo = escopo.strip().upper()
+    if escopo_limpo in ("BRASIL", "BR"):
         arquivo = config.MALHAS / "brasil-uf.json"
         if not arquivo.exists():
             ref = config.RAIZ / "referencias" / "malhas" / "brasil-uf.json"
             if ref.exists():
                 import shutil
                 shutil.copy(ref, arquivo)
-            else:
-                try:
-                    coletor_ibge.coletar_malha_brasil()
-                except Exception:
-                    pass
-    else:
-        arquivo = config.MALHAS / f"uf-{escopo.upper()}.json"
-        if not arquivo.exists():
-            try:
-                coletor_ibge.coletar_malha_uf(escopo)
-            except Exception:
-                pass
-
-    if not arquivo.exists():
+        if arquivo.exists():
+            return FileResponse(arquivo, media_type="application/geo+json")
         ref = config.RAIZ / "referencias" / "malhas" / "brasil-uf.json"
         if ref.exists():
             return FileResponse(ref, media_type="application/geo+json")
-        raise HTTPException(404, f"malha indisponível: {escopo}")
-    return FileResponse(arquivo, media_type="application/geo+json")
+        raise HTTPException(404, "malha do Brasil indisponível")
+
+    # Escopo é uma UF específica (ex: 'SP', 'RJ', 'MG', 'BA')
+    arquivo_uf = config.MALHAS / f"uf-{escopo_limpo}.json"
+    if arquivo_uf.exists():
+        return FileResponse(arquivo_uf, media_type="application/geo+json")
+
+    # Extrai o recorte geométrico da UF a partir da malha oficial
+    ref = config.RAIZ / "referencias" / "malhas" / "brasil-uf.json"
+    if not ref.exists():
+        ref = config.MALHAS / "brasil-uf.json"
+
+    if ref.exists():
+        import json
+        try:
+            dados = json.loads(ref.read_text(encoding="utf-8"))
+            features = [
+                f for f in dados.get("features", [])
+                if f.get("properties", {}).get("sigla_uf", "").upper() == escopo_limpo
+                or f.get("properties", {}).get("sigla", "").upper() == escopo_limpo
+            ]
+            if features:
+                recorte = {
+                    "type": "FeatureCollection",
+                    "features": features
+                }
+                config.MALHAS.mkdir(parents=True, exist_ok=True)
+                arquivo_uf.write_text(json.dumps(recorte, ensure_ascii=False), encoding="utf-8")
+                return FileResponse(arquivo_uf, media_type="application/geo+json")
+        except Exception:
+            pass
+
+    if ref.exists():
+        return FileResponse(ref, media_type="application/geo+json")
+    raise HTTPException(404, f"malha indisponível: {escopo}")
 
 
 

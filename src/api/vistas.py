@@ -151,7 +151,10 @@ DERIVADAS = {
     # total entrar na soma: "TOTAL (III) = (I + II)" não é nome de função.
     "vw_funcao_conta": """
         SELECT * FROM despesa_funcao
-         WHERE estagio ILIKE '%EMPENHADAS%'
+         WHERE estagio ILIKE '%EMPENHAD%'
+            OR estagio ILIKE '%PAGA%'
+            OR estagio ILIKE '%LIQUID%'
+            OR estagio IS NULL
     """,
     # O bimestre mais recente de cada ente e ano: o RREO é acumulado no
     # exercício, então somar os seis bimestres contaria janeiro seis vezes.
