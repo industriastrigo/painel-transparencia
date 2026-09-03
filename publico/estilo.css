@@ -458,6 +458,8 @@ td {
 }
 tbody tr:last-child td { border-bottom: 0; }
 td.valor, td.num, th.valor, th.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+td.centrado, th.centrado, .centrado { text-align: center !important; font-variant-numeric: tabular-nums; }
+td.centrado .selo { margin: 0 auto; display: inline-flex; justify-content: center; }
 tfoot tr { background: var(--superficie); position: sticky; bottom: 0; z-index: 2; }
 tfoot td, tfoot th { border-top: 2px solid var(--borda-forte); font-weight: 600; padding: var(--e3); white-space: nowrap; }
 tr.clicavel { cursor: pointer; transition: background var(--transicao); }

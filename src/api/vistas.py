@@ -403,15 +403,14 @@ DERIVADAS = {
     # fonte também informa — nada é chutado aqui.
     "vw_fiscal_ente": """
         SELECT cod_ibge, ano, periodo, poder, esfera,
-               -- Cada conceito é um par (conta, MEDIDA). No RGF a mesma conta
-               -- aparece em R$ e em % sobre a RCL, e é a coluna que decide o
-               -- significado — ver armadilha 2ai.
                MAX(valor) FILTER (
                    WHERE indicador = 'DespesaComPessoalBruta'
                      AND medida = 'valor')            AS despesa_pessoal_bruta,
                MAX(valor) FILTER (
                    WHERE indicador IN ('DespesaComPessoalLiquida',
-                                       'DespesaLiquidaComPessoal')
+                                       'DespesaLiquidaComPessoal',
+                                       'DespesaComPessoalTotal',
+                                       'DTP_valor')
                      AND medida = 'valor')          AS despesa_pessoal_liquida,
                MAX(valor) FILTER (
                    WHERE indicador = 'DespesaComPessoalTotal'
@@ -419,30 +418,26 @@ DERIVADAS = {
                MAX(valor) FILTER (
                    WHERE indicador IN ('ReceitaCorrenteLiquidaAjustada',
                                        'ReceitaCorrenteLiquidaLimiteLegal',
-                                       'RGF2ReceitaCorrenteLiquida')
+                                       'RGF2ReceitaCorrenteLiquida',
+                                       'RCL')
                      AND medida = 'valor')        AS receita_corrente_liquida,
-               -- O percentual da folha é a DespesaComPessoalTotal lida na
-               -- coluna de percentual — não é uma conta própria.
                MAX(valor) FILTER (
-                   WHERE indicador = 'DespesaComPessoalTotal'
-                     AND medida = 'percentual')          AS percentual_pessoal,
+                   WHERE indicador IN ('DespesaComPessoalTotal', 'DTP')
+                     AND medida IN ('percentual', 'percentual_rcl'))          AS percentual_pessoal,
                MAX(valor) FILTER (
                    WHERE indicador IN ('LimiteMaximoDespesaComPessoalTotal',
-                                       'LimiteMaximo')
-                     AND medida = 'percentual')               AS limite_maximo,
+                                       'LimiteMaximo', 'limite_maximo')
+                     AND medida IN ('percentual', 'percentual_rcl'))               AS limite_maximo,
                MAX(valor) FILTER (
                    WHERE indicador IN ('LimitePrudencialDespesaComPessoalTotal',
-                                       'LimitePrudencial')
-                     AND medida = 'percentual')           AS limite_prudencial,
+                                       'LimitePrudencial', 'limite_prudencial')
+                     AND medida IN ('percentual', 'percentual_rcl'))           AS limite_prudencial,
                MAX(valor) FILTER (
-                   WHERE indicador = 'LimiteDeAlertaDespesaComPessoalTotal'
-                     AND medida = 'percentual')               AS limite_alerta,
-               -- Anexo 02. `medida = 'saldo'` é o saldo DO quadrimestre
-               -- pedido: o coletor descarta as colunas dos outros períodos,
-               -- que antes podiam gravar o saldo do ano passado como se
-               -- fosse o de agora.
+                   WHERE indicador IN ('LimiteDeAlertaDespesaComPessoalTotal',
+                                       'LimiteAlerta', 'limite_alerta')
+                     AND medida IN ('percentual', 'percentual_rcl'))               AS limite_alerta,
                MAX(valor) FILTER (
-                   WHERE indicador = 'DividaConsolidadaLiquida'
+                   WHERE indicador IN ('DividaConsolidadaLiquida', 'DCL')
                      AND medida = 'saldo')                    AS divida_liquida,
                MAX(valor) FILTER (
                    WHERE indicador = 'DividaConsolidada'

@@ -178,17 +178,17 @@ async function abrirFicha(codIbge) {
         O percentual <strong>e</strong> o limite vêm os dois do demonstrativo do
         próprio ente — o limite muda por esfera e por poder, então o painel não
         o calcula. Sem limite publicado, ele não afirma nada.</p>
-      ${tabela(`<th>Poder</th><th>Pessoal</th><th>Receita corrente líquida</th>
-                <th>% sobre a RCL</th><th>Prudencial</th><th>Limite</th>
-                <th>Dívida líquida</th>`,
+      ${tabela(`<th>Poder</th><th class="centrado">Pessoal</th><th class="centrado">Receita Corrente Líquida</th>
+                <th class="centrado">% sobre a RCL</th><th class="centrado">Prudencial</th><th class="centrado">Limite</th>
+                <th class="centrado">Dívida Líquida</th>`,
         lrf.map((x) => `<tr>
-          <td>${escapar(POR_EXTENSO_PODER[x.poder] ?? x.poder ?? '—')}</td>
-          <td class="valor">${formatar(aNumero(x.despesa_pessoal_liquida), 'despesa_total')}</td>
-          <td class="valor">${formatar(aNumero(x.receita_corrente_liquida), 'despesa_total')}</td>
-          <td class="valor">${seloLimite(x)}</td>
-          <td class="valor">${formatar(aNumero(x.limite_prudencial), 'percentual_pessoal')}</td>
-          <td class="valor">${formatar(aNumero(x.limite_maximo), 'percentual_pessoal')}</td>
-          <td class="valor">${formatar(aNumero(x.divida_liquida), 'despesa_total')}</td>
+          <td><strong>${escapar(POR_EXTENSO_PODER[x.poder] ?? x.poder ?? '—')}</strong></td>
+          <td class="centrado">${Number.isFinite(aNumero(x.despesa_pessoal_liquida)) ? formatar(aNumero(x.despesa_pessoal_liquida), 'despesa_total') : '—'}</td>
+          <td class="centrado">${Number.isFinite(aNumero(x.receita_corrente_liquida)) ? formatar(aNumero(x.receita_corrente_liquida), 'despesa_total') : '—'}</td>
+          <td class="centrado">${seloLimite(x)}</td>
+          <td class="centrado">${Number.isFinite(aNumero(x.limite_prudencial)) ? formatar(aNumero(x.limite_prudencial), 'percentual_pessoal') : '—'}</td>
+          <td class="centrado">${Number.isFinite(aNumero(x.limite_maximo)) ? formatar(aNumero(x.limite_maximo), 'percentual_pessoal') : '—'}</td>
+          <td class="centrado">${Number.isFinite(aNumero(x.divida_liquida)) ? formatar(aNumero(x.divida_liquida), 'despesa_total') : '—'}</td>
         </tr>`).join(''))}` : ''}
 
     ${f.transferencias_uniao?.length ? `<h2>O que a União repassou</h2>
@@ -276,7 +276,9 @@ function resumoDeRisco(r) {
  *  infração) e dentro. O prudencial estava sendo calculado pela view e
  *  jogado fora pela tela. */
 function seloLimite(x) {
-  const pct = formatar(aNumero(x.percentual_pessoal), 'percentual_pessoal');
+  const v = aNumero(x.percentual_pessoal);
+  if (!Number.isFinite(v)) return '—';
+  const pct = formatar(v, 'percentual_pessoal');
   if (x.acima_do_limite === true) return `<span class="selo risco">${pct}</span>`;
   if (x.acima_do_prudencial === true) return `<span class="selo atento">${pct}</span>`;
   if (x.acima_do_limite === false) return `<span class="selo calmo">${pct}</span>`;

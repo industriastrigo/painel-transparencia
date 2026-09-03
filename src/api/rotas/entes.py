@@ -294,7 +294,7 @@ def ficha_do_ente(cod_ibge: str, ano: int | None = None):
                divida_liquida
           FROM vw_lrf_pessoal
          WHERE cod_ibge = ? AND ano = ?
-         ORDER BY poder
+         ORDER BY CASE poder WHEN 'E' THEN 1 WHEN 'L' THEN 2 WHEN 'J' THEN 3 WHEN 'M' THEN 4 WHEN 'D' THEN 5 ELSE 6 END
     """, [cod_ibge, ano]) if ano else []
 
     indicadores = _consultar("""

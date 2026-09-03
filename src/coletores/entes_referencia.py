@@ -219,19 +219,177 @@ def carregar_dados_federativos() -> tuple[list[dict], list[dict], list[dict], li
                 "data_referencia": f"{ano}-12-31"
             })
 
-            # Indicadores Fiscais (LRF Pessoal e Dívida)
+            rcl_est = rec * 0.92
+            pessoal_exec_pct = float(est["rcl_pessoal"])
+            pessoal_exec_val = rcl_est * (pessoal_exec_pct / 100.0)
+
+            # Executivo (E)
+            indicadores_fiscais.append({
+                "cod_ibge": ibge, "ano": ano, "periodo": "3", "poder": "E",
+                "indicador": "RCL", "medida": "valor", "rotulo": "Receita Corrente Líquida",
+                "secao": "Pessoal", "anexo": "RGF-Anexo 01", "valor": rcl_est, "esfera": "estadual", "uf": sigla,
+                "data_referencia": f"{ano}-12-31"
+            })
+            indicadores_fiscais.append({
+                "cod_ibge": ibge, "ano": ano, "periodo": "3", "poder": "E",
+                "indicador": "DespesaLiquidaComPessoal", "medida": "valor", "rotulo": "Despesa Líquida com Pessoal",
+                "secao": "Pessoal", "anexo": "RGF-Anexo 01", "valor": pessoal_exec_val, "esfera": "estadual", "uf": sigla,
+                "data_referencia": f"{ano}-12-31"
+            })
             indicadores_fiscais.append({
                 "cod_ibge": ibge, "ano": ano, "periodo": "3", "poder": "E",
                 "indicador": "DTP", "medida": "percentual_rcl", "rotulo": "% da Despesa com Pessoal sobre RCL",
-                "secao": "Pessoal", "anexo": "RGF-Anexo 01",
-                "valor": est["rcl_pessoal"], "esfera": "estadual", "uf": sigla,
+                "secao": "Pessoal", "anexo": "RGF-Anexo 01", "valor": pessoal_exec_pct, "esfera": "estadual", "uf": sigla,
+                "data_referencia": f"{ano}-12-31"
+            })
+            indicadores_fiscais.append({
+                "cod_ibge": ibge, "ano": ano, "periodo": "3", "poder": "E",
+                "indicador": "LimitePrudencial", "medida": "percentual_rcl", "rotulo": "Limite Prudencial",
+                "secao": "Pessoal", "anexo": "RGF-Anexo 01", "valor": 46.55, "esfera": "estadual", "uf": sigla,
+                "data_referencia": f"{ano}-12-31"
+            })
+            indicadores_fiscais.append({
+                "cod_ibge": ibge, "ano": ano, "periodo": "3", "poder": "E",
+                "indicador": "LimiteMaximo", "medida": "percentual_rcl", "rotulo": "Limite Máximo",
+                "secao": "Pessoal", "anexo": "RGF-Anexo 01", "valor": 49.00, "esfera": "estadual", "uf": sigla,
                 "data_referencia": f"{ano}-12-31"
             })
             indicadores_fiscais.append({
                 "cod_ibge": ibge, "ano": ano, "periodo": "3", "poder": "E",
                 "indicador": "DCL", "medida": "saldo", "rotulo": "Dívida Consolidada Líquida",
-                "secao": "Dívida", "anexo": "RGF-Anexo 02",
-                "valor": divida, "esfera": "estadual", "uf": sigla,
+                "secao": "Dívida", "anexo": "RGF-Anexo 02", "valor": divida, "esfera": "estadual", "uf": sigla,
+                "data_referencia": f"{ano}-12-31"
+            })
+
+            # Judiciário (J)
+            pessoal_jud_pct = 4.92
+            indicadores_fiscais.append({
+                "cod_ibge": ibge, "ano": ano, "periodo": "3", "poder": "J",
+                "indicador": "RCL", "medida": "valor", "rotulo": "Receita Corrente Líquida",
+                "secao": "Pessoal", "anexo": "RGF-Anexo 01", "valor": rcl_est, "esfera": "estadual", "uf": sigla,
+                "data_referencia": f"{ano}-12-31"
+            })
+            indicadores_fiscais.append({
+                "cod_ibge": ibge, "ano": ano, "periodo": "3", "poder": "J",
+                "indicador": "DespesaLiquidaComPessoal", "medida": "valor", "rotulo": "Despesa Líquida com Pessoal",
+                "secao": "Pessoal", "anexo": "RGF-Anexo 01", "valor": rcl_est * (pessoal_jud_pct / 100.0), "esfera": "estadual", "uf": sigla,
+                "data_referencia": f"{ano}-12-31"
+            })
+            indicadores_fiscais.append({
+                "cod_ibge": ibge, "ano": ano, "periodo": "3", "poder": "J",
+                "indicador": "DTP", "medida": "percentual_rcl", "rotulo": "% da Despesa com Pessoal sobre RCL",
+                "secao": "Pessoal", "anexo": "RGF-Anexo 01", "valor": pessoal_jud_pct, "esfera": "estadual", "uf": sigla,
+                "data_referencia": f"{ano}-12-31"
+            })
+            indicadores_fiscais.append({
+                "cod_ibge": ibge, "ano": ano, "periodo": "3", "poder": "J",
+                "indicador": "LimitePrudencial", "medida": "percentual_rcl", "rotulo": "Limite Prudencial",
+                "secao": "Pessoal", "anexo": "RGF-Anexo 01", "valor": 5.70, "esfera": "estadual", "uf": sigla,
+                "data_referencia": f"{ano}-12-31"
+            })
+            indicadores_fiscais.append({
+                "cod_ibge": ibge, "ano": ano, "periodo": "3", "poder": "J",
+                "indicador": "LimiteMaximo", "medida": "percentual_rcl", "rotulo": "Limite Máximo",
+                "secao": "Pessoal", "anexo": "RGF-Anexo 01", "valor": 6.00, "esfera": "estadual", "uf": sigla,
+                "data_referencia": f"{ano}-12-31"
+            })
+
+            # Legislativo / TC (L)
+            pessoal_leg_pct = 1.85
+            indicadores_fiscais.append({
+                "cod_ibge": ibge, "ano": ano, "periodo": "3", "poder": "L",
+                "indicador": "RCL", "medida": "valor", "rotulo": "Receita Corrente Líquida",
+                "secao": "Pessoal", "anexo": "RGF-Anexo 01", "valor": rcl_est, "esfera": "estadual", "uf": sigla,
+                "data_referencia": f"{ano}-12-31"
+            })
+            indicadores_fiscais.append({
+                "cod_ibge": ibge, "ano": ano, "periodo": "3", "poder": "L",
+                "indicador": "DespesaLiquidaComPessoal", "medida": "valor", "rotulo": "Despesa Líquida com Pessoal",
+                "secao": "Pessoal", "anexo": "RGF-Anexo 01", "valor": rcl_est * (pessoal_leg_pct / 100.0), "esfera": "estadual", "uf": sigla,
+                "data_referencia": f"{ano}-12-31"
+            })
+            indicadores_fiscais.append({
+                "cod_ibge": ibge, "ano": ano, "periodo": "3", "poder": "L",
+                "indicador": "DTP", "medida": "percentual_rcl", "rotulo": "% da Despesa com Pessoal sobre RCL",
+                "secao": "Pessoal", "anexo": "RGF-Anexo 01", "valor": pessoal_leg_pct, "esfera": "estadual", "uf": sigla,
+                "data_referencia": f"{ano}-12-31"
+            })
+            indicadores_fiscais.append({
+                "cod_ibge": ibge, "ano": ano, "periodo": "3", "poder": "L",
+                "indicador": "LimitePrudencial", "medida": "percentual_rcl", "rotulo": "Limite Prudencial",
+                "secao": "Pessoal", "anexo": "RGF-Anexo 01", "valor": 2.85, "esfera": "estadual", "uf": sigla,
+                "data_referencia": f"{ano}-12-31"
+            })
+            indicadores_fiscais.append({
+                "cod_ibge": ibge, "ano": ano, "periodo": "3", "poder": "L",
+                "indicador": "LimiteMaximo", "medida": "percentual_rcl", "rotulo": "Limite Máximo",
+                "secao": "Pessoal", "anexo": "RGF-Anexo 01", "valor": 3.00, "esfera": "estadual", "uf": sigla,
+                "data_referencia": f"{ano}-12-31"
+            })
+
+            # Ministério Público (M)
+            pessoal_mp_pct = 1.45
+            indicadores_fiscais.append({
+                "cod_ibge": ibge, "ano": ano, "periodo": "3", "poder": "M",
+                "indicador": "RCL", "medida": "valor", "rotulo": "Receita Corrente Líquida",
+                "secao": "Pessoal", "anexo": "RGF-Anexo 01", "valor": rcl_est, "esfera": "estadual", "uf": sigla,
+                "data_referencia": f"{ano}-12-31"
+            })
+            indicadores_fiscais.append({
+                "cod_ibge": ibge, "ano": ano, "periodo": "3", "poder": "M",
+                "indicador": "DespesaLiquidaComPessoal", "medida": "valor", "rotulo": "Despesa Líquida com Pessoal",
+                "secao": "Pessoal", "anexo": "RGF-Anexo 01", "valor": rcl_est * (pessoal_mp_pct / 100.0), "esfera": "estadual", "uf": sigla,
+                "data_referencia": f"{ano}-12-31"
+            })
+            indicadores_fiscais.append({
+                "cod_ibge": ibge, "ano": ano, "periodo": "3", "poder": "M",
+                "indicador": "DTP", "medida": "percentual_rcl", "rotulo": "% da Despesa com Pessoal sobre RCL",
+                "secao": "Pessoal", "anexo": "RGF-Anexo 01", "valor": pessoal_mp_pct, "esfera": "estadual", "uf": sigla,
+                "data_referencia": f"{ano}-12-31"
+            })
+            indicadores_fiscais.append({
+                "cod_ibge": ibge, "ano": ano, "periodo": "3", "poder": "M",
+                "indicador": "LimitePrudencial", "medida": "percentual_rcl", "rotulo": "Limite Prudencial",
+                "secao": "Pessoal", "anexo": "RGF-Anexo 01", "valor": 1.90, "esfera": "estadual", "uf": sigla,
+                "data_referencia": f"{ano}-12-31"
+            })
+            indicadores_fiscais.append({
+                "cod_ibge": ibge, "ano": ano, "periodo": "3", "poder": "M",
+                "indicador": "LimiteMaximo", "medida": "percentual_rcl", "rotulo": "Limite Máximo",
+                "secao": "Pessoal", "anexo": "RGF-Anexo 01", "valor": 2.00, "esfera": "estadual", "uf": sigla,
+                "data_referencia": f"{ano}-12-31"
+            })
+
+            # Defensoria Pública (D)
+            pessoal_def_pct = 0.58
+            indicadores_fiscais.append({
+                "cod_ibge": ibge, "ano": ano, "periodo": "3", "poder": "D",
+                "indicador": "RCL", "medida": "valor", "rotulo": "Receita Corrente Líquida",
+                "secao": "Pessoal", "anexo": "RGF-Anexo 01", "valor": rcl_est, "esfera": "estadual", "uf": sigla,
+                "data_referencia": f"{ano}-12-31"
+            })
+            indicadores_fiscais.append({
+                "cod_ibge": ibge, "ano": ano, "periodo": "3", "poder": "D",
+                "indicador": "DespesaLiquidaComPessoal", "medida": "valor", "rotulo": "Despesa Líquida com Pessoal",
+                "secao": "Pessoal", "anexo": "RGF-Anexo 01", "valor": rcl_est * (pessoal_def_pct / 100.0), "esfera": "estadual", "uf": sigla,
+                "data_referencia": f"{ano}-12-31"
+            })
+            indicadores_fiscais.append({
+                "cod_ibge": ibge, "ano": ano, "periodo": "3", "poder": "D",
+                "indicador": "DTP", "medida": "percentual_rcl", "rotulo": "% da Despesa com Pessoal sobre RCL",
+                "secao": "Pessoal", "anexo": "RGF-Anexo 01", "valor": pessoal_def_pct, "esfera": "estadual", "uf": sigla,
+                "data_referencia": f"{ano}-12-31"
+            })
+            indicadores_fiscais.append({
+                "cod_ibge": ibge, "ano": ano, "periodo": "3", "poder": "D",
+                "indicador": "LimitePrudencial", "medida": "percentual_rcl", "rotulo": "Limite Prudencial",
+                "secao": "Pessoal", "anexo": "RGF-Anexo 01", "valor": 0.95, "esfera": "estadual", "uf": sigla,
+                "data_referencia": f"{ano}-12-31"
+            })
+            indicadores_fiscais.append({
+                "cod_ibge": ibge, "ano": ano, "periodo": "3", "poder": "D",
+                "indicador": "LimiteMaximo", "medida": "percentual_rcl", "rotulo": "Limite Máximo",
+                "secao": "Pessoal", "anexo": "RGF-Anexo 01", "valor": 1.00, "esfera": "estadual", "uf": sigla,
                 "data_referencia": f"{ano}-12-31"
             })
 
@@ -314,11 +472,72 @@ def carregar_dados_federativos() -> tuple[list[dict], list[dict], list[dict], li
                 "estagio": "Despesas Pagas", "valor": educ_m, "esfera": "municipal", "uf": sigla_m,
                 "data_referencia": f"{ano}-12-31"
             })
+            rcl_mun = rec_m * 0.95
+            dtp_mun_pct = 45.0 + ((int(ibge_m) if ibge_m.isdigit() else 0) % 9)
+            dtp_mun_val = rcl_mun * (dtp_mun_pct / 100.0)
+
+            # Executivo Municipal (E)
+            indicadores_fiscais.append({
+                "cod_ibge": ibge_m, "ano": ano, "periodo": "3", "poder": "E",
+                "indicador": "RCL", "medida": "valor", "rotulo": "Receita Corrente Líquida",
+                "secao": "Pessoal", "anexo": "RGF-Anexo 01", "valor": rcl_mun, "esfera": "municipal", "uf": sigla_m,
+                "data_referencia": f"{ano}-12-31"
+            })
+            indicadores_fiscais.append({
+                "cod_ibge": ibge_m, "ano": ano, "periodo": "3", "poder": "E",
+                "indicador": "DespesaLiquidaComPessoal", "medida": "valor", "rotulo": "Despesa Líquida com Pessoal",
+                "secao": "Pessoal", "anexo": "RGF-Anexo 01", "valor": dtp_mun_val, "esfera": "municipal", "uf": sigla_m,
+                "data_referencia": f"{ano}-12-31"
+            })
             indicadores_fiscais.append({
                 "cod_ibge": ibge_m, "ano": ano, "periodo": "3", "poder": "E",
                 "indicador": "DTP", "medida": "percentual_rcl", "rotulo": "% da Despesa com Pessoal sobre RCL",
-                "secao": "Pessoal", "anexo": "RGF-Anexo 01",
-                "valor": 45.0 + ((int(ibge_m) if ibge_m.isdigit() else 0) % 9), "esfera": "municipal", "uf": sigla_m,
+                "secao": "Pessoal", "anexo": "RGF-Anexo 01", "valor": dtp_mun_pct, "esfera": "municipal", "uf": sigla_m,
+                "data_referencia": f"{ano}-12-31"
+            })
+            indicadores_fiscais.append({
+                "cod_ibge": ibge_m, "ano": ano, "periodo": "3", "poder": "E",
+                "indicador": "LimitePrudencial", "medida": "percentual_rcl", "rotulo": "Limite Prudencial",
+                "secao": "Pessoal", "anexo": "RGF-Anexo 01", "valor": 51.30, "esfera": "municipal", "uf": sigla_m,
+                "data_referencia": f"{ano}-12-31"
+            })
+            indicadores_fiscais.append({
+                "cod_ibge": ibge_m, "ano": ano, "periodo": "3", "poder": "E",
+                "indicador": "LimiteMaximo", "medida": "percentual_rcl", "rotulo": "Limite Máximo",
+                "secao": "Pessoal", "anexo": "RGF-Anexo 01", "valor": 54.00, "esfera": "municipal", "uf": sigla_m,
+                "data_referencia": f"{ano}-12-31"
+            })
+
+            # Legislativo Municipal / Câmara (L)
+            dtp_cam_pct = 3.20
+            indicadores_fiscais.append({
+                "cod_ibge": ibge_m, "ano": ano, "periodo": "3", "poder": "L",
+                "indicador": "RCL", "medida": "valor", "rotulo": "Receita Corrente Líquida",
+                "secao": "Pessoal", "anexo": "RGF-Anexo 01", "valor": rcl_mun, "esfera": "municipal", "uf": sigla_m,
+                "data_referencia": f"{ano}-12-31"
+            })
+            indicadores_fiscais.append({
+                "cod_ibge": ibge_m, "ano": ano, "periodo": "3", "poder": "L",
+                "indicador": "DespesaLiquidaComPessoal", "medida": "valor", "rotulo": "Despesa Líquida com Pessoal",
+                "secao": "Pessoal", "anexo": "RGF-Anexo 01", "valor": rcl_mun * (dtp_cam_pct / 100.0), "esfera": "municipal", "uf": sigla_m,
+                "data_referencia": f"{ano}-12-31"
+            })
+            indicadores_fiscais.append({
+                "cod_ibge": ibge_m, "ano": ano, "periodo": "3", "poder": "L",
+                "indicador": "DTP", "medida": "percentual_rcl", "rotulo": "% da Despesa com Pessoal sobre RCL",
+                "secao": "Pessoal", "anexo": "RGF-Anexo 01", "valor": dtp_cam_pct, "esfera": "municipal", "uf": sigla_m,
+                "data_referencia": f"{ano}-12-31"
+            })
+            indicadores_fiscais.append({
+                "cod_ibge": ibge_m, "ano": ano, "periodo": "3", "poder": "L",
+                "indicador": "LimitePrudencial", "medida": "percentual_rcl", "rotulo": "Limite Prudencial",
+                "secao": "Pessoal", "anexo": "RGF-Anexo 01", "valor": 5.70, "esfera": "municipal", "uf": sigla_m,
+                "data_referencia": f"{ano}-12-31"
+            })
+            indicadores_fiscais.append({
+                "cod_ibge": ibge_m, "ano": ano, "periodo": "3", "poder": "L",
+                "indicador": "LimiteMaximo", "medida": "percentual_rcl", "rotulo": "Limite Máximo",
+                "secao": "Pessoal", "anexo": "RGF-Anexo 01", "valor": 6.00, "esfera": "municipal", "uf": sigla_m,
                 "data_referencia": f"{ano}-12-31"
             })
             transferencias_uniao.append({
