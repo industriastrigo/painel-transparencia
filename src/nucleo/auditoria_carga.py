@@ -368,7 +368,13 @@ def _executar_coletor_tabela(tabela: str, ano: int | None = None) -> int:
         return 24
     elif tabela in ("financas_ente", "despesa_funcao", "indicador_fiscal"):
         from ..coletores import siconfi
-        return siconfi.executar(anos=[ano_val], refazer=True)
+        return siconfi.executar(ano=ano_val, refazer_tudo=True)
+    elif tabela == "custo_orgao":
+        from ..coletores import tesouro
+        return tesouro.executar(anos=[ano_val], refazer=True)
+    elif tabela == "emenda_parlamentar":
+        from ..coletores import transparencia
+        return transparencia.executar(anos=[ano_val], refazer=True)
     
     return 0
 
