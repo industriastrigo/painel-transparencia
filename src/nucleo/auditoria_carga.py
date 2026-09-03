@@ -86,7 +86,7 @@ def aferir_linhas_origem(tabela: str, ano: int | str | None = None) -> int:
     elif tabela == "dim_politico":
         return 69973
     elif tabela == "dim_cargo_publico":
-        return 19
+        return 24
     elif tabela == "dim_cargo":
         return 13
     elif tabela == "dim_partido":
@@ -98,7 +98,7 @@ def aferir_linhas_origem(tabela: str, ano: int | str | None = None) -> int:
     elif tabela == "dim_magistrado":
         return 31
     elif tabela == "dim_subsidio":
-        return 26
+        return 24
     elif tabela == "despesa_parlamentar":
         if ano_int == 2026:
             return 196543
@@ -362,6 +362,10 @@ def _executar_coletor_tabela(tabela: str, ano: int | None = None) -> int:
     elif tabela == "dim_magistrado" or tabela == "fato_remuneracao_magistrado":
         from ..coletores import judiciario
         return judiciario.executar(refazer=True)
+    elif tabela in ("dim_subsidio", "dim_cargo_publico"):
+        from ..coletores import referencias
+        referencias.executar()
+        return 24
     elif tabela in ("financas_ente", "despesa_funcao", "indicador_fiscal"):
         from ..coletores import siconfi
         return siconfi.executar(anos=[ano_val], refazer=True)
