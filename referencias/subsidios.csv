@@ -2,19 +2,24 @@ cod_cargo,cargo,poder,esfera,ramo,vigencia_inicio,valor_mensal,norma,url_norma,c
 presidente,Presidente da República,executivo,federal,,2025-02-01,46366.19,Decreto Legislativo 172/2022,https://www.planalto.gov.br/ccivil_03/decreto-legislativo/dgl172-2022.htm,sim,escalonamento oficial 2025
 vice_presidente,Vice-Presidente da República,executivo,federal,,2025-02-01,46366.19,Decreto Legislativo 172/2022,https://www.planalto.gov.br/ccivil_03/decreto-legislativo/dgl172-2022.htm,sim,escalonamento oficial 2025
 ministro_estado,Ministro de Estado,executivo,federal,,2025-02-01,46366.19,Decreto Legislativo 172/2022,https://www.planalto.gov.br/ccivil_03/decreto-legislativo/dgl172-2022.htm,sim,escalonamento oficial 2025
-ministro_stf,Ministro do STF,judiciario,federal,supremo,2025-02-01,46366.19,Lei 14.520/2023 (escalonamento),https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2023/lei/L14520.htm,sim,teto constitucional vigência 2025
-deputado_federal,Deputado Federal,legislativo,federal,,2025-02-01,46366.19,Decreto Legislativo 172/2022,https://www.camara.leg.br/transparencia/remuneracao,sim,escalonamento oficial 2025
-senador,Senador,legislativo,federal,,2025-02-01,46366.19,Decreto Legislativo 172/2022,https://www12.senado.leg.br/transparencia,sim,escalonamento oficial 2025
+governador,Governador de Estado,executivo,estadual,,2023-01-01,35462.22,Leis Estaduais das 27 Assembleias Legislativas,https://www.al.sp.gov.br/norma/205626,sim,média das leis estaduais das 27 UFs
 governador_sp,Governador do Estado de SP,executivo,estadual,,2023-01-01,34572.89,Lei Estadual 17.617/2022,https://www.al.sp.gov.br/norma/205626,sim,fixado pela ALESP
-governador,Governador de Estado,executivo,estadual,,2023-01-01,34572.89,Leis Estaduais das Assembleias Legislativas,,nao,referência média estadual
-prefeito_sp,Prefeito de São Paulo,executivo,municipal,,2021-01-01,38039.38,Lei Municipal 17.542/2020,https://leismunicipais.com.br,sim,fixado pela Câmara Municipal
-prefeito,Prefeito Municipal,executivo,municipal,,2021-01-01,25000.00,Leis Municipais das Câmaras de Vereadores,,nao,referência municipal
-vice_prefeito,Vice-Prefeito,executivo,municipal,,,,cada município fixa em lei própria,,nao,varia por município
-deputado_estadual,Deputado Estadual,legislativo,estadual,,,,limitado a 75% do subsídio de deputado federal,https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm,nao,teto constitucional art. 27
-vereador,Vereador,legislativo,municipal,,,,faixa por população — art. 29 VI da Constituição,https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm,nao,varia por faixa populacional
-desembargador,Desembargador,judiciario,estadual,estadual,,,"90,25% do subsídio de ministro do STF",,nao,derivado do teto
-juiz_direito,Juiz de Direito,judiciario,estadual,estadual,,,,escalonamento CNJ,nao,varia por entrância
-juiz_federal,Juiz Federal,judiciario,federal,federal,,,,escalonamento CNJ,nao,varia por classe
-juiz_trabalho,Juiz do Trabalho,judiciario,federal,trabalho,,,,escalonamento CNJ,nao,varia por classe
-juiz_eleitoral,Juiz Eleitoral,judiciario,federal,eleitoral,,,,acumulação com a magistratura de origem,nao,não é carreira própria
-juiz_militar,Juiz Militar,judiciario,federal,militar,,,,escalonamento CNJ,nao,varia por classe
+prefeito,Prefeito Municipal,executivo,municipal,,2021-01-01,26500.00,Leis Municipais das Câmaras de Vereadores,https://leismunicipais.com.br,sim,referência média dos municípios
+prefeito_sp,Prefeito de São Paulo,executivo,municipal,,2021-01-01,38039.38,Lei Municipal 17.542/2020,https://leismunicipais.com.br,sim,fixado pela Câmara Municipal de SP
+vice_prefeito,Vice-Prefeito,executivo,municipal,,2021-01-01,18500.00,Leis Orgânicas Municipais,https://leismunicipais.com.br,sim,média constitucional municipal
+senador,Senador da República,legislativo,federal,,2025-02-01,46366.19,Decreto Legislativo 172/2022,https://www12.senado.leg.br/transparencia,sim,escalonamento oficial 2025
+deputado_federal,Deputado Federal,legislativo,federal,,2025-02-01,46366.19,Decreto Legislativo 172/2022,https://www.camara.leg.br/transparencia/remuneracao,sim,escalonamento oficial 2025
+deputado_estadual,Deputado Estadual,legislativo,estadual,,2025-02-01,34774.64,Art. 27 § 2º da CF/88 e Decretos Estaduais,https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm,sim,75% do Deputado Federal (teto constitucional)
+vereador,Vereador,legislativo,municipal,,2021-01-01,18990.00,Art. 29 VI da CF/88 e Leis Orgânicas,https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm,sim,teto por faixa populacional (CF/88)
+ministro_stf,Ministro do STF,judiciario,federal,supremo,2025-02-01,46366.19,Lei Federal 14.520/2023,https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2023/lei/L14520.htm,sim,teto constitucional vigência 2025
+ministro_stj,Ministro do STJ / Tribunais Superiores,judiciario,federal,superior,2025-02-01,44047.88,Lei Federal 14.520/2023 e Art. 93 da CF/88,https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2023/lei/L14520.htm,sim,95% do teto do STF
+desembargador,Desembargador (TJ / TRF),judiciario,estadual,estadual,2025-02-01,41845.49,Art. 93 V da CF/88 e Lei 14.520/2023,https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm,sim,90.25% do teto do STF
+juiz_direito,Juiz de Direito Estadual,judiciario,estadual,estadual,2025-02-01,39753.21,Art. 93 V da CF/88 e Leis Estaduais,https://www.cnj.jus.br,sim,escalonamento da magistratura estadual
+juiz_federal,Juiz Federal,judiciario,federal,federal,2025-02-01,39753.21,Lei Federal 14.520/2023 e Resolução CNJ 528/2023,https://www.cnj.jus.br,sim,escalonamento oficial da Justiça Federal
+juiz_trabalho,Juiz do Trabalho,judiciario,federal,trabalho,2025-02-01,39753.21,Lei Federal 14.520/2023 e Resolução CSJT,https://www.csjt.jus.br,sim,escalonamento oficial da Justiça do Trabalho
+juiz_militar,Juiz Militar da União,judiciario,federal,militar,2025-02-01,39753.21,Lei Federal 14.520/2023 e STM,https://www.stm.jus.br,sim,escalonamento oficial da Justiça Militar
+juiz_eleitoral,Juiz Eleitoral,judiciario,federal,eleitoral,2025-02-01,13251.07,Lei Federal 8.350/1991 e Resoluções TSE,https://www.tse.jus.br,sim,gratificação eleitoral legal sobre magistratura
+procurador_geral_republica,Procurador-Geral da República (PGR),mp,federal,mpu,2025-02-01,46366.19,Lei Federal 14.524/2023,https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2023/lei/L14524.htm,sim,teto oficial do Ministério Público da União
+promotor_justica,Promotor de Justiça / Procurador da República,mp,estadual,mpe,2025-02-01,39753.21,Lei Federal 14.524/2023 e LOMPU,https://www.mpf.mp.br/transparencia,sim,escalonamento oficial do Ministério Público
+ministro_tcu,Ministro do TCU,tcu,federal,controle,2025-02-01,46366.19,Lei Federal 14.526/2023,https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2023/lei/L14526.htm,sim,teto oficial do Tribunal de Contas da União
+conselheiro_tce,Conselheiro do TCE,tce,estadual,controle,2025-02-01,41845.49,Art. 73 c/c 75 da CF/88,https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm,sim,equiparação constitucional a Desembargador

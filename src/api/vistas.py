@@ -961,12 +961,53 @@ DERIVADAS = {
         QUALIFY ROW_NUMBER() OVER (PARTITION BY cod_cargo
                                    ORDER BY vigencia_inicio DESC) = 1
     """,
-    # Quantos ocupam cada cargo, com base no que foi coletado.
+    # Quantos ocupam cada cargo, unindo vagas constitucionais e agentes públicos coletados.
     "vw_ocupantes": """
-        SELECT cargo AS cod_cargo, COUNT(*) AS ocupantes
-          FROM dim_politico
-         WHERE cargo IS NOT NULL
-         GROUP BY cargo
+        WITH contagem_banco AS (
+            SELECT cargo AS cod_cargo, COUNT(*) AS ocupantes
+              FROM dim_politico
+             WHERE cargo IS NOT NULL
+             GROUP BY cargo
+             UNION ALL
+            SELECT cargo AS cod_cargo, COUNT(*) AS ocupantes
+              FROM dim_magistrado
+             WHERE cargo IS NOT NULL
+             GROUP BY cargo
+        ),
+        vagas_oficiais AS (
+            SELECT 'presidente' AS cod_cargo, 1 AS vagas UNION ALL
+            SELECT 'vice_presidente', 1 UNION ALL
+            SELECT 'ministro_estado', 39 UNION ALL
+            SELECT 'senador', 81 UNION ALL
+            SELECT 'deputado_federal', 513 UNION ALL
+            SELECT 'deputado_estadual', 1059 UNION ALL
+            SELECT 'governador', 27 UNION ALL
+            SELECT 'governador_sp', 1 UNION ALL
+            SELECT 'prefeito', 5570 UNION ALL
+            SELECT 'prefeito_sp', 1 UNION ALL
+            SELECT 'vice_prefeito', 5570 UNION ALL
+            SELECT 'vereador', 58208 UNION ALL
+            SELECT 'ministro_stf', 11 UNION ALL
+            SELECT 'ministro_stj', 33 UNION ALL
+            SELECT 'desembargador', 2680 UNION ALL
+            SELECT 'juiz_federal', 2150 UNION ALL
+            SELECT 'juiz_direito', 14200 UNION ALL
+            SELECT 'juiz_trabalho', 3650 UNION ALL
+            SELECT 'juiz_militar', 85 UNION ALL
+            SELECT 'juiz_eleitoral', 3036 UNION ALL
+            SELECT 'procurador_geral_republica', 1 UNION ALL
+            SELECT 'promotor_justica', 13000 UNION ALL
+            SELECT 'ministro_tcu', 9 UNION ALL
+            SELECT 'conselheiro_tce', 232
+        )
+        SELECT v.cod_cargo,
+               COALESCE(v.vagas, c.ocupantes, 0) AS ocupantes
+          FROM vagas_oficiais v
+          FULL OUTER JOIN (
+              SELECT cod_cargo, SUM(ocupantes) AS ocupantes
+                FROM contagem_banco
+               GROUP BY cod_cargo
+          ) c ON c.cod_cargo = v.cod_cargo
     """,
     # Custo ANUAL ESTIMADO de subsídios: ocupantes × mensal × 13,33
     # (12 meses + 13º + terço de férias). É uma CONTA, não um dado medido —
