@@ -54,6 +54,7 @@ def carregar_subsidios(arquivo: Path | None = None) -> int:
             "poder": opcional(l.get("poder")),
             "esfera": opcional(l.get("esfera")),
             "ramo": opcional(l.get("ramo")),
+            "ocupantes": numero(l.get("ocupantes")),
         })
 
         subsidios.append({

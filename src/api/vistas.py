@@ -960,28 +960,33 @@ DERIVADAS = {
         QUALIFY ROW_NUMBER() OVER (PARTITION BY cod_cargo
                                    ORDER BY vigencia_inicio DESC) = 1
     """,
-    # Quantos ocupam cada cargo, com base nos agentes coletados no acervo.
+    # Quantos ocupam cada cargo: oficial ou com base nos agentes coletados no acervo.
     "vw_ocupantes": """
-        SELECT cargo AS cod_cargo, COUNT(*) AS ocupantes
-          FROM (
-              SELECT cargo FROM dim_politico WHERE cargo IS NOT NULL
-              UNION ALL
-              SELECT cargo FROM dim_magistrado WHERE cargo IS NOT NULL
-          )
-         GROUP BY cargo
+        SELECT c.cod_cargo,
+               COALESCE(c.ocupantes, o.ocupantes_acervo, 0) AS ocupantes
+          FROM dim_cargo_publico c
+          LEFT JOIN (
+              SELECT cargo AS cod_cargo, COUNT(*) AS ocupantes_acervo
+                FROM (
+                    SELECT cargo FROM dim_politico WHERE cargo IS NOT NULL
+                    UNION ALL
+                    SELECT cargo FROM dim_magistrado WHERE cargo IS NOT NULL
+                )
+               GROUP BY cargo
+          ) o ON o.cod_cargo = c.cod_cargo
     """,
     # Custo ANUAL ESTIMADO de subsídios: ocupantes × mensal × 13,33
     # (12 meses + 13º + terço de férias). É uma CONTA, não um dado medido —
     # e não inclui gabinete, auxílios, diárias nem encargos. O painel rotula.
     "vw_custo_cargo": """
         SELECT c.cod_cargo, c.cargo, c.poder, c.esfera, c.ramo,
-               COALESCE(o.ocupantes, 0)          AS ocupantes,
+               COALESCE(c.ocupantes, o.ocupantes, 0) AS ocupantes,
                s.valor_mensal,
                s.norma, s.url_norma, s.observacao,
-               COALESCE(s.conferido, FALSE)      AS conferido,
-               CASE WHEN s.valor_mensal IS NOT NULL AND o.ocupantes IS NOT NULL AND o.ocupantes > 0
-                    THEN o.ocupantes * s.valor_mensal * 13.33 END
-                                                 AS custo_anual_estimado
+               COALESCE(s.conferido, FALSE)          AS conferido,
+               CASE WHEN s.valor_mensal IS NOT NULL AND COALESCE(c.ocupantes, o.ocupantes, 0) > 0
+                    THEN COALESCE(c.ocupantes, o.ocupantes, 0) * s.valor_mensal * 13.33 END
+                                                     AS custo_anual_estimado
           FROM dim_cargo_publico c
           LEFT JOIN vw_subsidio_vigente s ON s.cod_cargo = c.cod_cargo
           LEFT JOIN vw_ocupantes o        ON o.cod_cargo = c.cod_cargo

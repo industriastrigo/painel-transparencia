@@ -138,7 +138,7 @@ function renderizarTabelaDeCusto(cargos) {
       <td>${txt(c.cargo)}${c.ramo ? `<br><span class="cadencia">${escapar(c.ramo)}</span>` : ''}
         ${c.poder ? `<br><span class="cadencia">${escapar(c.poder)}${
           c.esfera ? ` · ${escapar(c.esfera)}` : ''}</span>` : ''}</td>
-      <td class="valor">${contagem(c.ocupantes)}</td>
+      <td class="centrado"><strong>${contagem(c.ocupantes)}</strong></td>
       <td class="valor">${c.valor_mensal == null ? '—'
         : escapar(dinheiro.format(c.valor_mensal))}
         ${c.valor_mensal != null && !c.conferido

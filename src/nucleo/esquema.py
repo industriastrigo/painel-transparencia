@@ -595,7 +595,7 @@ _COLUNAS: dict[str, tuple[tuple[str, str], ...]] = {
     ),
     "dim_cargo_publico": (
         ("cod_cargo", "VARCHAR"), ("cargo", "VARCHAR"), ("poder", "VARCHAR"),
-        ("esfera", "VARCHAR"), ("ramo", "VARCHAR"),
+        ("esfera", "VARCHAR"), ("ramo", "VARCHAR"), ("ocupantes", "BIGINT"),
     ),
     "dim_subsidio": (
         ("cod_cargo", "VARCHAR"), ("vigencia_inicio", "VARCHAR"),
