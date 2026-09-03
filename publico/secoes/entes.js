@@ -122,20 +122,20 @@ async function abrirFicha(codIbge) {
 
     <h2>Quem governa</h2>
     ${governantes.length
-      ? tabela('<th>Cargo</th><th>Nome</th><th>Partido</th><th>Mandato</th>',
+      ? tabela('<th>Cargo</th><th>Nome</th><th class="centrado">Partido</th><th class="centrado">Mandato</th>',
           governantes.map((g) => `<tr>
-            <td>${txt(g.cargo)}</td><td>${txt(g.nome)}</td>
-            <td>${txt(g.sigla_partido)}</td>
-            <td>${escapar(g.ano_inicio ?? '?')}–${escapar(g.ano_fim ?? '?')}</td>
+            <td><strong>${txt(g.cargo)}</strong></td><td>${txt(g.nome)}</td>
+            <td class="centrado">${g.sigla_partido ? `<span class="etiqueta">${txt(g.sigla_partido)}</span>` : '—'}</td>
+            <td class="centrado">${escapar(g.ano_inicio ?? '?')}–${escapar(g.ano_fim ?? '?')}</td>
           </tr>`).join(''))
       : `<p class="vazio">Nenhum mandato ligado a este ente.
          Rode o coletor do TSE — e, se ele já rodou, pode ser o nome da cidade
          que não casou com o cadastro do IBGE.</p>`}
 
     ${legislativo.length ? `<h2>Legislativo</h2>
-      ${tabela('<th>Cargo</th><th>Quantidade</th>',
-        legislativo.map((l) => `<tr><td>${txt(l.cargo)}</td>
-          <td class="valor">${contagem(l.quantidade)}</td></tr>`).join(''))}` : ''}
+      ${tabela('<th>Cargo</th><th class="centrado">Quantidade</th>',
+        legislativo.map((l) => `<tr><td><strong>${txt(l.cargo)}</strong></td>
+          <td class="centrado">${contagem(l.quantidade)}</td></tr>`).join(''))}` : ''}
 
     <h2>Em que gasta — por natureza</h2>
     ${financas.length ? (() => {
@@ -219,22 +219,22 @@ async function abrirFicha(codIbge) {
         ${cartaoNumero('Pedidos', f.credito.pleitos, 'populacao')}
       </div>
       ${f.credito_finalidade?.length
-        ? tabela('<th>Finalidade</th><th>Credor</th><th>Valor deferido</th>',
+        ? tabela('<th>Finalidade</th><th>Credor</th><th class="centrado">Valor Deferido</th>',
             f.credito_finalidade.map((x) => `<tr>
               <td>${txt(x.finalidade)}</td>
               <td>${txt(x.credor ?? x.tipo_credor)}</td>
-              <td class="valor" title="${atributo(exato(aNumero(x.valor), 'despesa_total'))}"
+              <td class="centrado" title="${atributo(exato(aNumero(x.valor), 'despesa_total'))}"
                 >${formatar(aNumero(x.valor), 'despesa_total')}</td>
             </tr>`).join(''))
         : ''}` : ''}
 
     ${indicadores.length ? `<h2>Indicadores</h2>
-      ${tabela('<th>Indicador</th><th>Ano</th><th>Valor</th>',
+      ${tabela('<th>Indicador</th><th class="centrado">Ano</th><th class="centrado">Valor</th>',
         indicadores.map((i) => {
           const v = formatarIndicador(i.valor, i.unidade);
           return `<tr>
-            <td>${txt(i.rotulo ?? i.cod_metrica)}</td><td>${escapar(i.ano)}</td>
-            <td class="valor" title="${atributo(v.title)}">${escapar(v.texto)}</td></tr>`;
+            <td><strong>${txt(i.rotulo ?? i.cod_metrica)}</strong></td><td class="centrado">${escapar(i.ano)}</td>
+            <td class="centrado" title="${atributo(v.title)}">${escapar(v.texto)}</td></tr>`;
         }).join(''))}` : ''}`;
 
   dialogo.setAttribute('aria-labelledby', 'titulo-detalhe');
