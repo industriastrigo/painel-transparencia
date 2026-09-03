@@ -140,6 +140,20 @@
         </a>
       </nav>
     </div>
+
+    <!-- 5. ENGENHARIA & AUDITORIA (Exclusivo para DEV / Local) -->
+    <div id="drawer-secao-dev" class="apenas-dev">
+      <div class="drawer-secao-rotulo">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
+        <span>Engenharia & Auditoria</span>
+      </div>
+      <nav class="drawer-nav-lista">
+        <a href="#catalogo" class="drawer-nav-item" data-aba="catalogo">
+          <span class="item-icone"><svg class="item-svg" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg></span>
+          <span class="item-texto">Catálogo de Dados & Parquet</span>
+        </a>
+      </nav>
+    </div>
   </div>
 
   <div class="drawer-footer">
@@ -1621,7 +1635,139 @@
 
   </section>
 
+  <!-- ------------------------------------------------------------ catálogo (DEV) -->
+  <section id="aba-catalogo" role="tabpanel" tabindex="-1" class="apenas-dev" hidden>
+    <div class="banner-informativo" style="border-left: 4px solid var(--realce-dourado);">
+      <span class="banner-icone">⚙️</span>
+      <div class="banner-texto">
+        <strong>Console de Engenharia & Auditoria de Dados:</strong> Inventário físico de partições Parquet, aferição de volumetria (*local vs origem*), metadados do Data Lakehouse e inspeção interativa de requisições GET.
+      </div>
+    </div>
+
+    <!-- KPIs do Catálogo -->
+    <div class="grade-kpis-trigo" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: var(--e3);">
+      <div class="kpi-card-trigo">
+        <div class="kpi-rotulo">Tabelas no Lakehouse</div>
+        <div class="kpi-valor" id="cat-kpi-tabelas">14 Tabelas</div>
+        <div class="kpi-subtexto" id="cat-kpi-tabelas-sub">6 dimensões · 8 fatos</div>
+      </div>
+      <div class="kpi-card-trigo">
+        <div class="kpi-rotulo">Volume Global de Linhas</div>
+        <div class="kpi-valor" id="cat-kpi-linhas">—</div>
+        <div class="kpi-subtexto">Registros indexados em disco</div>
+      </div>
+      <div class="kpi-card-trigo">
+        <div class="kpi-rotulo">Cobertura Temporal</div>
+        <div class="kpi-valor" id="cat-kpi-total">2015 a 2026</div>
+        <div class="kpi-subtexto" id="cat-kpi-total-sub">Lotes consolidados</div>
+      </div>
+      <div class="kpi-card-trigo">
+        <div class="kpi-rotulo">Status da Carga</div>
+        <div class="kpi-valor" id="cat-kpi-parcial">100% Íntegro</div>
+        <div class="kpi-subtexto" id="cat-kpi-parcial-sub">Validação Skip & Log ativa</div>
+      </div>
+    </div>
+
+    <!-- Filtros do Catálogo -->
+    <div class="barra-filtros-trigo" style="margin-bottom: var(--e3);">
+      <div class="filtro-grupo">
+        <label for="cat-filtro-busca" class="filtro-rotulo">Buscar Tabela</label>
+        <input type="text" id="cat-filtro-busca" class="filtro-campo" placeholder="Ex: dim_ente, despesa..." />
+      </div>
+      <div class="filtro-grupo">
+        <label for="cat-filtro-camada" class="filtro-rotulo">Camada</label>
+        <select id="cat-filtro-camada" class="filtro-campo">
+          <option value="">Todas as Camadas</option>
+          <option value="dim">Dimensão (dim)</option>
+          <option value="fato">Fato (fato)</option>
+        </select>
+      </div>
+      <div class="filtro-grupo">
+        <label for="cat-filtro-status" class="filtro-rotulo">Status / Integridade</label>
+        <select id="cat-filtro-status" class="filtro-campo">
+          <option value="">Todos os Status</option>
+          <option value="total">100% Total</option>
+          <option value="parcial">Parcial</option>
+          <option value="divergencia">Divergência</option>
+        </select>
+      </div>
+      <div class="filtro-grupo">
+        <label for="cat-filtro-orgao" class="filtro-rotulo">Órgão / Fonte</label>
+        <select id="cat-filtro-orgao" class="filtro-campo">
+          <option value="">Todas as Fontes</option>
+          <option value="camara">Câmara dos Deputados</option>
+          <option value="senado">Senado Federal</option>
+          <option value="tesouro">Tesouro Nacional / SICONFI</option>
+          <option value="tse">TSE</option>
+          <option value="ibge">IBGE</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Tabela do Catálogo -->
+    <div class="cartao" style="margin-bottom: var(--e4);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: var(--e2);">
+        <h2 style="margin:0">Inventário de Tabelas & Partições Parquet</h2>
+        <span id="cat-total-filtrado" style="font-size:0.85rem; color:var(--texto-suave); font-weight:600"></span>
+      </div>
+      <div class="rolagem">
+        <table class="tabela-trigo" id="tabela-catalogo">
+          <thead>
+            <tr>
+              <th>Tabela</th>
+              <th>Camada</th>
+              <th>Ano / Partição</th>
+              <th style="text-align:right">Linhas Acervo</th>
+              <th style="text-align:right">Linhas Origem</th>
+              <th>Status</th>
+              <th>Órgão</th>
+              <th>Descrição & Endpoint</th>
+              <th style="text-align:center">Ação</th>
+            </tr>
+          </thead>
+          <tbody id="tabela-catalogo-corpo"></tbody>
+          <tfoot id="tabela-catalogo-rodape"></tfoot>
+        </table>
+      </div>
+    </div>
+
+    <!-- Histórico de Auditoria Parquet -->
+    <div class="cartao">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: var(--e2);">
+        <h2 style="margin:0">Trilha de Auditoria e Validações Recentes (*Skip & Log*)</h2>
+        <span id="auditoria-total-eventos" style="font-size:0.85rem; color:var(--texto-suave); font-weight:600"></span>
+      </div>
+      <div class="rolagem">
+        <table class="tabela-trigo" id="tabela-auditoria">
+          <thead>
+            <tr>
+              <th>Data/Hora</th>
+              <th>Tabela</th>
+              <th>Partição</th>
+              <th>Status</th>
+              <th style="text-align:right">Acervo</th>
+              <th style="text-align:right">Origem</th>
+              <th>Duração</th>
+              <th>Detalhes da Validação</th>
+            </tr>
+          </thead>
+          <tbody id="tabela-auditoria-corpo"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
 </main>
+
+<dialog id="modal-detalhe-get" class="modal-trigo">
+  <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px">
+    <div style="font-size:0.8rem; font-weight:800; text-transform:uppercase; color:var(--realce-dourado); letter-spacing:0.05em">
+      Inspeção de Endpoint GET
+    </div>
+    <button onclick="document.getElementById('modal-detalhe-get').close()" style="background:transparent; border:none; color:var(--texto-fraco); font-size:1.2rem; cursor:pointer">✕</button>
+  </div>
+  <div id="modal-get-conteudo"></div>
+</dialog>
 
 <!-- Dica dos políticos. Fica no `body`, e não dentro do cartão, porque
      `position: fixed` dentro de um contêiner com `overflow` seria recortada

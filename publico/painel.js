@@ -49,7 +49,11 @@ import {
   carregarGlossario
 } from './secoes/glossario.js';
 
-// Registro dos ganchos de carregamento preguiçoso por aba (Produção)
+import {
+  carregarCatalogo
+} from './secoes/catalogo.js';
+
+// Registro dos ganchos de carregamento preguiçoso por aba
 registrarGanchoAba('inicio', carregarInicio);
 registrarGanchoAba('mapa', async () => {
   if (!estado.ano || !estado.anos?.length) {
@@ -65,6 +69,7 @@ registrarGanchoAba('mp', carregarMp);
 registrarGanchoAba('proposicoes', () => montarFiltrosDeProposicao().then(carregarProposicoes));
 registrarGanchoAba('custo', carregarCusto);
 registrarGanchoAba('glossario', carregarGlossario);
+registrarGanchoAba('catalogo', carregarCatalogo);
 
 
 async function iniciar() {
@@ -72,6 +77,22 @@ async function iniciar() {
   inicializarTema();
   inicializarAuth();
   inicializarDrawer();
+
+  // Controle dinâmico de visibilidade de ferramentas de engenharia por ambiente
+  try {
+    const resSaude = await fetch('/saude');
+    if (resSaude.ok) {
+      const dadosSaude = await resSaude.json();
+      const isDev = dadosSaude.ambiente === 'dev' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+      if (!isDev) {
+        $$('.apenas-dev').forEach((el) => {
+          el.style.display = 'none';
+        });
+      }
+    }
+  } catch (e) {
+    // Em caso de falha, mantém padrão seguro
+  }
 
   // Evento do botão de alternância de tema
   $$('.btn-toggle-tema').forEach((btn) => {
