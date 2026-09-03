@@ -1134,3 +1134,20 @@ def test_favicon_disponivel(cliente):
     assert res.status_code == 200
     assert "image/" in res.headers.get("content-type", "")
 
+
+def test_ficha_do_ente_por_ibge_e_por_sigla(cliente):
+    # Por código IBGE estadual
+    res_ibge = cliente.get("/api/ente/35")
+    assert res_ibge.status_code == 200
+    dados_ibge = res_ibge.json()
+    assert dados_ibge["ente"]["sigla_uf"] == "SP"
+    assert dados_ibge["ente"]["nome"] == "São Paulo"
+
+    # Por sigla da UF
+    res_sigla = cliente.get("/api/ente/SP")
+    assert res_sigla.status_code == 200
+    dados_sigla = res_sigla.json()
+    assert dados_sigla["ente"]["cod_ibge"] == "35"
+    assert dados_sigla["ente"]["sigla_uf"] == "SP"
+
+

@@ -197,12 +197,15 @@ def ficha_do_ente(cod_ibge: str, ano: int | None = None):
     painel sabia o gasto e sabia o prefeito, e não conseguia dizer que eram
     a mesma cidade.
     """
+    cod_ibge_limpo = cod_ibge.strip()
     ente = _consultar(
         "SELECT cod_ibge, nome, nivel, sigla_uf, cod_uf, regiao "
-        "FROM dim_ente WHERE cod_ibge = ?", [cod_ibge])
+        "FROM dim_ente WHERE cod_ibge = ? OR (sigla_uf = ? AND nivel = 'estado')",
+        [cod_ibge_limpo, cod_ibge_limpo.upper()])
     if not ente:
         raise HTTPException(404, "ente não encontrado")
     ente = ente[0]
+    cod_ibge = str(ente["cod_ibge"])
 
     if ano is None:
         anos_disponiveis = _consultar(

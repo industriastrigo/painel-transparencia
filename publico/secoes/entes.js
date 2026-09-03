@@ -7,7 +7,7 @@ import {
 } from '../nucleo/formatadores.js';
 import { buscar } from '../nucleo/api.js';
 import { abrirDialogo, esqueleto, falha, falhaEmLinha } from '../nucleo/ui.js';
-import { estado } from './mapa.js';
+import { estado, avisoLRF } from './mapa.js';
 
 /* ---------------------------------------------------------- ficha do ente */
 
