@@ -637,11 +637,11 @@ function abaDeEmendas(emendas, f) {
       <div class="rolagem" style="margin-top:16px">
         <h3>Destinação por Área / Função</h3>
         <table>
-          <thead><tr><th>Área / Função</th><th>Quantidade</th><th>Total Empenhado</th><th>Total Pago</th></tr></thead>
+          <thead><tr><th>Área / Função</th><th class="centrado">Quantidade</th><th class="valor">Total Empenhado</th><th class="valor">Total Pago</th></tr></thead>
           <tbody>
             ${f.emendas_por_funcao.map((ef) => `<tr>
               <td><strong>${txt(ef.funcao)}</strong></td>
-              <td>${ef.quantidade}</td>
+              <td class="centrado">${ef.quantidade}</td>
               <td class="valor"><strong>${dinheiro.format(ef.empenhado)}</strong></td>
               <td class="valor">${dinheiro.format(ef.pago)}</td>
             </tr>`).join('')}
@@ -653,11 +653,11 @@ function abaDeEmendas(emendas, f) {
     <div class="rolagem" style="margin-top:16px">
       <h3>Detalhamento das Emendas</h3>
       <table>
-        <thead><tr><th>Código</th><th>Tipo</th><th>Área</th><th>Localidade</th><th>Valor Empenhado</th><th>Valor Pago</th></tr></thead>
+        <thead><tr><th class="centrado">Código</th><th class="centrado">Tipo</th><th>Área</th><th>Localidade / Objeto</th><th class="valor">Valor Empenhado</th><th class="valor">Valor Pago</th></tr></thead>
         <tbody>
           ${emendas.map((e) => `<tr>
-            <td><code>${escapar(e.codigo_emenda || '—')}</code></td>
-            <td>${txt(e.tipo_emenda)}</td>
+            <td class="centrado"><code>${escapar(e.codigo_emenda || '—')}</code></td>
+            <td class="centrado">${txt(e.tipo_emenda)}</td>
             <td>${txt(e.funcao || 'Geral')}</td>
             <td>${txt(e.localidade || 'Nacional')}</td>
             <td class="valor"><strong>${dinheiro.format(e.valor_empenhado)}</strong></td>

@@ -104,11 +104,36 @@ def carregar_dados_politicos_detalhe() -> tuple[list[dict], list[dict], list[dic
         ]),
     ]
 
-    funcoes_emendas = [
-        ("Saúde", "Fundo Municipal de Saúde - Custeio da Atenção Primária e Especializada (SUS)", 2_500_000.00, 2_450_000.00),
-        ("Educação", "Infraestrutura de Escolas e Aquisição de Ônibus Escolares (FNDE)", 1_800_000.00, 1_650_000.00),
-        ("Urbanismo", "Pavimentação Asfáltica e Drenagem Urbana de Municípios", 1_200_000.00, 1_100_000.00),
-        ("Assistência Social", "Estruturação de CRAS e Apoio Comunitário Local", 650_000.00, 600_000.00),
+    catalogo_emendas = [
+        ("Saúde", [
+            ("Fundo Municipal de Saúde - Custeio da Atenção Primária e Especializada (SUS)", 1_500_000.00, 1_450_000.00),
+            ("Aquisição de Equipamentos Hospitalares e Ambulatoriais para Santa Casa", 1_200_000.00, 1_180_000.00),
+            ("Reforma e Modernização de Unidades Básicas de Saúde (UBS)", 850_000.00, 820_000.00),
+            ("Suporte a Tratamentos de Alta Complexidade e Oncologia", 950_000.00, 920_000.00),
+        ]),
+        ("Educação", [
+            ("Infraestrutura de Escolas Municipais e Aquisição de Ônibus Escolares (FNDE)", 1_400_000.00, 1_320_000.00),
+            ("Apoio e Modernização de Laboratórios em Universidades e Institutos Federais", 1_100_000.00, 1_050_000.00),
+            ("Construção e Ampliação de Creches e Educação Infantil", 900_000.00, 850_000.00),
+        ]),
+        ("Urbanismo", [
+            ("Pavimentação Asfáltica, Recapeamento e Drenagem Urbana de Municípios", 1_200_000.00, 1_100_000.00),
+            ("Revitalização de Praças Públicas e Espaços de Convivência Urbana", 600_000.00, 560_000.00),
+        ]),
+        ("Assistência Social", [
+            ("Estruturação de CRAS, CREAS e Apoio a Famílias em Vulnerabilidade", 650_000.00, 600_000.00),
+            ("Equipamentos para Casas de Acolhimento e Centros Comunitários", 450_000.00, 420_000.00),
+        ]),
+        ("Segurança Pública", [
+            ("Aquisição de Viaturas e Equipamentos de Proteção para Guarda Municipal", 750_000.00, 710_000.00),
+            ("Implantação de Sistema de Monitoramento e Câmeras de Vigilância", 550_000.00, 520_000.00),
+        ]),
+        ("Agricultura", [
+            ("Aquisição de Tratores e Patrulha Mecanizada para Agricultura Familiar", 680_000.00, 650_000.00),
+        ]),
+        ("Esporte e Lazer", [
+            ("Construção de Complexo Esportivo Comunitário e Arenas Multiuso", 500_000.00, 480_000.00),
+        ]),
     ]
 
     anos_mandato = [2023, 2024, 2025, 2026]
@@ -152,18 +177,34 @@ def carregar_dados_politicos_detalhe() -> tuple[list[dict], list[dict], list[dic
                         })
 
             # B. Emendas Parlamentares
-            for idx_e, (func, local, val_emp, val_pag) in enumerate(funcoes_emendas):
-                cod_emenda = f"{ano}{sk[-4:]}{idx_e+1:02d}"
-                emendas.append({
-                    "ano": ano,
-                    "codigo_emenda": cod_emenda,
-                    "tipo_emenda": "Individual (RP6)",
-                    "autor": nome,
-                    "funcao": func,
-                    "valor_empenhado": val_emp * (1.0 + (ano - 2023) * 0.08),
-                    "valor_pago": val_pag * (1.0 + (ano - 2023) * 0.08),
-                    "localidade": f"{uf} - {local}"
-                })
+            seq_emenda = 0
+            for func_nome, itens in catalogo_emendas:
+                hash_f = int(hashlib.md5(f"{sk}_{ano}_{func_nome}".encode()).hexdigest(), 16)
+                if func_nome == "Saúde":
+                    qtd_func = 3 + (hash_f % 2)  # 3 a 4
+                elif func_nome == "Educação":
+                    qtd_func = 2 + (hash_f % 2)  # 2 a 3
+                elif func_nome == "Urbanismo":
+                    qtd_func = 1 + (hash_f % 2)  # 1 a 2
+                elif func_nome == "Assistência Social":
+                    qtd_func = 1
+                else:
+                    qtd_func = hash_f % 2        # 0 ou 1
+
+                for i in range(min(qtd_func, len(itens))):
+                    seq_emenda += 1
+                    local, val_emp, val_pag = itens[i]
+                    cod_emenda = f"{ano}{sk[-4:]}{seq_emenda:02d}"
+                    emendas.append({
+                        "ano": ano,
+                        "codigo_emenda": cod_emenda,
+                        "tipo_emenda": "Individual (RP6)",
+                        "autor": nome,
+                        "funcao": func_nome,
+                        "valor_empenhado": val_emp * (1.0 + (ano - 2023) * 0.08),
+                        "valor_pago": val_pag * (1.0 + (ano - 2023) * 0.08),
+                        "localidade": f"{uf} - {local}"
+                    })
 
             # C. Eventos e Presença em Plenário
             id_ev = f"EV-{ano}-{sk[-6:]}"
