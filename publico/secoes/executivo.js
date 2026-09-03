@@ -70,11 +70,22 @@ export async function carregarExecutivo() {
     const pres = d.presidente_exercicio;
     const nomeEnte = d.ente?.nome || (esfera === 'federal' ? 'Brasil' : 'Estado de ' + uf);
 
-    // 1. Renderizar Topo / Dashboard do Governante ou Presidente
+    // 1. Renderizar Topo / Dashboard do Governante ou Presidente com o Acumulado do Mandato
     if (alvoGov) {
+      const mand = d.consolidado_mandato || pres?.consolidado_mandato;
+      const rotuloAnosMandato = mand?.anos_mandato?.length > 1
+        ? `acumulado de ${mand.qtd_anos} anos (${mand.anos_mandato[0]} a ${mand.anos_mandato[mand.anos_mandato.length - 1]})`
+        : `exercício de ${d.ano_selecionado}`;
+
       if (esfera === 'geral' || esfera === 'federal') {
         const presGov = pres?.governante || gov;
         const salarioPres = presGov?.salario ? aNumero(presGov.salario) : 46366.19;
+        const recMandato = mand?.receita_acumulada ?? pres?.receita_uniao ?? 0;
+        const despMandato = mand?.despesa_acumulada ?? pres?.despesa_uniao ?? 0;
+        const primMandato = mand?.resultado_primario_acumulado ?? pres?.resultado_primario ?? 0;
+        const gastoPerCapitaMedio = mand?.gasto_per_capita_medio ?? pres?.despesa_per_capita ?? 0;
+        const pctPrimario = mand?.pct_primario_pib ?? (pres?.pib_brasil ? ((primMandato / pres.pib_brasil) * 100) : 0);
+
         alvoGov.innerHTML = `
           <div class="cartao" style="border-left: 4px solid var(--realce, #38bdf8); background: var(--superficie-2, #202028); padding: 20px 24px;">
             <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px">
@@ -88,6 +99,7 @@ export async function carregarExecutivo() {
                   ${presGov?.sigla_partido ? `<strong>${escapar(presGov.sigla_partido)}</strong> · ` : ''}
                   Chefe de Estado e do Governo Federal · 
                   Mandato: <strong>${escapar(presGov?.ano_inicio || 2023)} a ${escapar(presGov?.ano_fim || 2027)}</strong>
+                  <span class="badge-uf" style="margin-left:8px; font-size:11px; vertical-align:middle">Consolidado do Mandato (${mand?.qtd_anos || 4} anos)</span>
                 </p>
               </div>
               <div style="text-align:right">
@@ -101,33 +113,33 @@ export async function carregarExecutivo() {
               <div class="tira">
                 <span>Arrecadação Federal (União)</span>
                 <div style="display:flex; flex-direction:column; align-items:flex-end">
-                  <strong style="font-size:1.15rem">${dinheiro.format(pres?.receita_uniao || 0)}</strong>
-                  <span style="font-size:0.82rem; color:var(--texto-fraco); margin-top:2px">receitas totais do ano</span>
+                  <strong style="font-size:1.15rem">${dinheiro.format(recMandato)}</strong>
+                  <span style="font-size:0.82rem; color:var(--texto-fraco); margin-top:2px">${rotuloAnosMandato}</span>
                 </div>
               </div>
               <div class="tira">
                 <span>Despesa Federal Executada</span>
                 <div style="display:flex; flex-direction:column; align-items:flex-end">
-                  <strong style="font-size:1.15rem">${dinheiro.format(pres?.despesa_uniao || 0)}</strong>
-                  <span style="font-size:0.82rem; color:var(--texto-fraco); margin-top:2px">orçamento executado</span>
+                  <strong style="font-size:1.15rem">${dinheiro.format(despMandato)}</strong>
+                  <span style="font-size:0.82rem; color:var(--texto-fraco); margin-top:2px">orçamento executado no mandato</span>
                 </div>
               </div>
               <div class="tira">
                 <span>Resultado Primário da União</span>
                 <div style="display:flex; flex-direction:column; align-items:flex-end">
-                  <strong style="color:${(pres?.resultado_primario || 0) >= 0 ? 'var(--calmo, #10b981)' : 'var(--risco, #ef4444)'}; font-size:1.15rem">
-                    ${(pres?.resultado_primario || 0) >= 0 ? '✅ +' : '⚠️ '}${porcentoExato.format((pres?.receita_uniao ? ((pres?.resultado_primario || 0) / pres.receita_uniao * 100) : 0))}% (${(pres?.resultado_primario || 0) >= 0 ? 'SUPERÁVIT' : 'DÉFICIT'})
+                  <strong style="color:${primMandato >= 0 ? 'var(--calmo, #10b981)' : 'var(--risco, #ef4444)'}; font-size:1.15rem">
+                    ${primMandato >= 0 ? '✅ +' : '⚠️ '}${dinheiro.format(primMandato)}
                   </strong>
                   <span style="font-size:0.82rem; color:var(--texto-fraco); margin-top:2px">
-                    ${dinheiro.format(pres?.resultado_primario || 0)} (${porcentoExato.format(pres?.pib_brasil ? ((pres?.resultado_primario || 0) / pres.pib_brasil * 100) : 0)}% do PIB)
+                    ${primMandato >= 0 ? 'SUPERÁVIT' : 'DÉFICIT'} (${porcentoExato.format(pctPrimario)}% do PIB médio)
                   </span>
                 </div>
               </div>
               <div class="tira">
                 <span>Gasto Federal per capita</span>
                 <div style="display:flex; flex-direction:column; align-items:flex-end">
-                  <strong style="font-size:1.15rem">${dinheiro.format(pres?.despesa_per_capita || 0)} / hab.</strong>
-                  <span style="font-size:0.82rem; color:var(--texto-fraco); margin-top:2px">média por habitante</span>
+                  <strong style="font-size:1.15rem">${dinheiro.format(gastoPerCapitaMedio)} / hab.</strong>
+                  <span style="font-size:0.82rem; color:var(--texto-fraco); margin-top:2px">média anual por habitante</span>
                 </div>
               </div>
             </div>
@@ -136,6 +148,11 @@ export async function carregarExecutivo() {
         alvoGov.innerHTML = `<p class="vazio">Sem dados de governante cadastrado no período para ${escapar(nomeEnte)}.</p>`;
       } else {
         const salario = aNumero(gov.salario);
+        const recMandato = mand?.receita_acumulada ?? d.ano_atual?.receita ?? 0;
+        const despMandato = mand?.despesa_acumulada ?? d.ano_atual?.despesa ?? 0;
+        const saldoMandato = mand?.resultado_primario_acumulado ?? ((recMandato - despMandato) || 0);
+        const gastoPerCapitaMedio = mand?.gasto_per_capita_medio ?? d.ano_atual?.despesa_per_capita ?? 0;
+
         alvoGov.innerHTML = `
           <div class="cartao" style="border-left: 4px solid var(--realce, #38bdf8); background: var(--superficie); padding: 18px 22px;">
             <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px">
@@ -146,12 +163,48 @@ export async function carregarExecutivo() {
                   ${gov.sigla_partido ? `<strong>${escapar(gov.sigla_partido)}</strong> · ` : ''}
                   ${escapar(nomeEnte)} (${escapar(d.ente?.sigla_uf || '')}) · 
                   Mandato: <strong>${escapar(gov.ano_inicio || '')} a ${escapar(gov.ano_fim || 'Atual')}</strong>
+                  <span class="badge-uf" style="margin-left:8px; font-size:11px; vertical-align:middle">Consolidado do Mandato (${mand?.qtd_anos || 4} anos)</span>
                 </p>
               </div>
               <div style="text-align:right">
                 <span class="pe" style="display:block; color:var(--texto-fraco)">Subsídio mensal do cargo</span>
                 <strong style="font-size:1.35rem; color:var(--texto)">${Number.isFinite(salario) ? dinheiroExato.format(salario) : '—'}</strong>
                 ${gov.norma_salario ? `<p class="pe" style="margin:2px 0 0 0">${escapar(gov.norma_salario)}</p>` : ''}
+              </div>
+            </div>
+
+            <div class="tiras" style="margin-top:16px">
+              <div class="tira">
+                <span>Receita Total do Ente</span>
+                <div style="display:flex; flex-direction:column; align-items:flex-end">
+                  <strong style="font-size:1.15rem">${dinheiro.format(recMandato)}</strong>
+                  <span style="font-size:0.82rem; color:var(--texto-fraco); margin-top:2px">${rotuloAnosMandato}</span>
+                </div>
+              </div>
+              <div class="tira">
+                <span>Despesa Total Executada</span>
+                <div style="display:flex; flex-direction:column; align-items:flex-end">
+                  <strong style="font-size:1.15rem">${dinheiro.format(despMandato)}</strong>
+                  <span style="font-size:0.82rem; color:var(--texto-fraco); margin-top:2px">orçamento executado no mandato</span>
+                </div>
+              </div>
+              <div class="tira">
+                <span>Saldo Orçamentário</span>
+                <div style="display:flex; flex-direction:column; align-items:flex-end">
+                  <strong style="color:${saldoMandato >= 0 ? 'var(--calmo, #10b981)' : 'var(--risco, #ef4444)'}; font-size:1.15rem">
+                    ${saldoMandato >= 0 ? '✅ +' : '⚠️ '}${dinheiro.format(saldoMandato)}
+                  </strong>
+                  <span style="font-size:0.82rem; color:var(--texto-fraco); margin-top:2px">
+                    ${saldoMandato >= 0 ? 'SUPERÁVIT NO MANDATO' : 'DÉFICIT NO MANDATO'}
+                  </span>
+                </div>
+              </div>
+              <div class="tira">
+                <span>Gasto Médio por Habitante</span>
+                <div style="display:flex; flex-direction:column; align-items:flex-end">
+                  <strong style="font-size:1.15rem">${dinheiro.format(gastoPerCapitaMedio)} / hab.</strong>
+                  <span style="font-size:0.82rem; color:var(--texto-fraco); margin-top:2px">média anual por habitante</span>
+                </div>
               </div>
             </div>
           </div>`;

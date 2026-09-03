@@ -695,6 +695,62 @@ def executivo_mandato(esfera: str = "geral", sigla_uf: str = "SP",
             "salario": 46366.19,
             "norma_salario": "Decreto Legislativo nº 172/2022"
         }
+    # Determinar os anos do mandato ativo do governante/presidente para consolidar o ciclo de governo
+    gov_ativo = pres_dados if esfera in ("geral", "federal") else (governante or pres_dados)
+    mandato_ini = int(gov_ativo.get("ano_inicio") or (2023 if ano_alvo >= 2023 else 2019))
+    mandato_fim = int(gov_ativo.get("ano_fim") or (mandato_ini + 3))
+
+    anos_mandato = [a for a in range(mandato_ini, min(mandato_fim, 2026) + 1)]
+    if not anos_mandato:
+        anos_mandato = [ano_alvo]
+
+    tot_rec_mandato = 0.0
+    tot_desp_mandato = 0.0
+    tot_prim_mandato = 0.0
+    tot_pib_mandato = 0.0
+
+    for a in anos_mandato:
+        m_a = macro_map.get(a, macro_map[2025])
+        if esfera in ("geral", "federal"):
+            r_a = m_a["pib"] * (m_a["carga_trib"] / 100.0) * 0.68
+            p_a = (float(m_a.get("primario_pib", -0.5)) / 100.0) * m_a["pib"]
+            j_a = (float(m_a.get("juros_pib", 5.5)) / 100.0) * m_a["pib"]
+            d_a = (r_a * 0.95) - p_a + j_a
+            tot_rec_mandato += r_a
+            tot_desp_mandato += d_a
+            tot_prim_mandato += p_a
+            tot_pib_mandato += m_a["pib"]
+        else:
+            s_a = next((x for x in serie_anual if x["ano"] == a), None)
+            if s_a:
+                r_a = float(s_a.get("receita") or 0.0)
+                d_a = float(s_a.get("despesa") or 0.0)
+                tot_rec_mandato += r_a
+                tot_desp_mandato += d_a
+                tot_prim_mandato += (r_a - d_a)
+                tot_pib_mandato += (m_a["pib"] * fator_pib)
+            else:
+                tot_pib_mandato += (m_a["pib"] * fator_pib)
+
+    qtd_anos_mandato = len(anos_mandato)
+    pib_medio_mandato = (tot_pib_mandato / qtd_anos_mandato) if qtd_anos_mandato else pib_ente
+    gasto_per_capita_medio = (tot_desp_mandato / (populacao_ente * qtd_anos_mandato)) if (populacao_ente and qtd_anos_mandato) else 0.0
+
+    consolidado_mandato = {
+        "ano_inicio": mandato_ini,
+        "ano_fim": mandato_fim,
+        "anos_mandato": anos_mandato,
+        "qtd_anos": qtd_anos_mandato,
+        "rotulo_periodo": f"Mandato {mandato_ini}–{mandato_fim} ({qtd_anos_mandato} anos: {anos_mandato[0]} a {anos_mandato[-1]})",
+        "receita_acumulada": tot_rec_mandato,
+        "despesa_acumulada": tot_desp_mandato,
+        "resultado_primario_acumulado": tot_prim_mandato,
+        "status_primario": "SUPERÁVIT" if tot_prim_mandato >= 0 else "DÉFICIT",
+        "superavit_primario": tot_prim_mandato >= 0,
+        "pct_primario_pib": round((tot_prim_mandato / tot_pib_mandato * 100), 2) if tot_pib_mandato else 0.0,
+        "gasto_per_capita_medio": gasto_per_capita_medio,
+        "pib_medio": pib_medio_mandato,
+    }
 
     presidente_exercicio = {
         "governante": pres_dados,
@@ -714,6 +770,7 @@ def executivo_mandato(esfera: str = "geral", sigla_uf: str = "SP",
         "selic": macro_br["selic"],
         "desemprego": macro_br["desemprego"],
         "cambio_dolar": macro_br["cambio"],
+        "consolidado_mandato": consolidado_mandato,
     }
 
     # Comparativo Interfederativo
@@ -802,6 +859,7 @@ def executivo_mandato(esfera: str = "geral", sigla_uf: str = "SP",
         "mandatos_disponiveis": mandatos_disponiveis,
         "governante": governante,
         "presidente_exercicio": presidente_exercicio,
+        "consolidado_mandato": consolidado_mandato,
         "comparativo_federativo": comparativo_federativo,
         "gastos_por_funcao": funcoes,
         "despesas_funcao": funcoes,
