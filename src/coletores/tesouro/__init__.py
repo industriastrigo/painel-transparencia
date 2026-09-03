@@ -93,7 +93,7 @@ def coletar(conjunto: str, ano: int, mes: int | None = None, offset: int = 0, re
             chave = (
                 int(ano),
                 m,
-                CONJUNTOS.get(conjunto, conjunto),
+                conjunto,
                 texto(_campo(item, "orgao_codigo")),
                 opcional(_campo(item, "orgao_nome")),
                 opcional(_campo(item, "orgao_n2")),
@@ -129,7 +129,8 @@ def coletar(conjunto: str, ano: int, mes: int | None = None, offset: int = 0, re
 
     if retomar and linhas:
         try:
-            df_existente = armazem.ler("custo_orgao", filtro=f"conjunto = '{recurso}' AND ano = {ano}")
+            filtro_conj = f"(conjunto = '{conjunto}' OR conjunto = '{recurso}') AND ano = {ano}"
+            df_existente = armazem.ler("custo_orgao", filtro=filtro_conj)
             if not df_existente.empty:
                 for row in linhas:
                     filtro_antigo = df_existente[

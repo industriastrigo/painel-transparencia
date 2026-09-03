@@ -26,4 +26,4 @@ def primeiro(linha: dict, *nomes: str):
     return None
 
 def campo(linha: dict, chave: str):
-    return primeiro(linha, *CAMPOS[chave])
+    return primeiro(linha, *CAMPOS.get(chave, (chave,)))

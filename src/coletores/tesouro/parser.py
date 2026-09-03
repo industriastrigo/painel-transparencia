@@ -5,7 +5,7 @@ CONJUNTOS = {
     "pessoal_ativo": "pessoal_ativo",
     "pessoal_inativo": "pessoal_inativo",
     "pensionista": "pensionistas",
-    "demais_custos": "demais_custos",
+    "demais_custos": "demais",
     "depreciacao": "depreciacao",
     "transferencias": "transferencias",
 }

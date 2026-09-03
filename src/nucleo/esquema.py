@@ -277,11 +277,9 @@ financas_ente = _registrar(Tabela(
 transferencia_uniao = _registrar(Tabela(
     nome="transferencia_uniao",
     camada="fato",
-    # `nivel` e `uf` ENTRAM na chave. Sem eles, um `cod_ibge` nulo faz as 27
-    # UFs colapsarem numa linha só por modalidade e mês — foi assim que 840
-    # linhas de 1997 viraram 53 no acervo, com aviso no log e ninguém vendo.
-    # Chave que não distingue o que a fonte distingue apaga dado no merge.
-    campos_pk=("cod_ibge", "nivel", "uf", "cod_transferencia", "ano", "mes"),
+    # `nivel`, `uf`, `nome_ente` e `transferencia` ENTRAM na chave para que as
+    # diferentes modalidades e entes federativos não colidam no merge mensal.
+    campos_pk=("cod_ibge", "nivel", "uf", "nome_ente", "cod_transferencia", "transferencia", "ano", "mes"),
     particoes=("ano",),
     data_referencia="data_referencia",
     descricao="FPM, FPE, FUNDEB, Lei Kandir, ITR, CIDE e royalties repassados "
