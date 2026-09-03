@@ -1,4 +1,4 @@
-﻿"""Módulo Transferências Constitucionais da União."""
+"""Módulo Transferências Constitucionais da União."""
 from __future__ import annotations
 
 import os
@@ -134,14 +134,19 @@ def coletar_ano(ano: int, catalogo: list[dict] | None = None, municipios: bool =
     controle.gravar_marca(FONTE, f"ano_{ano}", ano, len(linhas))
     return len(linhas)
 
-def executar(anos: list[int] | None = None, refazer: bool = False) -> None:
+def anos_disponiveis() -> list[int]:
+    return list(range(2015, date.today().year + 1))
+
+def executar(anos: list[int] | None = None, refazer: bool = False) -> int:
     corrente = date.today().year
     anos = anos or [corrente - 1, corrente]
     cat = catalogar()
+    total = 0
     for ano in anos:
         if not refazer and ano < corrente - 1 and controle.concluido(FONTE, f"ano_{ano}"):
             continue
         try:
-            coletar_ano(ano, cat)
+            total += coletar_ano(ano, cat)
         except Exception as erro:  # noqa: BLE001
             log.warning("Transferências %d falhou: %s", ano, erro)
+    return total

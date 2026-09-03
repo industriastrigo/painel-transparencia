@@ -68,6 +68,11 @@ def _medir(tabela: str, chave: str, quantas: int = 1) -> None:
 def conectar(somente_leitura: bool = False) -> duckdb.DuckDBPyConnection:
     con = duckdb.connect(":memory:", read_only=False)
     con.execute("SET TimeZone='UTC'")
+    con.execute("SET preserve_insertion_order=false")
+    try:
+        con.execute("SET max_memory='4GB'")
+    except Exception:
+        pass
     if somente_leitura:
         con.execute("SET threads TO 4")
     return con

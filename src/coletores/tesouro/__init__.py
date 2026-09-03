@@ -144,6 +144,9 @@ def coletar(conjunto: str, ano: int, mes: int | None = None, offset: int = 0, re
 
     return linhas, completo, alcancado
 
+def anos_disponiveis() -> list[int]:
+    return list(range(2015, date.today().year + 1))
+
 def executar(anos: list[int] | None = None, conjuntos: list[str] | None = None, refazer: bool = False) -> int:
     anos = anos or [date.today().year]
     conjuntos = conjuntos or list(CONJUNTOS.keys())

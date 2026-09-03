@@ -57,15 +57,34 @@ def coletar_rgf(ano: int, arg2: any = 3, arg3: any = None, anexo: str | None = N
         linhas.extend(interpretar_rgf(res.get("items", []), ano, quadrimestre, cod_ibge, "E", a))
     return linhas
 
-def executar(anos: list[int] | None = None, trabalhadores: int = 6, intervalo: float = 0.15,
-             refazer_vazios: bool = False, refazer_tudo: bool = False, ufs: list[str] | None = None) -> None:
+def executar(
+    anos: list[int] | None = None,
+    ano: int | None = None,
+    recursos: tuple[str, ...] | list[str] | None = None,
+    nivel: str = "estado",
+    trabalhadores: int = 6,
+    intervalo: float = 0.15,
+    refazer_vazios: bool = False,
+    refazer_tudo: bool = False,
+    refazer: bool = False,
+    ufs: list[str] | None = None,
+) -> None:
+    if ano is not None and anos is None:
+        anos = [ano]
     anos = anos or [2023, 2024]
-    df_entes = armazem.ler("dim_ente", filtro="nivel IN ('estado', 'municipio')", colunas=["cod_ibge", "sigla_uf"])
+    refazer_final = refazer_tudo or refazer
+
+    filtro_nivel = f"nivel = '{nivel}'" if nivel else "nivel IN ('estado', 'municipio')"
+    df_entes = armazem.ler("dim_ente", filtro=filtro_nivel, colunas=["cod_ibge", "sigla_uf"])
     if ufs:
         df_entes = df_entes[df_entes["sigla_uf"].isin([u.upper() for u in ufs])]
     codigos = list(df_entes["cod_ibge"].astype(str))
 
-    for ano in anos:
-        varrer(ano, codigos, trabalhadores=trabalhadores, intervalo=intervalo, refazer_vazios=refazer_vazios, refazer_tudo=refazer_tudo)
-        varrer_funcao(ano, codigos, trabalhadores=trabalhadores, intervalo=intervalo, refazer_vazios=refazer_vazios, refazer_tudo=refazer_tudo)
-        varrer_rgf(ano, codigos, trabalhadores=trabalhadores, intervalo=intervalo, refazer_vazios=refazer_vazios, refazer_tudo=refazer_tudo)
+    rec_lista = list(recursos) if recursos else ["dca", "funcao", "rgf"]
+    for a in anos:
+        if "dca" in rec_lista or "receita" in rec_lista:
+            varrer(a, codigos, trabalhadores=trabalhadores, intervalo=intervalo, refazer_vazios=refazer_vazios, refazer_tudo=refazer_final)
+        if "funcao" in rec_lista or "despesa" in rec_lista:
+            varrer_funcao(a, codigos, trabalhadores=trabalhadores, intervalo=intervalo, refazer_vazios=refazer_vazios, refazer_tudo=refazer_final)
+        if "rgf" in rec_lista or "fiscal" in rec_lista:
+            varrer_rgf(a, codigos, trabalhadores=trabalhadores, intervalo=intervalo, refazer_vazios=refazer_vazios, refazer_tudo=refazer_final)

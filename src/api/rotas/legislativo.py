@@ -311,8 +311,8 @@ def obter_cotas_parlamentares(
         ]
 
     sql_fornecedores = """
-        SELECT COALESCE(nome_fornecedor, 'NÃO INFORMADO') AS fornecedor,
-               COALESCE(cnpj_cpf, '—') AS cnpj_cpf,
+        SELECT COALESCE(fornecedor, 'NÃO INFORMADO') AS fornecedor,
+               COALESCE(cnpj_cpf_fornecedor, '—') AS cnpj_cpf,
                COUNT(*) AS transacoes,
                SUM(COALESCE(TRY_CAST(valor_liquido AS DOUBLE), 0.0)) AS total_recebido
           FROM despesa_parlamentar
