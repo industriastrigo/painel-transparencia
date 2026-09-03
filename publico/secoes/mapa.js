@@ -132,9 +132,12 @@ async function carregarMapa() {
   try {
     const [resposta, malha] = await Promise.all([
       buscar('/api/mapa', { ano: estado.ano, uf: estado.uf, metrica: estado.metrica }),
-      malhasEmCache.get(escopo)
-        ?? buscar(`/api/malha/${escopo}`).then((m) => {
-          malhasEmCache.set(escopo, m);
+      (malhasEmCache.get(escopo)?.features?.length > 1 || (escopo === 'brasil' && malhasEmCache.get(escopo)?.features?.length >= 27))
+        ? malhasEmCache.get(escopo)
+        : buscar(`/api/malha/${escopo}`, { t: Date.now() }).then((m) => {
+          if (m?.features?.length > 1 || (escopo === 'brasil' && m?.features?.length >= 27)) {
+            malhasEmCache.set(escopo, m);
+          }
           return m;
         }),
     ]);

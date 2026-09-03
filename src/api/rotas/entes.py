@@ -122,6 +122,11 @@ def malha(escopo: str):
     resolvida instantaneamente a partir das geometrias oficiais empacotadas.
     """
     escopo_limpo = escopo.strip().upper()
+    HEADERS_CACHE = {
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        "Pragma": "no-cache",
+        "Expires": "0"
+    }
     if escopo_limpo in ("BRASIL", "BR"):
         arquivo = config.MALHAS / "brasil-uf.json"
         if not arquivo.exists():
@@ -130,16 +135,16 @@ def malha(escopo: str):
                 import shutil
                 shutil.copy(ref, arquivo)
         if arquivo.exists():
-            return FileResponse(arquivo, media_type="application/geo+json")
+            return FileResponse(arquivo, media_type="application/geo+json", headers=HEADERS_CACHE)
         ref = config.RAIZ / "referencias" / "malhas" / "brasil-uf.json"
         if ref.exists():
-            return FileResponse(ref, media_type="application/geo+json")
+            return FileResponse(ref, media_type="application/geo+json", headers=HEADERS_CACHE)
         raise HTTPException(404, "malha do Brasil indisponível")
 
     # Escopo é uma UF específica (ex: 'SP', 'RJ', 'MG', 'BA')
     arquivo_uf = config.MALHAS / f"uf-{escopo_limpo}.json"
     if arquivo_uf.exists():
-        return FileResponse(arquivo_uf, media_type="application/geo+json")
+        return FileResponse(arquivo_uf, media_type="application/geo+json", headers=HEADERS_CACHE)
 
     # Busca no diretório de referências embutidas
     ref = config.RAIZ / "referencias" / "malhas" / f"uf-{escopo_limpo}.json"
@@ -147,7 +152,7 @@ def malha(escopo: str):
         import shutil
         config.MALHAS.mkdir(parents=True, exist_ok=True)
         shutil.copy(ref, arquivo_uf)
-        return FileResponse(arquivo_uf, media_type="application/geo+json")
+        return FileResponse(arquivo_uf, media_type="application/geo+json", headers=HEADERS_CACHE)
 
     raise HTTPException(404, f"malha municipal indisponível: {escopo_limpo}")
 
