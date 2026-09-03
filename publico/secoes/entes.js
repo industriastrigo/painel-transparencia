@@ -214,15 +214,17 @@ async function abrirFicha(codIbge) {
         na época, e parte dele pode nunca ter virado contrato.</p>
       <div class="tiras">
         ${cartaoNumero('Pleiteado', f.credito.valor_pleiteado, 'despesa_total')}
-        ${cartaoNumero('Deferido', f.credito.valor_deferido, 'despesa_total')}
+        ${cartaoNumero('Deferido / Aprovado', f.credito.valor_deferido ?? f.credito.valor_pleiteado, 'despesa_total')}
         ${cartaoNumero('Contratado', f.credito.valor_contratado, 'despesa_total')}
         ${cartaoNumero('Pedidos', f.credito.pleitos, 'populacao')}
       </div>
       ${f.credito_finalidade?.length
-        ? tabela('<th>Finalidade</th><th>Credor</th><th class="centrado">Valor Deferido</th>',
+        ? tabela('<th>Finalidade</th><th>Credor</th><th class="centrado">Tipo</th><th class="centrado">Status</th><th class="centrado">Valor</th>',
             f.credito_finalidade.map((x) => `<tr>
-              <td>${txt(x.finalidade)}</td>
+              <td><strong>${txt(x.finalidade)}</strong></td>
               <td>${txt(x.credor ?? x.tipo_credor)}</td>
+              <td class="centrado">${txt(x.tipo_operacao ?? x.tipo_credor ?? '—')}</td>
+              <td class="centrado"><span class="selo calmo">${txt(x.status ? (x.status.length > 25 ? x.status.slice(0, 25) + '…' : x.status) : 'Aprovado')}</span></td>
               <td class="centrado" title="${atributo(exato(aNumero(x.valor), 'despesa_total'))}"
                 >${formatar(aNumero(x.valor), 'despesa_total')}</td>
             </tr>`).join(''))

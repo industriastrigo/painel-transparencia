@@ -231,15 +231,20 @@ def ficha_do_ente(cod_ibge: str, ano: int | None = None):
     credito_historico = _consultar("""
         SELECT ano, COUNT(*) AS pleitos,
                SUM(valor) AS valor_pleiteado,
-               SUM(valor) FILTER (WHERE status ILIKE 'Deferido%') AS valor_deferido,
-               SUM(valor) FILTER (WHERE contratado = 1) AS valor_contratado
+               SUM(valor) FILTER (WHERE status ILIKE 'Deferido%'
+                                     OR status ILIKE '%favorável%'
+                                     OR status ILIKE '%favoravel%'
+                                     OR status ILIKE '%aprovad%'
+                                     OR status ILIKE '%regularizad%') AS valor_deferido,
+               SUM(valor) FILTER (WHERE contratado = 1
+                                     OR status ILIKE '%contratad%') AS valor_contratado
           FROM operacao_credito
          WHERE cod_ibge = ?
          GROUP BY ano ORDER BY ano DESC
     """, [cod_ibge])
 
     credito_finalidade = _consultar("""
-        SELECT finalidade, credor, tipo_credor, valor
+        SELECT finalidade, credor, tipo_credor, tipo_operacao, status, valor
           FROM vw_credito_finalidade
          WHERE cod_ibge = ? AND ano = ?
          ORDER BY valor DESC LIMIT 15

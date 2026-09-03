@@ -738,18 +738,24 @@ DERIVADAS = {
         SELECT cod_ibge, uf, ano,
                COUNT(*)                                   AS pleitos,
                SUM(valor)                                 AS valor_pleiteado,
-               SUM(valor) FILTER (WHERE status ILIKE 'Deferido%')
+               SUM(valor) FILTER (WHERE status ILIKE 'Deferido%'
+                                     OR status ILIKE '%favorável%'
+                                     OR status ILIKE '%favoravel%'
+                                     OR status ILIKE '%aprovad%'
+                                     OR status ILIKE '%regularizad%')
                                                           AS valor_deferido,
-               SUM(valor) FILTER (WHERE contratado = 1)   AS valor_contratado
+               SUM(valor) FILTER (WHERE contratado = 1
+                                     OR status ILIKE '%contratad%')
+                                                          AS valor_contratado
           FROM operacao_credito
          WHERE cod_ibge IS NOT NULL
          GROUP BY ALL
     """,
     "vw_credito_finalidade": """
-        SELECT cod_ibge, ano, finalidade, tipo_credor, credor,
+        SELECT cod_ibge, ano, finalidade, tipo_credor, credor, status, tipo_operacao,
                COUNT(*) AS pleitos, SUM(valor) AS valor
           FROM operacao_credito
-         WHERE status ILIKE 'Deferido%'
+         WHERE cod_ibge IS NOT NULL
          GROUP BY ALL
     """,
     "vw_populacao": """
