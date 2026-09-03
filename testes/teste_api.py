@@ -1127,3 +1127,10 @@ def test_mapa_recorte_uf_retorna_municipios(cliente):
     assert dados["uf"] == "SP"
     assert dados["total_entes"] >= 1
     assert any(e["nome"] == "São Paulo" for e in dados["entes"])
+
+
+def test_favicon_disponivel(cliente):
+    res = cliente.get("/favicon.ico")
+    assert res.status_code == 200
+    assert "image/" in res.headers.get("content-type", "")
+

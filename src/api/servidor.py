@@ -45,6 +45,7 @@ async def verificar_autenticacao(request: Request, call_next):
         "/openapi.json",
         "/redoc",
         "/saude",
+        "/favicon.ico",
     )
     
     if not exige_autenticacao() or any(caminho.startswith(p) for p in rotas_publicas):
@@ -123,7 +124,15 @@ app.include_router(judiciario.router)
 app.include_router(mp.router)
 
 
-# 7. Arquivos estáticos do frontend
+# 7. Ícone de favoritos e arquivos estáticos do frontend
+@app.get("/favicon.ico", include_in_schema=False)
+def favicon():
+    icone = Path(config.RAIZ) / "publico" / "ativos" / "logos" / "icone_trigo_transparente.png"
+    if icone.exists():
+        from fastapi.responses import FileResponse
+        return FileResponse(icone, media_type="image/png")
+    return JSONResponse({"erro": "sem favicon"}, status_code=204)
+
 PUBLICO = Path(config.RAIZ) / "publico"
 if PUBLICO.exists():
     app.mount("/", StaticFiles(directory=PUBLICO, html=True), name="publico")

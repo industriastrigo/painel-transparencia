@@ -321,6 +321,20 @@ def carregar_dados_federativos() -> tuple[list[dict], list[dict], list[dict], li
                 "valor": 45.0 + ((int(ibge_m) if ibge_m.isdigit() else 0) % 9), "esfera": "municipal", "uf": sigla_m,
                 "data_referencia": f"{ano}-12-31"
             })
+            transferencias_uniao.append({
+                "cod_ibge": ibge_m, "nivel": "municipio", "uf": sigla_m,
+                "nome_ente": mun["nome"], "cod_transferencia": "FPM",
+                "transferencia": "Fundo de Participação dos Municípios",
+                "ano": ano, "mes": 12, "valor": transf_m * 0.70,
+                "cod_siafi": None, "data_referencia": f"{ano}-12-31"
+            })
+            transferencias_uniao.append({
+                "cod_ibge": ibge_m, "nivel": "municipio", "uf": sigla_m,
+                "nome_ente": mun["nome"], "cod_transferencia": "FUNDEB",
+                "transferencia": "FUNDEB",
+                "ano": ano, "mes": 12, "valor": transf_m * 0.30,
+                "cod_siafi": None, "data_referencia": f"{ano}-12-31"
+            })
 
     return entes, metricas, indicadores, financas, despesas_funcao, indicadores_fiscais, transferencias_uniao
 
