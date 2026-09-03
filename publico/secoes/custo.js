@@ -13,11 +13,36 @@ const FALHOU = Symbol('falhou');
 
 /* ------------------------------------------------------------- custo */
 
+let _filtrosIniciados = false;
+
 async function carregarCusto() {
+  const seletorAno = $('#custo-ano');
+  const seletorPoder = $('#custo-filtro-poder');
+
+  // Inicializa o seletor de anos se ainda não foi populado
+  if (seletorAno && !seletorAno.options.length) {
+    const anosDisponiveis = [2026, 2025, 2024, 2023, 2022, 2021, 2020];
+    anosDisponiveis.forEach((a) => {
+      const opt = new Option(`Exercício ${a}`, a);
+      if (a === 2024) opt.selected = true;
+      seletorAno.add(opt);
+    });
+  }
+
+  // Liga os ouvintes de evento dos filtros uma única vez
+  if (!_filtrosIniciados) {
+    _filtrosIniciados = true;
+    seletorAno?.addEventListener('change', () => carregarCusto());
+    seletorPoder?.addEventListener('change', () => carregarCusto());
+  }
+
+  const ano = seletorAno?.value ? Number(seletorAno.value) : 2024;
+  const poder = seletorPoder?.value || undefined;
+
   $('#tabela-custo tbody').innerHTML = `<tr><td colspan="5">${esqueleto(4)}</td></tr>`;
   const [cargos, resumo] = await Promise.all([
-    buscar('/api/custo/cargos').catch(() => FALHOU),
-    buscar('/api/custo/resumo').catch(() => FALHOU),
+    buscar('/api/custo/cargos', poder ? { poder } : {}).catch(() => FALHOU),
+    buscar('/api/custo/resumo', { ...(ano ? { ano } : {}), ...(poder ? { poder } : {}) }).catch(() => FALHOU),
   ]);
 
   renderizarTopoDeCusto(resumo);
@@ -41,12 +66,6 @@ function renderizarTopoDeCusto(resumo) {
   // e a de 5.570 municípios são grandezas diferentes e se parecem igualmente
   // com "o total do Brasil" — quem lê precisa ver de quantos entes ela veio.
   // CADA CARTÃO DIZ DE QUE ANO ELE É.
-  //
-  // As fontes têm calendários diferentes: o RREO é bimestral e já publica o
-  // exercício corrente; o DCA, de onde vêm arrecadação e despesa total, é
-  // anual e sai no seguinte. Fixar UM ano para a aba inteira fazia a
-  // arrecadação de 2025 desaparecer da tela assim que 2026 passava a existir
-  // pela metade — com o número no disco. Melhor mostrar 2025 dizendo 2025.
   const nota = (valor, entesDoBloco, anoDoBloco) => {
     if (valor == null) return 'nada coletado ainda';
     const partes = [];
@@ -73,11 +92,26 @@ function renderizarTopoDeCusto(resumo) {
 
 function renderizarAvisosDeCusto(resumo) {
   const alvo = $('#avisos-custo');
+  if (!alvo) return;
   const avisos = resumo?.avisos || [];
-  alvo.innerHTML = avisos.length
-    ? `<div class="aviso"><strong>Leia antes de citar estes números</strong>
-       ${avisos.map((a) => `<div>· ${escapar(a)}</div>`).join('')}</div>`
-    : '';
+  if (!avisos.length) {
+    alvo.innerHTML = '';
+    return;
+  }
+  alvo.innerHTML = `
+    <details class="aviso-expansivel atencao" style="margin-top:10px; margin-bottom:14px">
+      <summary>
+        <div class="expansivel-titulo">
+          <span class="icone-guia">⚠️</span>
+          <strong>Leia antes de citar estes números (${avisos.length} observações metodológicas)</strong>
+          <span class="seta-expandir">▼</span>
+        </div>
+      </summary>
+      <div class="expansivel-conteudo">
+        ${avisos.map((a) => `<div>· ${escapar(a)}</div>`).join('')}
+      </div>
+    </details>
+  `;
 }
 
 function renderizarTabelaDeCusto(cargos) {

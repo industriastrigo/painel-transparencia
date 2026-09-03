@@ -559,6 +559,73 @@ button.discreto:disabled { opacity: .45; cursor: not-allowed; }
   flex-shrink: 0;
 }
 
+/* ------------------------------------------------ avisos expansíveis */
+.aviso-expansivel {
+  background: var(--superficie-2);
+  border: 1px solid var(--borda);
+  border-left: 3px solid var(--realce);
+  border-radius: var(--raio-p);
+  margin-top: 10px;
+  margin-bottom: 14px;
+  overflow: hidden;
+  transition: all var(--transicao);
+}
+
+.aviso-expansivel.atencao {
+  border-left-color: var(--atencao, #f59e0b);
+}
+
+.aviso-expansivel summary {
+  padding: 10px 14px;
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.aviso-expansivel summary::-webkit-details-marker {
+  display: none;
+}
+
+.aviso-expansivel .expansivel-titulo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  font-size: var(--t-base);
+  color: var(--texto);
+}
+
+.aviso-expansivel .seta-expandir {
+  margin-left: auto;
+  font-size: 0.75rem;
+  color: var(--texto-fraco);
+  transition: transform 0.2s ease;
+}
+
+.aviso-expansivel[open] .seta-expandir {
+  transform: rotate(180deg);
+}
+
+.aviso-expansivel .expansivel-conteudo {
+  padding: 10px 16px 14px 40px;
+  border-top: 1px solid var(--borda);
+  background: var(--superficie-3);
+  font-size: var(--t-p);
+  color: var(--texto-fraco);
+  line-height: 1.55;
+}
+
+.aviso-expansivel .expansivel-conteudo strong {
+  color: var(--texto);
+}
+
+.aviso-expansivel .expansivel-conteudo div {
+  margin-top: 4px;
+}
+
 /* --------------------------------------------------------------- seleção */
 .lista-selecao { display: flex; flex-direction: column; gap: 2px; }
 .lista-selecao label.opcao {
