@@ -436,9 +436,10 @@ DERIVADAS = {
                    WHERE indicador IN ('LimiteDeAlertaDespesaComPessoalTotal',
                                        'LimiteAlerta', 'limite_alerta')
                      AND medida IN ('percentual', 'percentual_rcl'))               AS limite_alerta,
-               MAX(valor) FILTER (
-                   WHERE indicador IN ('DividaConsolidadaLiquida', 'DCL')
-                     AND medida = 'saldo')                    AS divida_liquida,
+               COALESCE(
+                    MAX(valor) FILTER (WHERE indicador = 'DividaConsolidadaLiquida' AND medida = 'saldo'),
+                    MAX(valor) FILTER (WHERE indicador = 'DCL' AND medida = 'saldo')
+                ) AS divida_liquida,
                MAX(valor) FILTER (
                    WHERE indicador = 'DividaConsolidada'
                      AND medida = 'saldo')               AS divida_consolidada,

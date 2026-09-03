@@ -430,6 +430,41 @@ def ficha_do_ente(cod_ibge: str, ano: int | None = None):
          ORDER BY valor_empenhado DESC LIMIT 50
     """, [localidade_busca, nome_ente]) if nome_ente else []
 
+    divida_consolidada_raw = _consultar("""
+        SELECT COALESCE(
+                 MAX(valor) FILTER (WHERE indicador = 'DividaConsolidadaLiquida'),
+                 MAX(valor) FILTER (WHERE indicador = 'DCL')
+               ) AS divida_liquida,
+               MAX(valor) FILTER (WHERE indicador = 'DividaConsolidada') AS divida_consolidada,
+               MAX(valor) FILTER (WHERE indicador IN ('ReceitaCorrenteLiquidaAjustadaParaCalculoDosLimitesDeEndividamento', 'RGF2ReceitaCorrenteLiquida', 'RCL')) AS rcl_ajustada,
+               MAX(valor) FILTER (WHERE indicador = 'PercentualDaDCLSobreARCL') AS percentual_dcl,
+               MAX(valor) FILTER (WHERE indicador = 'LimiteDefinidoPorResolucaoDoSenadoFederal') AS limite_senado
+          FROM indicador_fiscal
+         WHERE cod_ibge = ? AND ano = ? AND anexo LIKE '%Anexo 02%'
+    """, [cod_ibge, ano]) if ano else []
+
+    divida_consolidada = None
+    if divida_consolidada_raw and divida_consolidada_raw[0].get("divida_liquida") is not None:
+        d_row = divida_consolidada_raw[0]
+        limite_senado = d_row.get("limite_senado")
+        pct_senado = 200.0 if ente.get("nivel") == "estado" else 120.0
+        if limite_senado is None and d_row.get("rcl_ajustada"):
+            limite_senado = float(d_row["rcl_ajustada"]) * (pct_senado / 100.0)
+        
+        pct_dcl = d_row.get("percentual_dcl")
+        if pct_dcl is None and d_row.get("rcl_ajustada") and float(d_row["rcl_ajustada"]) > 0:
+            pct_dcl = round((float(d_row["divida_liquida"]) / float(d_row["rcl_ajustada"])) * 100.0, 2)
+            
+        divida_consolidada = {
+            "divida_liquida": d_row.get("divida_liquida"),
+            "divida_consolidada": d_row.get("divida_consolidada"),
+            "rcl_ajustada": d_row.get("rcl_ajustada"),
+            "percentual_dcl": pct_dcl,
+            "limite_senado_valor": limite_senado,
+            "limite_senado_pct": pct_senado,
+            "acima_do_limite": (float(pct_dcl) > pct_senado) if pct_dcl is not None else False
+        }
+
     return {
         "ente": ente,
         "ano": ano,
@@ -437,6 +472,7 @@ def ficha_do_ente(cod_ibge: str, ano: int | None = None):
         "financas": financas,
         "funcoes": funcoes,
         "lrf": lrf,
+        "divida_consolidada": divida_consolidada,
         "conferencia_despesa": conferencia[0] if conferencia else None,
         "conferencia_funcao": (conferencia_funcao[0]
                                if conferencia_funcao else None),

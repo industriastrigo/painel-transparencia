@@ -179,8 +179,7 @@ async function abrirFicha(codIbge) {
         próprio ente — o limite muda por esfera e por poder, então o painel não
         o calcula. Sem limite publicado, ele não afirma nada.</p>
       ${tabela(`<th>Poder</th><th class="centrado">Pessoal</th><th class="centrado">Receita Corrente Líquida</th>
-                <th class="centrado">% sobre a RCL</th><th class="centrado">Prudencial</th><th class="centrado">Limite</th>
-                <th class="centrado">Dívida Líquida</th>`,
+                <th class="centrado">% sobre a RCL</th><th class="centrado">Prudencial</th><th class="centrado">Limite</th>`,
         lrf.map((x) => `<tr>
           <td><strong>${escapar(POR_EXTENSO_PODER[x.poder] ?? x.poder ?? '—')}</strong></td>
           <td class="centrado">${Number.isFinite(aNumero(x.despesa_pessoal_liquida)) ? formatar(aNumero(x.despesa_pessoal_liquida), 'despesa_total') : '—'}</td>
@@ -188,8 +187,32 @@ async function abrirFicha(codIbge) {
           <td class="centrado">${seloLimite(x)}</td>
           <td class="centrado">${Number.isFinite(aNumero(x.limite_prudencial)) ? formatar(aNumero(x.limite_prudencial), 'percentual_pessoal') : '—'}</td>
           <td class="centrado">${Number.isFinite(aNumero(x.limite_maximo)) ? formatar(aNumero(x.limite_maximo), 'percentual_pessoal') : '—'}</td>
-          <td class="centrado">${Number.isFinite(aNumero(x.divida_liquida)) ? formatar(aNumero(x.divida_liquida), 'despesa_total') : '—'}</td>
-        </tr>`).join(''))}` : ''}
+        </tr>`).join(''))}
+
+      ${f.divida_consolidada ? `
+        <div style="margin-top:16px; padding:14px 16px; background:var(--superficie-2); border:1px solid var(--borda); border-radius:var(--raio)">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:8px">
+            <div>
+              <span style="font-size:0.75rem; font-weight:700; text-transform:uppercase; color:var(--realce-dourado); letter-spacing:0.05em">
+                Dívida Consolidada Líquida (DCL) — RGF Anexo 02
+              </span>
+              <div style="font-size:1.15rem; font-weight:700; color:var(--texto); margin-top:2px">
+                ${formatar(aNumero(f.divida_consolidada.divida_liquida), 'despesa_total')}
+                <span style="font-size:0.85rem; font-weight:600; color:var(--texto-fraco)">(${porcento.format(f.divida_consolidada.percentual_dcl)}% da RCL)</span>
+              </div>
+            </div>
+            <div>
+              ${f.divida_consolidada.acima_do_limite
+                ? '<span class="selo risco">Dívida acima do limite do Senado</span>'
+                : `<span class="selo calmo">Dentro do limite do Senado (${f.divida_consolidada.limite_senado_pct}% da RCL)</span>`}
+            </div>
+          </div>
+          <p class="rodape-mapa" style="margin:0">
+            Teto fixado pelo Senado Federal: <strong>${formatar(aNumero(f.divida_consolidada.limite_senado_valor), 'despesa_total')}</strong> (${f.divida_consolidada.limite_senado_pct}% da RCL).
+            Diferente da folha de pessoal, a dívida é <strong>consolidada em todo o Ente</strong> e não segregada por Poder.
+          </p>
+        </div>` : ''}
+    ` : ''}
 
     ${f.transferencias_uniao?.length ? `<h2>O que a União repassou</h2>
       <p class="rodape-mapa">Pago pelo Tesouro em ${escapar(f.ano)}, por modalidade.
