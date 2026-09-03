@@ -626,6 +626,41 @@ button.discreto:disabled { opacity: .45; cursor: not-allowed; }
   margin-top: 4px;
 }
 
+/* Tabela lateral de execução de gastos */
+.tabela-lateral {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--t-p);
+}
+.tabela-lateral th {
+  text-align: left;
+  padding: 8px 10px;
+  background: var(--superficie-3);
+  border-bottom: 2px solid var(--borda);
+  color: var(--texto-fraco);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.tabela-lateral th:last-child {
+  text-align: right;
+}
+.tabela-lateral td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--borda);
+  vertical-align: middle;
+}
+.tabela-lateral tr:hover td {
+  background: rgba(255, 255, 255, 0.02);
+}
+.tabela-lateral tr.linha-total td {
+  border-top: 2px solid var(--borda);
+  border-bottom: none;
+  background: var(--superficie-2);
+  font-weight: 700;
+  color: var(--texto);
+}
+
 /* --------------------------------------------------------------- seleção */
 .lista-selecao { display: flex; flex-direction: column; gap: 2px; }
 .lista-selecao label.opcao {

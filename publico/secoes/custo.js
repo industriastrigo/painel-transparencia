@@ -155,6 +155,17 @@ function renderizarTabelaDeCusto(cargos) {
   }).join('');
 }
 
+function tabela(cabecalho, corpo) {
+  return `
+    <div class="rolagem" style="margin-top:8px; margin-bottom:18px">
+      <table class="tabela-lateral">
+        <thead><tr>${cabecalho}</tr></thead>
+        <tbody>${corpo}</tbody>
+      </table>
+    </div>
+  `;
+}
+
 function renderizarLateralDeCusto(resumo) {
   const alvo = $('#lateral-custo');
   if (resumo === FALHOU) { alvo.innerHTML = falha('Resumo indisponível.'); return; }
@@ -170,12 +181,12 @@ function renderizarLateralDeCusto(resumo) {
     const parcial = linhas.some((l) => l.completo === false);
     const piso = (v) => (parcial ? '≥ ' : '') + formatar(v, 'despesa_total');
     return `
-      <h2 style="margin-top:20px">${escapar(titulo)}</h2>
-      ${nota ? `<p class="rodape-mapa">${escapar(nota)}</p>` : ''}
-      ${tabela('<th>Item</th><th>Valor</th>',
+      <h3 style="margin-top:16px; margin-bottom:4px; font-size:var(--t-base); color:var(--realce)">${escapar(titulo)}</h3>
+      ${nota ? `<p class="rodape-mapa" style="margin-bottom:8px">${escapar(nota)}</p>` : ''}
+      ${tabela('<th>Item / Poder</th><th>Valor Executado</th>',
         linhas.map((l) => `<tr>
-          <td>${txt(l[rotulo])}${l.esfera
-            ? ` <span class="cadencia">${escapar(l.esfera)}</span>` : ''}${
+          <td><strong>${txt(l[rotulo])}</strong>${l.esfera
+            ? ` <span class="badge-subsidio">${escapar(l.esfera)}</span>` : ''}${
             extra && l[extra] != null
               ? `<br><span class="cadencia">${contagem(l[extra])} ocupantes</span>` : ''}</td>
           <td class="valor" title="${atributo(exato(aNumero(l[campo]), 'despesa_total'))}"
@@ -187,18 +198,18 @@ function renderizarLateralDeCusto(resumo) {
               : ''}${l.linhas != null
               ? `<br><span class="cadencia">${contagem(l.linhas)} linha(s)</span>` : ''}</td>
         </tr>`).join('')
-        + `<tr><td><strong>Total</strong></td>
+        + `<tr class="linha-total"><td><strong>Total</strong></td>
              <td class="valor"><strong>${piso(total)}</strong></td></tr>`)}`;
   };
 
   const conteudo =
-    bloco('Despesa por função', resumo.despesa_por_funcao || [], 'funcao',
-          'valor', `Valor empenhado em ${resumo.ano ?? '—'} — o que de fato saiu.`)
-    + bloco('Custo medido federal', resumo.custo_medido_federal || [],
-            'conjunto', 'valor', 'Apurado pelo Tesouro/SIC.')
-    + bloco('Subsídios por poder (estimativa)',
+    bloco('Despesa por Função (SICONFI)', resumo.despesa_por_funcao || [], 'funcao',
+          'valor', `Valor empenhado e liquidado em ${resumo.ano ?? '—'}.`)
+    + bloco('Custo Medido Federal (Por Poder)', resumo.custo_medido_federal || [],
+            'conjunto', 'valor', 'Apurado pelo Tesouro Nacional e Balanço Geral da União.')
+    + bloco('Estimativa de Subsídios por Poder',
             resumo.estimado_por_poder || [], 'poder', 'custo_estimado',
-            'Conta, não medição — ocupantes × subsídio × 13,33.', 'ocupantes');
+            'Folha-base estimada: ocupantes × subsídio × 13,33.', 'ocupantes');
 
   alvo.innerHTML = conteudo
     || '<p class="vazio">Colete SICONFI, Tesouro e Referências para preencher.</p>';
