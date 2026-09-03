@@ -307,18 +307,95 @@ def ficha_do_ente(cod_ibge: str, ano: int | None = None):
          ORDER BY m.rotulo
     """, [cod_ibge])
 
-    # Quem governa: o próprio ente, a UF a que pertence, e a União.
-    cadeia = [cod_ibge, "0"]
-    if ente.get("cod_uf") and str(ente["cod_uf"]) != str(cod_ibge):
-        cadeia.append(str(ente["cod_uf"]))
-    marcadores = ", ".join("?" for _ in cadeia)
-    governantes = _consultar(f"""
-        SELECT cargo, nome, sigla_partido, sigla_uf, ano_inicio, ano_fim
-          FROM vw_executivo
-         WHERE cod_ibge IN ({marcadores})
-         ORDER BY CASE cargo WHEN 'prefeito' THEN 1 WHEN 'governador' THEN 2
-                             ELSE 3 END, ano_inicio DESC
-    """, cadeia)
+    # Quem governa:
+    # 1. Ente País: presidentes (se ano informado, contemporâneo; se sem ano, histórico)
+    # 2. Ente Estado: governadores do estado + presidente contemporâneo (1 registro)
+    # 3. Ente Município: prefeitos do município + governador contemporâneo da UF (1) + presidente contemporâneo (1)
+    if ente.get("nivel") == "pais" or cod_ibge == "0":
+        cond_gov = "cod_ibge = '0'"
+        params_gov = []
+        if ano:
+            cond_gov += " AND ano_inicio <= ? AND ano_fim >= ?"
+            params_gov.extend([ano, ano])
+        governantes = _consultar(f"""
+            SELECT cargo, nome, sigla_partido, sigla_uf, ano_inicio, ano_fim
+              FROM vw_executivo
+             WHERE {cond_gov}
+             ORDER BY ano_inicio DESC
+        """, params_gov)
+    elif ente.get("nivel") == "estado":
+        gov_estado = _consultar("""
+            SELECT cargo, nome, sigla_partido, sigla_uf, ano_inicio, ano_fim
+              FROM vw_executivo
+             WHERE cod_ibge = ?
+             ORDER BY ano_inicio DESC
+        """, [cod_ibge])
+        if ano:
+            gov_filtrado = [g for g in gov_estado if (g.get("ano_inicio") or 0) <= ano <= (g.get("ano_fim") or 9999)]
+            if gov_filtrado:
+                gov_estado = gov_filtrado
+
+        if ano:
+            pres = _consultar("""
+                SELECT cargo, nome, sigla_partido, sigla_uf, ano_inicio, ano_fim
+                  FROM vw_executivo
+                 WHERE cod_ibge = '0' AND ano_inicio <= ? AND ano_fim >= ?
+                 ORDER BY ano_inicio DESC LIMIT 1
+            """, [ano, ano])
+        else:
+            pres = _consultar("""
+                SELECT cargo, nome, sigla_partido, sigla_uf, ano_inicio, ano_fim
+                  FROM vw_executivo
+                 WHERE cod_ibge = '0'
+                 ORDER BY ano_inicio DESC LIMIT 1
+            """)
+        governantes = gov_estado + (pres or [])
+    else:
+        # Município
+        cod_uf = str(ente.get("cod_uf") or "")
+        pref = _consultar("""
+            SELECT cargo, nome, sigla_partido, sigla_uf, ano_inicio, ano_fim
+              FROM vw_executivo
+             WHERE cod_ibge = ?
+             ORDER BY ano_inicio DESC
+        """, [cod_ibge])
+        if ano:
+            pref_filtrado = [p for p in pref if (p.get("ano_inicio") or 0) <= ano <= (p.get("ano_fim") or 9999)]
+            if pref_filtrado:
+                pref = pref_filtrado
+
+        gov = []
+        if cod_uf:
+            if ano:
+                gov = _consultar("""
+                    SELECT cargo, nome, sigla_partido, sigla_uf, ano_inicio, ano_fim
+                      FROM vw_executivo
+                     WHERE cod_ibge = ? AND ano_inicio <= ? AND ano_fim >= ?
+                     ORDER BY ano_inicio DESC LIMIT 1
+                """, [cod_uf, ano, ano])
+            if not gov:
+                gov = _consultar("""
+                    SELECT cargo, nome, sigla_partido, sigla_uf, ano_inicio, ano_fim
+                      FROM vw_executivo
+                     WHERE cod_ibge = ?
+                     ORDER BY ano_inicio DESC LIMIT 1
+                """, [cod_uf])
+
+        if ano:
+            pres = _consultar("""
+                SELECT cargo, nome, sigla_partido, sigla_uf, ano_inicio, ano_fim
+                  FROM vw_executivo
+                 WHERE cod_ibge = '0' AND ano_inicio <= ? AND ano_fim >= ?
+                 ORDER BY ano_inicio DESC LIMIT 1
+            """, [ano, ano])
+        else:
+            pres = _consultar("""
+                SELECT cargo, nome, sigla_partido, sigla_uf, ano_inicio, ano_fim
+                  FROM vw_executivo
+                 WHERE cod_ibge = '0'
+                 ORDER BY ano_inicio DESC LIMIT 1
+            """)
+        governantes = pref + (gov or []) + (pres or [])
 
     legislativo = _consultar("""
         SELECT cargo, COUNT(*) AS quantidade
