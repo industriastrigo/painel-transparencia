@@ -72,11 +72,46 @@ def carregar_dados_federativos() -> tuple[list[dict], list[dict], list[dict], li
             "cod_ibge": e["cod_ibge"], "nivel": "estado", "nome": e["nome"],
             "sigla_uf": e["sigla"], "cod_uf": e["cod_ibge"], "regiao": e["regiao"], "cod_regiao": e["cod_ibge"][:1]
         })
+
+    # Mapeia municípios polo com dados detalhados
+    municipios_vistos = set()
     for m in MUNICIPIOS_POLO:
+        municipios_vistos.add(m["cod_ibge"])
         entes.append({
             "cod_ibge": m["cod_ibge"], "nivel": "municipio", "nome": m["nome"],
             "sigla_uf": m["sigla"], "cod_uf": m["cod_uf"], "regiao": m["regiao"], "cod_regiao": m["cod_uf"][:1]
         })
+
+    # Carrega todos os municípios a partir das malhas municipais oficiais empacotadas
+    mapa_regioes = {e["sigla"]: (e["regiao"], e["cod_ibge"]) for e in ESTADOS_BRASIL}
+    malhas_dir = config.RAIZ / "referencias" / "malhas"
+    if not malhas_dir.exists():
+        malhas_dir = config.MALHAS
+
+    if malhas_dir.exists():
+        import json
+        for arq in sorted(malhas_dir.glob("uf-*.json")):
+            try:
+                data = json.loads(arq.read_text(encoding="utf-8"))
+                for feat in data.get("features", []):
+                    props = feat.get("properties", {})
+                    cid = str(props.get("cod_ibge") or props.get("id") or props.get("codarea") or "").strip()
+                    nome = props.get("nome") or props.get("name") or ""
+                    sigla = str(props.get("sigla_uf") or arq.stem.replace("uf-", "")).upper()
+                    if cid and cid not in municipios_vistos:
+                        municipios_vistos.add(cid)
+                        regiao, cod_uf = mapa_regioes.get(sigla, ("Nacional", sigla[:2] if len(sigla) >= 2 else "0"))
+                        entes.append({
+                            "cod_ibge": cid,
+                            "nivel": "municipio",
+                            "nome": nome,
+                            "sigla_uf": sigla,
+                            "cod_uf": cod_uf,
+                            "regiao": regiao,
+                            "cod_regiao": str(cod_uf)[:1]
+                        })
+            except Exception:
+                pass
 
     # 2. Dimensão Métrica
     metricas = [

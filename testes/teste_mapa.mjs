@@ -561,3 +561,13 @@ test('resposta quebrada não zera o painel sem dizer nada', async () => {
     assert.equal(r.padrao, null);
   }
 });
+
+test('desenharGeoJson projeta malha municipal completa de SP', async () => {
+  const conteudo = await readFile('referencias/malhas/uf-SP.json', 'utf-8');
+  const geojson = JSON.parse(conteudo);
+  const formas = desenharGeoJson(geojson, { largura: 760, altura: 620 });
+  assert.equal(formas.length, 645, 'deve desenhar todos os 645 municípios de SP');
+  assert.ok(formas.some((f) => f.nome === 'São Paulo' || f.codigo === '3550308'), 'São Paulo deve estar presente');
+  assert.ok(formas.every((f) => f.d && f.d.startsWith('M')), 'todo município deve ter path SVG válido');
+});
+

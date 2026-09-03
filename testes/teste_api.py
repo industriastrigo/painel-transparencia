@@ -1098,9 +1098,32 @@ def test_carga_historico_e_validacao(cliente):
     assert dados_hist["kpis"]["total_auditorias"] >= 1
 
 
+# ------------------------------------------------------------- malhas e mapas municipais
+def test_malha_brasil_e_por_uf(cliente):
+    # Brasil
+    res_br = cliente.get("/api/malha/brasil")
+    assert res_br.status_code == 200
+    dados_br = res_br.json()
+    assert len(dados_br.get("features", [])) == 27
+
+    # UF específica: SP deve trazer todos os 645 municípios
+    res_sp = cliente.get("/api/malha/SP")
+    assert res_sp.status_code == 200
+    dados_sp = res_sp.json()
+    assert len(dados_sp.get("features", [])) == 645
+
+    # RJ deve trazer 92 municípios
+    res_rj = cliente.get("/api/malha/RJ")
+    assert res_rj.status_code == 200
+    dados_rj = res_rj.json()
+    assert len(dados_rj.get("features", [])) == 92
 
 
-
-
-
-
+def test_mapa_recorte_uf_retorna_municipios(cliente):
+    res = cliente.get("/api/mapa", params={"ano": 2024, "uf": "SP", "metrica": "despesa_per_capita"})
+    assert res.status_code == 200
+    dados = res.json()
+    assert dados["nivel"] == "municipio"
+    assert dados["uf"] == "SP"
+    assert dados["total_entes"] >= 1
+    assert any(e["nome"] == "São Paulo" for e in dados["entes"])

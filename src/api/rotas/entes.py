@@ -141,34 +141,15 @@ def malha(escopo: str):
     if arquivo_uf.exists():
         return FileResponse(arquivo_uf, media_type="application/geo+json")
 
-    # Extrai o recorte geométrico da UF a partir da malha oficial
-    ref = config.RAIZ / "referencias" / "malhas" / "brasil-uf.json"
-    if not ref.exists():
-        ref = config.MALHAS / "brasil-uf.json"
-
+    # Busca no diretório de referências embutidas
+    ref = config.RAIZ / "referencias" / "malhas" / f"uf-{escopo_limpo}.json"
     if ref.exists():
-        import json
-        try:
-            dados = json.loads(ref.read_text(encoding="utf-8"))
-            features = [
-                f for f in dados.get("features", [])
-                if f.get("properties", {}).get("sigla_uf", "").upper() == escopo_limpo
-                or f.get("properties", {}).get("sigla", "").upper() == escopo_limpo
-            ]
-            if features:
-                recorte = {
-                    "type": "FeatureCollection",
-                    "features": features
-                }
-                config.MALHAS.mkdir(parents=True, exist_ok=True)
-                arquivo_uf.write_text(json.dumps(recorte, ensure_ascii=False), encoding="utf-8")
-                return FileResponse(arquivo_uf, media_type="application/geo+json")
-        except Exception:
-            pass
+        import shutil
+        config.MALHAS.mkdir(parents=True, exist_ok=True)
+        shutil.copy(ref, arquivo_uf)
+        return FileResponse(arquivo_uf, media_type="application/geo+json")
 
-    if ref.exists():
-        return FileResponse(ref, media_type="application/geo+json")
-    raise HTTPException(404, f"malha indisponível: {escopo}")
+    raise HTTPException(404, f"malha municipal indisponível: {escopo_limpo}")
 
 
 
