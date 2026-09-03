@@ -547,26 +547,13 @@ def carregar_proposicoes_referencia() -> tuple[list[dict], list[dict], list[dict
     votacao_proposicoes = []
     votos = []
 
-    # Lista de deputados e senadores da base para votações
-    parlamentares = [
-        ("dep_sp_guilherme_boulos", "Guilherme Boulos", "PSOL", "SP", "camara"),
-        ("dep_sp_tabata_amaral", "Tabata Amaral", "PSB", "SP", "camara"),
-        ("dep_sp_eduardo_bolsonaro", "Eduardo Bolsonaro", "PL", "SP", "camara"),
-        ("dep_sp_carla_zambelli", "Carla Zambelli", "PL", "SP", "camara"),
-        ("dep_sp_kim_kataguiri", "Kim Kataguiri", "UNIÃO", "SP", "camara"),
-        ("dep_sp_baleia_rossi", "Baleia Rossi", "MDB", "SP", "camara"),
-        ("dep_pr_gleisi_hoffmann", "Gleisi Hoffmann", "PT", "PR", "camara"),
-        ("dep_mg_nikolas_ferreira", "Nikolas Ferreira", "PL", "MG", "camara"),
-        ("dep_al_arthur_lira", "Arthur Lira", "PP", "AL", "camara"),
-        ("sen_mg_rodrigo_pacheco", "Rodrigo Pacheco", "PSD", "MG", "senado"),
-        ("sen_sp_marcos_pontes", "Astronauta Marcos Pontes", "PL", "SP", "senado"),
-        ("sen_pr_sergio_moro", "Sergio Moro", "UNIÃO", "PR", "senado"),
-        ("sen_ba_jaques_wagner", "Jaques Wagner", "PT", "BA", "senado"),
-        ("sen_ba_otto_alencar", "Otto Alencar", "PSD", "BA", "senado"),
-        ("sen_df_damares_alves", "Damares Alves", "REPUBLICANOS", "DF", "senado"),
-        ("sen_sp_mara_gabrilli", "Mara Gabrilli", "PSD", "SP", "senado"),
-        ("sen_al_renan_calheiros", "Renan Calheiros", "MDB", "AL", "senado"),
-        ("sen_rj_flavio_bolsonaro", "Flávio Bolsonaro", "PL", "RJ", "senado"),
+    from .bancada_congresso import SENADORES_81, DEPUTADOS_FEDERAIS
+
+    parlamentares_senado = [
+        (sk, nome, partido, uf, "senado") for sk, _, nome, partido, uf in SENADORES_81
+    ]
+    parlamentares_camara = [
+        (sk, nome, partido, uf, "camara") for sk, _, nome, partido, uf in DEPUTADOS_FEDERAIS
     ]
 
     for p in proposicoes:
@@ -599,14 +586,28 @@ def carregar_proposicoes_referencia() -> tuple[list[dict], list[dict], list[dict
             "ano": ano_vot
         })
 
-        # Adicionar votos nominais
-        parlamentares_casa = [parl for parl in parlamentares if parl[4] == casa]
-        for idx, (id_pol, nome_pol, partido_pol, uf_pol, _) in enumerate(parlamentares_casa):
-            if "Presidencial" in p.get("nome_autor", "") or p.get("partido_autor") in ("PT", "PSB"):
-                voto_escolhido = "Sim" if partido_pol in ("PT", "PSB", "PSOL", "PSD", "MDB") else ("Não" if partido_pol in ("PL", "NOVO") else "Sim")
+        # Adicionar votos nominais da bancada inteira
+        bancada = parlamentares_senado if casa == "senado" else parlamentares_camara
+        for idx, (id_pol, nome_pol, partido_pol, uf_pol, _) in enumerate(bancada):
+            # Lógica partidária realista de votação
+            if p.get("partido_autor") in ("PT", "PSB") or "Executivo" in p.get("nome_autor", ""):
+                if partido_pol in ("PT", "PSB", "PSOL", "PCdoB", "REDE"):
+                    voto_escolhido = "Sim"
+                elif partido_pol in ("PL", "NOVO"):
+                    voto_escolhido = "Não" if idx % 6 != 0 else "Sim"
+                elif partido_pol in ("PSD", "MDB", "UNIÃO", "PP", "REPUBLICANOS"):
+                    voto_escolhido = "Sim" if idx % 8 != 0 else "Não"
+                else:
+                    voto_escolhido = "Sim"
             else:
-                voto_escolhido = "Sim" if idx % 4 != 0 else "Não"
+                if partido_pol in ("PL", "NOVO", "PP", "REPUBLICANOS"):
+                    voto_escolhido = "Sim"
+                elif partido_pol in ("PT", "PSOL", "PCdoB"):
+                    voto_escolhido = "Não" if idx % 5 != 0 else "Sim"
+                else:
+                    voto_escolhido = "Sim"
 
+            # Presidente da Câmara não vota por regimento (Art. 17)
             if id_pol == "dep_al_arthur_lira":
                 voto_escolhido = "Art. 17"
 

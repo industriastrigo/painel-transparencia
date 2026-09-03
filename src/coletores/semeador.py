@@ -101,49 +101,16 @@ def semear_se_vazio(forcar: bool = False) -> None:
 
 
 def semear_parlamentares() -> None:
-    """Popula parlamentares chave do Congresso Nacional."""
-    parlamentares = [
-        # SP
-        {"sk": "dep_sp_guilherme_boulos", "nome": "Guilherme Castro Boulos", "nome_eleitoral": "Guilherme Boulos", "cargo": "deputado_federal", "partido": "PSOL", "uf": "SP"},
-        {"sk": "dep_sp_tabata_amaral", "nome": "Tabata Claudia Amaral de Pontes", "nome_eleitoral": "Tabata Amaral", "cargo": "deputado_federal", "partido": "PSB", "uf": "SP"},
-        {"sk": "dep_sp_eduardo_bolsonaro", "nome": "Eduardo Nantes Bolsonaro", "nome_eleitoral": "Eduardo Bolsonaro", "cargo": "deputado_federal", "partido": "PL", "uf": "SP"},
-        {"sk": "dep_sp_carla_zambelli", "nome": "Carla Zambelli Salgado de Oliveira", "nome_eleitoral": "Carla Zambelli", "cargo": "deputado_federal", "partido": "PL", "uf": "SP"},
-        {"sk": "dep_sp_kim_kataguiri", "nome": "Kim Patroca Kataguiri", "nome_eleitoral": "Kim Kataguiri", "cargo": "deputado_federal", "partido": "UNIÃO", "uf": "SP"},
-        {"sk": "dep_sp_erika_hilton", "nome": "Erika Hilton Santos Silva", "nome_eleitoral": "Erika Hilton", "cargo": "deputado_federal", "partido": "PSOL", "uf": "SP"},
-        {"sk": "dep_sp_baleia_rossi", "nome": "Luiz Felipe Baleia Tenuto Rossi", "nome_eleitoral": "Baleia Rossi", "cargo": "deputado_federal", "partido": "MDB", "uf": "SP"},
-        {"sk": "dep_sp_marcos_pereira", "nome": "Marcos Antônio Pereira", "nome_eleitoral": "Marcos Pereira", "cargo": "deputado_federal", "partido": "REPUBLICANOS", "uf": "SP"},
-        {"sk": "dep_sp_fernando_haddad", "nome": "Fernando Haddad", "nome_eleitoral": "Fernando Haddad", "cargo": "deputado_federal", "partido": "PT", "uf": "SP"},
-        {"sk": "sen_sp_marcos_pontes", "nome": "Marcos Cesar Pontes", "nome_eleitoral": "Astronauta Marcos Pontes", "cargo": "senador", "partido": "PL", "uf": "SP"},
-        {"sk": "sen_sp_mara_gabrilli", "nome": "Mara Cristina Gabrilli", "nome_eleitoral": "Mara Gabrilli", "cargo": "senador", "partido": "PSD", "uf": "SP"},
-        {"sk": "sen_sp_alexandre_giordano", "nome": "Alexandre Luiz Giordano", "nome_eleitoral": "Alexandre Giordano", "cargo": "senador", "partido": "MDB", "uf": "SP"},
-        # RJ
-        {"sk": "dep_rj_lindbergh_farias", "nome": "Lindbergh Farias", "nome_eleitoral": "Lindbergh Farias", "cargo": "deputado_federal", "partido": "PT", "uf": "RJ"},
-        {"sk": "dep_rj_jandira_feghali", "nome": "Jandira Feghali", "nome_eleitoral": "Jandira Feghali", "cargo": "deputado_federal", "partido": "PCdoB", "uf": "RJ"},
-        {"sk": "sen_rj_flavio_bolsonaro", "nome": "Flávio Nantes Bolsonaro", "nome_eleitoral": "Flávio Bolsonaro", "cargo": "senador", "partido": "PL", "uf": "RJ"},
-        # MG
-        {"sk": "dep_mg_nikolas_ferreira", "nome": "Nikolas Ferreira de Oliveira", "nome_eleitoral": "Nikolas Ferreira", "cargo": "deputado_federal", "partido": "PL", "uf": "MG"},
-        {"sk": "dep_mg_aecio_neves", "nome": "Aécio Neves da Cunha", "nome_eleitoral": "Aécio Neves", "cargo": "deputado_federal", "partido": "PSDB", "uf": "MG"},
-        {"sk": "sen_mg_rodrigo_pacheco", "nome": "Rodrigo Otavio Soares Pacheco", "nome_eleitoral": "Rodrigo Pacheco", "cargo": "senador", "partido": "PSD", "uf": "MG"},
-        # PR
-        {"sk": "dep_pr_gleisi_hoffmann", "nome": "Gleisi Helena Hoffmann", "nome_eleitoral": "Gleisi Hoffmann", "cargo": "deputado_federal", "partido": "PT", "uf": "PR"},
-        {"sk": "sen_pr_sergio_moro", "nome": "Sergio Fernando Moro", "nome_eleitoral": "Sergio Moro", "cargo": "senador", "partido": "UNIÃO", "uf": "PR"},
-        # AL
-        {"sk": "dep_al_arthur_lira", "nome": "Arthur César Pereira de Lira", "nome_eleitoral": "Arthur Lira", "cargo": "deputado_federal", "partido": "PP", "uf": "AL"},
-        {"sk": "sen_al_renan_calheiros", "nome": "José Renan Vasconcelos Calheiros", "nome_eleitoral": "Renan Calheiros", "cargo": "senador", "partido": "MDB", "uf": "AL"},
-        # DF
-        {"sk": "dep_df_bia_kicis", "nome": "Beatriz Kicis Torrents de Sordi", "nome_eleitoral": "Bia Kicis", "cargo": "deputado_federal", "partido": "PL", "uf": "DF"},
-        {"sk": "sen_df_damares_alves", "nome": "Damares Regina Alves", "nome_eleitoral": "Damares Alves", "cargo": "senador", "partido": "REPUBLICANOS", "uf": "DF"},
-        # BA
-        {"sk": "sen_ba_otto_alencar", "nome": "Otto Roberto Mendonça de Alencar", "nome_eleitoral": "Otto Alencar", "cargo": "senador", "partido": "PSD", "uf": "BA"},
-        {"sk": "sen_ba_jaques_wagner", "nome": "Jaques Wagner", "nome_eleitoral": "Jaques Wagner", "cargo": "senador", "partido": "PT", "uf": "BA"},
-    ]
+    """Popula os 81 senadores (3 de cada UF) e bancada de deputados federais."""
+    from .bancada_congresso import obter_todos_parlamentares
 
+    parlamentares = obter_todos_parlamentares()
     linhas_politico = []
     linhas_mandato = []
     for p in parlamentares:
         linhas_politico.append({
             "sk_politico": p["sk"],
-            "fonte_origem": "camara" if "dep" in p["sk"] else "senado",
+            "fonte_origem": p["casa"],
             "id_origem": p["sk"],
             "nome": p["nome"],
             "nome_eleitoral": p["nome_eleitoral"],
