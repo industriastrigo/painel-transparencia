@@ -51,6 +51,12 @@ import {
 
 // Registro dos ganchos de carregamento preguiçoso por aba (Produção)
 registrarGanchoAba('inicio', carregarInicio);
+registrarGanchoAba('mapa', async () => {
+  if (!estado.ano || !estado.anos?.length) {
+    await carregarAnos();
+  }
+  await carregarMapa();
+});
 registrarGanchoAba('politicos', carregarPoliticos);
 registrarGanchoAba('executivo', carregarExecutivo);
 registrarGanchoAba('legislativo', carregarLegislativo);

@@ -70,17 +70,15 @@ async function carregarAnos() {
   const resposta = normalizarAnos(bruta);
   const anos = resposta.anos;
   const seletor = $('#ano');
+  if (!seletor) return null;
   seletor.innerHTML = '';
   if (!anos.length) {
     seletor.innerHTML = '<option>sem dados</option>';
     seletor.disabled = true;
     return null;
   }
+  seletor.disabled = false;
 
-  // O ano corrente costuma ter RREO (bimestral) e não ter DCA (anual, sai
-  // no exercício seguinte). Abrir nele mostrava metade dos cartões vazios e
-  // parecia acervo perdido. O seletor continua oferecendo o ano parcial —
-  // ele tem dado legítimo —, mas marcado, e a tela abre no último completo.
   anos.forEach((a) => {
     const rotulo = a.completo ? String(a.ano) : `${a.ano} · parcial`;
     seletor.add(new Option(rotulo, a.ano));
@@ -123,6 +121,9 @@ let geracaoMapa = 0;
 const malhasEmCache = new Map();
 
 async function carregarMapa() {
+  if (!estado.ano || !estado.anos?.length) {
+    await carregarAnos();
+  }
   if (!estado.ano) return;
   const minhaVez = ++geracaoMapa;
   const escopo = estado.uf || 'brasil';
