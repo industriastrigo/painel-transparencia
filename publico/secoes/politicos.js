@@ -276,9 +276,10 @@ async function abrirFichaDoPolitico(sk, ano) {
   }
 
   const p = f.politico;
+  const isExecutivo = p.cargo === 'presidente' || p.cargo === 'governador' || p.cargo === 'prefeito' || p.poder === 'E';
   const oficial = endereco(f.url_oficial);
   const subsidio = aNumero(p.subsidio_cargo);
-  const anoAtivo = f.ano || (f.anos?.length ? f.anos[0] : 2026);
+  const anoAtivo = f.ano || (f.anos?.length ? f.anos[0] : 2024);
   const totalAno = somar(f.cota_por_tipo || []);
 
   const presenca = f.presenca || [];
@@ -294,30 +295,42 @@ async function abrirFichaDoPolitico(sk, ano) {
     sessoesTexto = `${presAno.presencas} sessões presentes de ${tot} sessões (${presAno.ausencias || 0} ausências)`;
   }
 
+  const totalPatrimonio = (f.bens_declarados || []).reduce((s, b) => s + (aNumero(b.valor_bem) || 0), 0);
+  const fg = f.financas_gestao;
+  const recTotal = fg ? aNumero(fg.receita_total) : 0;
+  const despTotal = fg ? aNumero(fg.despesa_total) : 0;
+
   const opcoesAnos = (f.anos || []).map((a) => `
     <option value="${a}" ${Number(a) === Number(anoAtivo) ? 'selected' : ''}>Exercício de ${a}</option>
   `).join('');
 
-  alvo.innerHTML = `
-    <div class="ficha-cabecalho">
-      <div>
-        <h2 id="titulo-detalhe" style="margin:0 0 4px; font-size:1.4rem">${txt(p.nome_eleitoral || p.nome)}</h2>
-        <p class="rodape-mapa" style="margin:0">
-          ${txt(p.cargo_extenso ?? p.cargo)}${p.sigla_partido ? ` · <strong>${escapar(p.sigla_partido)}</strong>` : ''}${p.sigla_uf ? `-${escapar(p.sigla_uf)}` : ''}${p.nome !== p.nome_eleitoral && p.nome ? ` · civil: ${escapar(p.nome)}` : ''}
-        </p>
-        ${oficial ? `<p style="margin:6px 0 0"><a class="fonte-oficial" href="${oficial}" target="_blank" rel="noopener noreferrer">Página oficial na Câmara ↗</a></p>` : ''}
+  const kpisHtml = isExecutivo ? `
+    <div class="ficha-kpi-grid">
+      <div class="ficha-kpi-card kpi-cota">
+        <span class="ficha-kpi-label">Orçamento da Gestão (${anoAtivo})</span>
+        <span class="ficha-kpi-valor">${recTotal > 0 ? dinheiro.format(recTotal) : 'Em consolidação'}</span>
+        <span class="ficha-kpi-sub">Receita Realizada do Ente (${p.sigla_uf || 'BR'})</span>
       </div>
-      ${opcoesAnos ? `
-        <div class="ficha-ano-seletor">
-          <label for="seletor-ano-ficha" style="font-size:12px;font-weight:600;color:var(--texto-sutil)">Exercício:</label>
-          <select id="seletor-ano-ficha" class="seletor-compacto">
-            ${opcoesAnos}
-          </select>
-        </div>
-      ` : ''}
-    </div>
 
-    <!-- KPI Dashboard Cards -->
+      <div class="ficha-kpi-card kpi-presenca">
+        <span class="ficha-kpi-label">Despesas Executadas (${anoAtivo})</span>
+        <span class="ficha-kpi-valor">${despTotal > 0 ? dinheiro.format(despTotal) : 'Em consolidação'}</span>
+        <span class="ficha-kpi-sub">Investimentos e Custeio</span>
+      </div>
+
+      <div class="ficha-kpi-card kpi-subsidio">
+        <span class="ficha-kpi-label">Subsídio Constitucional</span>
+        <span class="ficha-kpi-valor">${Number.isFinite(subsidio) ? dinheiroExato.format(subsidio) : '—'}</span>
+        <span class="ficha-kpi-sub">${p.norma_subsidio ? escapar(p.norma_subsidio) : 'Teto legal do cargo'}</span>
+      </div>
+
+      <div class="ficha-kpi-card kpi-atividade">
+        <span class="ficha-kpi-label">Patrimônio Declarado</span>
+        <span class="ficha-kpi-valor">${totalPatrimonio > 0 ? dinheiro.format(totalPatrimonio) : '—'}</span>
+        <span class="ficha-kpi-sub">${f.bens_declarados?.length ? `${f.bens_declarados.length} bens no TSE` : 'Registro de candidatura'}</span>
+      </div>
+    </div>
+  ` : `
     <div class="ficha-kpi-grid">
       <div class="ficha-kpi-card kpi-cota">
         <span class="ficha-kpi-label">Cota Parlamentar (${anoAtivo})</span>
@@ -343,22 +356,57 @@ async function abrirFichaDoPolitico(sk, ano) {
         <span class="ficha-kpi-sub">${f.proposicoes?.length || 0} proposições apresentadas</span>
       </div>
     </div>
+  `;
 
-    <!-- Navegação de Abas da Ficha -->
+  const abasNav = isExecutivo ? `
+    <div class="abas-ficha" role="tablist" aria-label="Seções da ficha" style="margin-top:16px">
+      <button role="tab" data-painel="resumo" aria-selected="true">Resumo & Mandatos</button>
+      <button role="tab" data-painel="gestao" aria-selected="false">Contas de Gestão & Finanças</button>
+      <button role="tab" data-painel="patrimonio" aria-selected="false">Declaração de Bens</button>
+    </div>
+  ` : `
     <div class="abas-ficha" role="tablist" aria-label="Seções da ficha" style="margin-top:16px">
       <button role="tab" data-painel="atuacao" aria-selected="true">Atuação e Cota</button>
       <button role="tab" data-painel="resumo" aria-selected="false">Resumo & Mandatos</button>
       <button role="tab" data-painel="emendas" aria-selected="false">Emendas Orçamentárias</button>
       <button role="tab" data-painel="patrimonio" aria-selected="false">Declaração de Bens</button>
     </div>
+  `;
 
-    <!-- 1. ATUAÇÃO E COTA -->
-    <div class="painel-ficha" data-painel="atuacao">
-      ${abaDeAtuacao(f, anoAtivo, presAno)}
+  alvo.innerHTML = `
+    <div class="ficha-cabecalho">
+      <div>
+        <h2 id="titulo-detalhe" style="margin:0 0 4px; font-size:1.4rem">${txt(p.nome_eleitoral || p.nome)}</h2>
+        <p class="rodape-mapa" style="margin:0">
+          ${txt(p.cargo_extenso ?? p.cargo)}${p.sigla_partido ? ` · <strong>${escapar(p.sigla_partido)}</strong>` : ''}${p.sigla_uf ? `-${escapar(p.sigla_uf)}` : ''}${p.nome !== p.nome_eleitoral && p.nome ? ` · civil: ${escapar(p.nome)}` : ''}
+        </p>
+        ${oficial ? `<p style="margin:6px 0 0"><a class="fonte-oficial" href="${oficial}" target="_blank" rel="noopener noreferrer">Página oficial na Câmara ↗</a></p>` : ''}
+      </div>
+      ${opcoesAnos ? `
+        <div class="ficha-ano-seletor">
+          <label for="seletor-ano-ficha" style="font-size:12px;font-weight:600;color:var(--texto-sutil)">Exercício:</label>
+          <select id="seletor-ano-ficha" class="seletor-compacto">
+            ${opcoesAnos}
+          </select>
+        </div>
+      ` : ''}
     </div>
 
+    <!-- KPI Dashboard Cards -->
+    ${kpisHtml}
+
+    <!-- Navegação de Abas da Ficha -->
+    ${abasNav}
+
+    <!-- 1. ATUAÇÃO E COTA (Legislativo) -->
+    ${!isExecutivo ? `
+      <div class="painel-ficha" data-painel="atuacao">
+        ${abaDeAtuacao(f, anoAtivo, presAno)}
+      </div>
+    ` : ''}
+
     <!-- 2. RESUMO E MANDATOS -->
-    <div class="painel-ficha" data-painel="resumo" hidden>
+    <div class="painel-ficha" data-painel="resumo" ${isExecutivo ? '' : 'hidden'}>
       <div class="rolagem" style="margin-top:10px">
         <h3>Mandatos Registrados na Justiça Eleitoral / Congresso</h3>
         <table>
@@ -375,12 +423,21 @@ async function abrirFichaDoPolitico(sk, ano) {
       </div>
     </div>
 
-    <!-- 3. EMENDAS -->
-    <div class="painel-ficha" data-painel="emendas" hidden>
-      ${abaDeEmendas(f.emendas || [], f)}
-    </div>
+    <!-- 3. GESTÃO EXECUTIVA (Executivo) -->
+    ${isExecutivo ? `
+      <div class="painel-ficha" data-painel="gestao" hidden>
+        ${abaDeGestaoExecutiva(f, anoAtivo)}
+      </div>
+    ` : ''}
 
-    <!-- 4. PATRIMÔNIO -->
+    <!-- 4. EMENDAS (Legislativo) -->
+    ${!isExecutivo ? `
+      <div class="painel-ficha" data-painel="emendas" hidden>
+        ${abaDeEmendas(f.emendas || [], f)}
+      </div>
+    ` : ''}
+
+    <!-- 5. PATRIMÔNIO (Ambos) -->
     <div class="painel-ficha" data-painel="patrimonio" hidden>
       ${abaDePatrimonio(f)}
     </div>
@@ -391,6 +448,63 @@ async function abrirFichaDoPolitico(sk, ano) {
   $('#seletor-ano-ficha')?.addEventListener('change', (ev) => {
     abrirFichaDoPolitico(sk, Number(ev.target.value));
   });
+}
+
+function abaDeGestaoExecutiva(f, ano) {
+  const fg = f.financas_gestao;
+  const rec = fg ? aNumero(fg.receita_total) : 0;
+  const desp = fg ? aNumero(fg.despesa_total) : 0;
+  const saldo = rec - desp;
+  const uf = f.politico?.sigla_uf || 'BR';
+
+  return `
+    <div class="ficha-kpi-grid">
+      <div class="ficha-kpi-card kpi-cota">
+        <span class="ficha-kpi-label">Receita Realizada (${ano})</span>
+        <span class="ficha-kpi-valor">${rec > 0 ? dinheiro.format(rec) : 'Em consolidação'}</span>
+        <span class="ficha-kpi-sub">Arrecadação própria e repasses</span>
+      </div>
+      <div class="ficha-kpi-card kpi-presenca">
+        <span class="ficha-kpi-label">Despesa Liquidada (${ano})</span>
+        <span class="ficha-kpi-valor">${desp > 0 ? dinheiro.format(desp) : 'Em consolidação'}</span>
+        <span class="ficha-kpi-sub">Serviços essenciais e obras</span>
+      </div>
+      <div class="ficha-kpi-card kpi-subsidio">
+        <span class="ficha-kpi-label">Resultado Orçamentário</span>
+        <span class="ficha-kpi-valor" style="color: ${saldo >= 0 ? 'var(--favor)' : 'var(--contra)'}">
+          ${saldo !== 0 ? (saldo >= 0 ? `+${dinheiro.format(saldo)}` : dinheiro.format(saldo)) : 'Equilibrado'}
+        </span>
+        <span class="ficha-kpi-sub">${saldo >= 0 ? 'Superávit no exercício' : 'Déficit no exercício'}</span>
+      </div>
+    </div>
+
+    <div class="rolagem" style="margin-top:16px">
+      <h3>Execução Orçamentária e Fiscal do Ente (${uf})</h3>
+      <table>
+        <thead><tr><th>Indicador de Gestão</th><th>Valor Apurado (${ano})</th><th>Classificação</th><th>Fonte Oficial</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>Receita Total Realizada</strong></td>
+            <td class="valor"><strong>${rec > 0 ? dinheiro.format(rec) : '—'}</strong></td>
+            <td>Receita Orçamentária</td>
+            <td>SICONFI / STN</td>
+          </tr>
+          <tr>
+            <td><strong>Despesa Total Liquidada</strong></td>
+            <td class="valor"><strong>${desp > 0 ? dinheiro.format(desp) : '—'}</strong></td>
+            <td>Execução Orçamentária</td>
+            <td>SICONFI / STN</td>
+          </tr>
+          <tr>
+            <td><strong>Resultado Fiscal da Gestão</strong></td>
+            <td class="valor" style="color: ${saldo >= 0 ? 'var(--favor)' : 'var(--contra)'}"><strong>${saldo !== 0 ? dinheiro.format(saldo) : '—'}</strong></td>
+            <td>${saldo >= 0 ? 'Superávit Primário' : 'Déficit Primário'}</td>
+            <td>Relatório de Gestão Fiscal (LRF)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  `;
 }
 
 function abaDeAtuacao(f, ano, presAno) {

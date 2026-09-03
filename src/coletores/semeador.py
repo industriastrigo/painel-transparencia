@@ -58,7 +58,14 @@ def semear_se_vazio(forcar: bool = False) -> None:
     # 3. Parlamentares de Referência (Senadores e Deputados Federais)
     try:
         semear_parlamentares()
-        log.info("[OK] Base de parlamentares e mandatos sincronizada.")
+        from .parlamentares_dados import carregar_dados_politicos_detalhe
+        desp_cota, emendas_leg, bens_pol, eventos_plen, presencas_plen = carregar_dados_politicos_detalhe()
+        armazem.mesclar("despesa_parlamentar", desp_cota, "semeador")
+        armazem.mesclar("emenda_parlamentar", emendas_leg, "semeador")
+        armazem.mesclar("bem_declarado", bens_pol, "semeador")
+        armazem.mesclar("evento", eventos_plen, "semeador")
+        armazem.mesclar("presenca_evento", presencas_plen, "semeador")
+        log.info("[OK] Base de parlamentares, cotas, emendas, bens e presenças sincronizada.")
     except Exception as erro:
         log.warning("Aviso ao sincronizar parlamentares: %s", erro)
 
