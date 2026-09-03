@@ -621,13 +621,11 @@
   <!-- -------------------------------------------------------- políticos -->
   <section id="aba-politicos" role="tabpanel" tabindex="-1"
            aria-labelledby="aba-btn-politicos" hidden>
-    <div class="aviso">
-      <strong>Limite honesto de escopo</strong>
-      Cadastro de eleitos existe do presidente ao vereador (TSE). Já a votação
-      nominal em projetos só existe de forma estruturada no Congresso Nacional
-      — são 27 assembleias e 5.570 câmaras municipais, cada uma com seu site.
-      Para estadual e municipal o painel mostra cadastro e finanças, nunca
-      votos que não pôde verificar.
+    <div class="banner-informativo">
+      <span class="banner-icone">ℹ️</span>
+      <div class="banner-texto">
+        <strong>Escopo do Acervo:</strong> Base unificada de eleitos e mandatos do TSE e Congresso Nacional (Presidente, Governadores, Senadores e Deputados Federais) com conciliação federativa.
+      </div>
     </div>
 
     <div class="barra">
@@ -705,26 +703,33 @@
       <div class="acao"><button id="buscar-politicos" class="principal">Buscar</button></div>
     </div>
 
-    <div class="painel">
+    <div class="painel painel-politicos">
       <div class="cartao">
-        <h2>Resultados</h2>
-        <!-- SEM `style` inline aqui. Um `display:flex` no atributo `style`
-             VENCE o `[hidden] { display: none }` da folha do navegador, e a
-             div apareceria vazia sempre — inclusive antes da primeira busca.
-             É a mesma armadilha do `font-size` do rótulo do mapa: quem ganha
-             a cascata não é quem parece. O layout está em estilo.css. -->
+        <div class="cabecalho-secao-flex" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--e3);">
+          <h2 style="margin: 0;">Resultados da Consulta</h2>
+          <span id="status-politicos" class="contador-status" style="font-size: var(--t-p); color: var(--texto-fraco); font-weight: 500;"></span>
+        </div>
         <div id="destaque-executivo" hidden></div>
         <div class="rolagem">
           <table id="tabela-politicos">
-            <caption class="rodape-mapa" style="text-align:left;caption-side:bottom">
-              Cadastro do TSE, conciliado com o código IBGE e mandatos oficiais.</caption>
-            <thead><tr><th>Nome</th><th>Cargo</th><th>Mandato / Vigência</th><th>Partido</th><th>UF</th><th>Fonte</th></tr></thead>
+            <caption class="rodape-mapa" style="text-align:left;caption-side:bottom; margin-top: var(--e2); color: var(--texto-sutil);">
+              Base unificada do TSE e Congresso Nacional, com mandatos e subsídios constitucionais.</caption>
+            <thead>
+              <tr>
+                <th style="min-width: 220px;">Nome Parlamentar / Civil</th>
+                <th style="min-width: 140px;">Cargo</th>
+                <th style="min-width: 80px;">Partido</th>
+                <th style="min-width: 50px;">UF</th>
+                <th style="min-width: 120px;">Mandato / Vigência</th>
+                <th style="min-width: 130px; text-align: right;">Subsídio Mensal</th>
+              </tr>
+            </thead>
             <tbody aria-live="polite" aria-busy="false"></tbody>
           </table>
         </div>
       </div>
-      <div class="cartao">
-        <h2>Quantos existem</h2>
+      <div class="cartao cartao-resumo-politicos">
+        <h2 style="margin-bottom: var(--e3);">Composição do Acervo</h2>
         <div id="resumo-politicos"></div>
       </div>
     </div>

@@ -537,6 +537,28 @@ button.discreto:disabled { opacity: .45; cursor: not-allowed; }
 .aviso.problema { background: var(--contra-fraco); border-color: var(--contra); border-left-color: var(--contra); }
 .aviso.problema strong { color: var(--contra); }
 
+.banner-informativo {
+  display: flex;
+  align-items: center;
+  gap: var(--e3);
+  background: var(--superficie-2);
+  border: 1px solid var(--borda);
+  border-left: 3px solid var(--realce);
+  border-radius: var(--raio-p);
+  padding: var(--e3) var(--e4);
+  font-size: var(--t-p);
+  margin-bottom: var(--e4);
+  color: var(--texto-fraco);
+  line-height: 1.45;
+}
+.banner-informativo strong {
+  color: var(--texto);
+}
+.banner-icone {
+  font-size: 1.15rem;
+  flex-shrink: 0;
+}
+
 /* --------------------------------------------------------------- seleção */
 .lista-selecao { display: flex; flex-direction: column; gap: 2px; }
 .lista-selecao label.opcao {
@@ -3229,4 +3251,167 @@ a:hover { color: var(--realce-vivo); }
   }
 }
 
+/* ------------------------------------------------ Políticos & Mandatos UI */
+.painel-politicos {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: var(--e5);
+  align-items: start;
+}
 
+@media (max-width: 1024px) {
+  .painel-politicos {
+    grid-template-columns: 1fr;
+  }
+}
+
+#tabela-politicos tbody tr {
+  cursor: pointer;
+  transition: background-color var(--transicao);
+}
+
+#tabela-politicos tbody tr:hover {
+  background-color: var(--superficie-2);
+}
+
+#tabela-politicos td {
+  padding: 12px 14px;
+  vertical-align: middle;
+}
+
+.col-nome {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nome-destaque {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--texto);
+}
+
+.nome-civil {
+  font-size: 0.76rem;
+  color: var(--texto-fraco);
+  font-weight: 400;
+}
+
+.badge-cargo {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  background: var(--superficie-3);
+  color: var(--texto);
+  border: 1px solid var(--borda);
+  white-space: nowrap;
+}
+
+.badge-partido {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: rgba(59, 130, 246, 0.12);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  text-align: center;
+}
+
+.badge-uf {
+  display: inline-block;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--texto-fraco);
+  text-align: center;
+}
+
+.col-mandato {
+  font-size: 0.85rem;
+  color: var(--texto-fraco);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.col-valor {
+  font-weight: 600;
+  color: var(--favor, #34d399);
+  font-size: 0.9rem;
+}
+
+.cartao-resumo-politicos {
+  background: var(--superficie);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  padding: var(--e4);
+}
+
+.resumo-cargos-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.card-stat-cargo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  background: var(--superficie-2);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-p);
+  transition: all var(--transicao);
+}
+
+.card-stat-cargo:hover {
+  border-color: var(--realce-borda);
+  background: var(--superficie-3);
+}
+
+.card-stat-cargo .cargo-ident {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-stat-cargo .cargo-icone {
+  font-size: 1.1rem;
+}
+
+.card-stat-cargo .cargo-nome {
+  font-size: 0.84rem;
+  font-weight: 500;
+  color: var(--texto);
+}
+
+.card-stat-cargo .cargo-qtd {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--texto);
+  background: var(--superficie-3);
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--borda);
+}
+
+.card-stat-cargo.total {
+  background: linear-gradient(135deg, rgba(234, 179, 8, 0.12), rgba(234, 179, 8, 0.04));
+  border-color: rgba(234, 179, 8, 0.35);
+  margin-bottom: 4px;
+}
+
+.card-stat-cargo.total .cargo-nome {
+  font-weight: 700;
+  color: var(--realce, #eab308);
+}
+
+.card-stat-cargo.total .cargo-qtd {
+  background: var(--realce, #eab308);
+  color: #000;
+  font-weight: 800;
+  border-color: transparent;
+}

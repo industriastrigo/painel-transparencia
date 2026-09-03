@@ -13,6 +13,26 @@ const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun',
 
 /* ---------------------------------------------------------------- listagem */
 
+const ICONES_CARGO = {
+  presidente: '🇧🇷',
+  governador: '🏛️',
+  senador: '📜',
+  deputado_federal: '⚖️',
+  deputado_estadual: '📋',
+  prefeito: '🏙️',
+  vereador: '👥',
+};
+
+const NOMES_CARGO = {
+  presidente: 'Presidente da República',
+  governador: 'Governador de Estado',
+  senador: 'Senador Federal',
+  deputado_federal: 'Deputado Federal',
+  deputado_estadual: 'Deputado Estadual',
+  prefeito: 'Prefeito Municipal',
+  vereador: 'Vereador',
+};
+
 async function carregarResumoPoliticos(uf) {
   const alvo = $('#resumo-politicos');
   if (!alvo) return;
@@ -23,16 +43,30 @@ async function carregarResumoPoliticos(uf) {
       alvo.innerHTML = '<p class="vazio">Nenhum político no acervo para este filtro.</p>';
       return;
     }
-    const html = dados.cargos.map((c) => `
-      <span class="selo-cargo">
-        <strong>${txt(c.cargo)}</strong>
-        <span class="qtd">${Number(c.quantidade).toLocaleString('pt-BR')}</span>
-      </span>
-    `).join('');
+    const cardsCargos = dados.cargos.map((c) => {
+      const icone = ICONES_CARGO[c.cargo] || '👤';
+      const nomeCargo = NOMES_CARGO[c.cargo] || txt(c.cargo);
+      return `
+        <div class="card-stat-cargo">
+          <div class="cargo-ident">
+            <span class="cargo-icone">${icone}</span>
+            <span class="cargo-nome">${nomeCargo}</span>
+          </div>
+          <span class="cargo-qtd">${Number(c.quantidade).toLocaleString('pt-BR')}</span>
+        </div>
+      `;
+    }).join('');
+
     alvo.innerHTML = `
-      <div class="resumo-cargos">
-        <span class="total">Total: <strong>${Number(dados.total).toLocaleString('pt-BR')}</strong></span>
-        ${html}
+      <div class="resumo-cargos-grid">
+        <div class="card-stat-cargo total">
+          <div class="cargo-ident">
+            <span class="cargo-icone">👥</span>
+            <span class="cargo-nome">Total Geral de Eleitos</span>
+          </div>
+          <span class="cargo-qtd">${Number(dados.total).toLocaleString('pt-BR')}</span>
+        </div>
+        ${cardsCargos}
       </div>`;
   } catch (erro) {
     alvo.innerHTML = falha('Não deu para carregar o resumo de cargos.', erro);
@@ -89,15 +123,15 @@ async function carregarPoliticos() {
 
     return `
       <tr data-politico="${escapar(p.sk)}" tabindex="0" role="button" aria-label="Ver ficha de ${atributo(nomeExibicao)}">
-        <td class="nome">
-          <strong>${nomeExibicao}</strong>
-          ${p.nome !== p.nome_eleitoral && p.nome ? `<span class="nome-civil">civil: ${escapar(p.nome)}</span>` : ''}
+        <td class="col-nome">
+          <div class="nome-destaque">${nomeExibicao}</div>
+          ${p.nome && p.nome !== p.nome_eleitoral ? `<div class="nome-civil">Civil: ${escapar(p.nome)}</div>` : ''}
         </td>
-        <td><span class="selo-cargo-tabela">${cargoFormatado}</span></td>
-        <td><strong>${txt(p.sigla_partido)}</strong></td>
-        <td>${txt(p.sigla_uf)}</td>
-        <td class="periodo-mandato">${escapar(periodo)}</td>
-        <td class="valor">${Number.isFinite(subsidio) ? dinheiroExato.format(subsidio) : '—'}</td>
+        <td class="col-cargo"><span class="badge-cargo ${escapar(p.cargo || '')}">${cargoFormatado}</span></td>
+        <td class="col-partido"><span class="badge-partido">${txt(p.sigla_partido)}</span></td>
+        <td class="col-uf"><span class="badge-uf">${txt(p.sigla_uf)}</span></td>
+        <td class="col-mandato">${escapar(periodo)}</td>
+        <td class="col-valor valor">${Number.isFinite(subsidio) ? dinheiroExato.format(subsidio) : '<span class="texto-sutil">—</span>'}</td>
       </tr>
     `;
   }).join('');
