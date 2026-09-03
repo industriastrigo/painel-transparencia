@@ -410,13 +410,13 @@ async function abrirFichaDoPolitico(sk, ano) {
       <div class="rolagem" style="margin-top:10px">
         <h3>Mandatos Registrados na Justiça Eleitoral / Congresso</h3>
         <table>
-          <thead><tr><th>Cargo</th><th>Período</th><th>Situação</th><th>Fonte</th></tr></thead>
+          <thead><tr><th>Cargo</th><th class="centrado">Período</th><th class="centrado">Situação</th><th class="centrado">Fonte</th></tr></thead>
           <tbody>
             ${(f.mandatos?.length ? f.mandatos : [{ cargo: p.cargo_extenso || p.cargo, ano_inicio: p.ano_inicio || 2023, ano_fim: p.ano_fim || 2027, situacao: 'Exercício', fonte_origem: p.fonte_origem || 'TSE' }]).map((m) => `<tr>
               <td><strong>${txt(m.cargo)}</strong></td>
-              <td>${m.ano_inicio ? `${m.ano_inicio}–${m.ano_fim || 'atual'}` : '—'}</td>
-              <td>${txt(m.situacao || 'Titular')}</td>
-              <td>${txt(m.fonte_origem || 'TSE')}</td>
+              <td class="centrado">${m.ano_inicio ? `${m.ano_inicio}–${m.ano_fim || 'atual'}` : '—'}</td>
+              <td class="centrado">${txt(m.situacao || 'Titular')}</td>
+              <td class="centrado">${txt(m.fonte_origem || 'TSE')}</td>
             </tr>`).join('')}
           </tbody>
         </table>
@@ -456,6 +456,7 @@ function abaDeGestaoExecutiva(f, ano) {
   const desp = fg ? aNumero(fg.despesa_total) : 0;
   const saldo = rec - desp;
   const uf = f.politico?.sigla_uf || 'BR';
+  const nomeEnte = fg?.ente_nome || (uf === 'BR' ? 'Governo Federal (Brasil)' : `Estado de ${uf}`);
 
   return `
     <div class="ficha-kpi-grid">
@@ -471,7 +472,7 @@ function abaDeGestaoExecutiva(f, ano) {
       </div>
       <div class="ficha-kpi-card kpi-subsidio">
         <span class="ficha-kpi-label">Resultado Orçamentário</span>
-        <span class="ficha-kpi-valor" style="color: ${saldo >= 0 ? 'var(--favor)' : 'var(--contra)'}">
+        <span class="ficha-kpi-valor" style="color: ${saldo >= 0 ? 'var(--favor, #10b981)' : 'var(--contra, #ef4444)'}">
           ${saldo !== 0 ? (saldo >= 0 ? `+${dinheiro.format(saldo)}` : dinheiro.format(saldo)) : 'Equilibrado'}
         </span>
         <span class="ficha-kpi-sub">${saldo >= 0 ? 'Superávit no exercício' : 'Déficit no exercício'}</span>
@@ -479,27 +480,27 @@ function abaDeGestaoExecutiva(f, ano) {
     </div>
 
     <div class="rolagem" style="margin-top:16px">
-      <h3>Execução Orçamentária e Fiscal do Ente (${uf})</h3>
+      <h3>Execução Orçamentária e Fiscal do Ente (${escapar(nomeEnte)})</h3>
       <table>
-        <thead><tr><th>Indicador de Gestão</th><th>Valor Apurado (${ano})</th><th>Classificação</th><th>Fonte Oficial</th></tr></thead>
+        <thead><tr><th>Indicador de Gestão</th><th class="valor">Valor Apurado (${ano})</th><th class="centrado">Classificação</th><th class="centrado">Fonte Oficial</th></tr></thead>
         <tbody>
           <tr>
             <td><strong>Receita Total Realizada</strong></td>
             <td class="valor"><strong>${rec > 0 ? dinheiro.format(rec) : '—'}</strong></td>
-            <td>Receita Orçamentária</td>
-            <td>SICONFI / STN</td>
+            <td class="centrado">Receita Orçamentária</td>
+            <td class="centrado">${escapar(fg?.fonte || 'SICONFI / STN')}</td>
           </tr>
           <tr>
             <td><strong>Despesa Total Liquidada</strong></td>
             <td class="valor"><strong>${desp > 0 ? dinheiro.format(desp) : '—'}</strong></td>
-            <td>Execução Orçamentária</td>
-            <td>SICONFI / STN</td>
+            <td class="centrado">Execução Orçamentária</td>
+            <td class="centrado">${escapar(fg?.fonte || 'SICONFI / STN')}</td>
           </tr>
           <tr>
             <td><strong>Resultado Fiscal da Gestão</strong></td>
-            <td class="valor" style="color: ${saldo >= 0 ? 'var(--favor)' : 'var(--contra)'}"><strong>${saldo !== 0 ? dinheiro.format(saldo) : '—'}</strong></td>
-            <td>${saldo >= 0 ? 'Superávit Primário' : 'Déficit Primário'}</td>
-            <td>Relatório de Gestão Fiscal (LRF)</td>
+            <td class="valor" style="color: ${saldo >= 0 ? 'var(--favor, #10b981)' : 'var(--contra, #ef4444)'}"><strong>${saldo !== 0 ? (saldo >= 0 ? '+' : '') + dinheiro.format(saldo) : '—'}</strong></td>
+            <td class="centrado">${saldo >= 0 ? 'Superávit Primário' : 'Déficit Primário'}</td>
+            <td class="centrado">Relatório de Gestão Fiscal (LRF)</td>
           </tr>
         </tbody>
       </table>
@@ -701,12 +702,12 @@ function abaDePatrimonio(f) {
       <div class="rolagem" style="margin-top:16px">
         <h3>Evolução Patrimonial por Eleição</h3>
         <table>
-          <thead><tr><th>Ano da Eleição</th><th>Cargo Concorrido</th><th>Qtd. Bens</th><th>Total Declarado</th></tr></thead>
+          <thead><tr><th class="centrado">Ano da Eleição</th><th>Cargo Concorrido</th><th class="centrado">Qtd. Bens</th><th class="valor">Total Declarado</th></tr></thead>
           <tbody>
             ${historico.map((h) => `<tr>
-              <td><strong>${h.ano_eleicao}</strong></td>
+              <td class="centrado"><strong>${h.ano_eleicao}</strong></td>
               <td>${txt(h.cargo)}</td>
-              <td>${h.total_bens}</td>
+              <td class="centrado">${h.total_bens}</td>
               <td class="valor"><strong>${dinheiro.format(h.total_declarado)}</strong></td>
             </tr>`).join('')}
           </tbody>
@@ -717,10 +718,10 @@ function abaDePatrimonio(f) {
     <div class="rolagem" style="margin-top:16px">
       <h3>Detalhamento dos Bens Declarados</h3>
       <table>
-        <thead><tr><th>Ano</th><th>Tipo do Bem</th><th>Descrição</th><th>Valor Declarado</th></tr></thead>
+        <thead><tr><th class="centrado">Ano</th><th>Tipo do Bem</th><th>Descrição</th><th class="valor">Valor Declarado</th></tr></thead>
         <tbody>
           ${bens.map((b) => `<tr>
-            <td>${b.ano_eleicao || '—'}</td>
+            <td class="centrado">${b.ano_eleicao || '—'}</td>
             <td><strong>${txt(b.tipo_bem)}</strong></td>
             <td>${txt(b.descricao_bem)}</td>
             <td class="valor"><strong>${dinheiro.format(b.valor_bem)}</strong></td>
