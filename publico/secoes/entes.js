@@ -140,12 +140,12 @@ async function abrirFicha(codIbge) {
     <h2>Em que gasta — por natureza</h2>
     ${financas.length ? (() => {
       const total = somar(financas);
-      return tabela('<th>Natureza</th><th>Empenhado</th><th>Fatia</th>',
+      return tabela('<th>Natureza</th><th class="centrado">Empenhado</th><th class="centrado">Fatia</th>',
         financas.map((x) => `<tr>
-          <td>${txt(x.natureza ?? x.cod_natureza)}</td>
-          <td class="valor" title="${atributo(exato(aNumero(x.valor), 'despesa_total'))}"
+          <td><strong>${txt(x.natureza ?? x.cod_natureza)}</strong></td>
+          <td class="centrado" title="${atributo(exato(aNumero(x.valor), 'despesa_total'))}"
             >${formatar(aNumero(x.valor), 'despesa_total')}</td>
-          <td class="valor">${fatia(x.valor, total)}</td>
+          <td class="centrado">${fatia(x.valor, total)}</td>
         </tr>`).join(''))
         + (funcoes.length ? `<p class="rodape-mapa">Pessoal, juros,
             investimentos: <strong>o quê</strong> foi comprado. A tabela
@@ -162,12 +162,12 @@ async function abrirFicha(codIbge) {
         não a soma dos bimestres.</p>
       ${(() => {
         const total = somar(funcoes);
-        return tabela('<th>Função</th><th>Empenhado</th><th>Fatia</th>',
+        return tabela('<th>Função</th><th class="centrado">Empenhado</th><th class="centrado">Fatia</th>',
           funcoes.map((x) => `<tr>
-            <td>${txt(x.funcao ?? x.cod_funcao)}</td>
-            <td class="valor" title="${atributo(exato(aNumero(x.valor), 'despesa_total'))}"
+            <td><strong>${txt(x.funcao ?? x.cod_funcao)}</strong></td>
+            <td class="centrado" title="${atributo(exato(aNumero(x.valor), 'despesa_total'))}"
               >${formatar(aNumero(x.valor), 'despesa_total')}</td>
-            <td class="valor">${fatia(x.valor, total)}</td>
+            <td class="centrado">${fatia(x.valor, total)}</td>
           </tr>`).join(''));
       })()}
       ${conferencia('a soma das funções', f.conferencia_funcao)}` : ''}
@@ -198,12 +198,12 @@ async function abrirFicha(codIbge) {
         duas está errada.</p>
       ${(() => {
         const total = somar(f.transferencias_uniao);
-        return tabela('<th>Modalidade</th><th>Valor</th><th>Fatia</th>',
+        return tabela('<th>Modalidade</th><th class="centrado">Valor</th><th class="centrado">Fatia</th>',
           f.transferencias_uniao.map((x) => `<tr>
-            <td>${txt(x.transferencia ?? x.cod_transferencia)}</td>
-            <td class="valor" title="${atributo(exato(aNumero(x.valor), 'transferencia_uniao'))}"
+            <td><strong>${txt(x.transferencia ?? x.cod_transferencia)}</strong></td>
+            <td class="centrado" title="${atributo(exato(aNumero(x.valor), 'transferencia_uniao'))}"
               >${formatar(aNumero(x.valor), 'transferencia_uniao')}</td>
-            <td class="valor">${fatia(x.valor, total)}</td>
+            <td class="centrado">${fatia(x.valor, total)}</td>
           </tr>`).join(''));
       })()}` : ''}
 

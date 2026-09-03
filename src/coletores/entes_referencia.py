@@ -186,11 +186,49 @@ def carregar_dados_federativos() -> tuple[list[dict], list[dict], list[dict], li
                 "estagio": "Receitas Realizadas", "valor": rec,
                 "data_referencia": f"{ano}-12-31"
             })
-            # Despesas Empenhadas
+            # Despesas por Categoria Econômica (Nível 1)
             financas.append({
                 "cod_ibge": ibge, "ano": ano, "periodo": "1", "esfera": "estadual", "uf": sigla,
                 "cod_conta": "DO3.0.00.00.00.00", "cod_funcao": None, "funcao": None, "rotulo_conta": "Despesas Correntes",
-                "estagio": "Despesas Empenhadas", "valor": desp,
+                "estagio": "Despesas Empenhadas", "valor": desp * 0.88,
+                "data_referencia": f"{ano}-12-31"
+            })
+            financas.append({
+                "cod_ibge": ibge, "ano": ano, "periodo": "1", "esfera": "estadual", "uf": sigla,
+                "cod_conta": "DO4.0.00.00.00.00", "cod_funcao": None, "funcao": None, "rotulo_conta": "Despesas de Capital",
+                "estagio": "Despesas Empenhadas", "valor": desp * 0.12,
+                "data_referencia": f"{ano}-12-31"
+            })
+
+            # Despesas por Natureza / GND (Nível 2)
+            financas.append({
+                "cod_ibge": ibge, "ano": ano, "periodo": "1", "esfera": "estadual", "uf": sigla,
+                "cod_conta": "DO3.1.00.00.00.00", "cod_funcao": None, "funcao": None, "rotulo_conta": "Pessoal e Encargos Sociais",
+                "estagio": "Despesas Empenhadas", "valor": desp * 0.48,
+                "data_referencia": f"{ano}-12-31"
+            })
+            financas.append({
+                "cod_ibge": ibge, "ano": ano, "periodo": "1", "esfera": "estadual", "uf": sigla,
+                "cod_conta": "DO3.2.00.00.00.00", "cod_funcao": None, "funcao": None, "rotulo_conta": "Juros e Encargos da Dívida",
+                "estagio": "Despesas Empenhadas", "valor": desp * 0.04,
+                "data_referencia": f"{ano}-12-31"
+            })
+            financas.append({
+                "cod_ibge": ibge, "ano": ano, "periodo": "1", "esfera": "estadual", "uf": sigla,
+                "cod_conta": "DO3.3.00.00.00.00", "cod_funcao": None, "funcao": None, "rotulo_conta": "Outras Despesas Correntes",
+                "estagio": "Despesas Empenhadas", "valor": desp * 0.36,
+                "data_referencia": f"{ano}-12-31"
+            })
+            financas.append({
+                "cod_ibge": ibge, "ano": ano, "periodo": "1", "esfera": "estadual", "uf": sigla,
+                "cod_conta": "DO4.4.00.00.00.00", "cod_funcao": None, "funcao": None, "rotulo_conta": "Investimentos",
+                "estagio": "Despesas Empenhadas", "valor": desp * 0.09,
+                "data_referencia": f"{ano}-12-31"
+            })
+            financas.append({
+                "cod_ibge": ibge, "ano": ano, "periodo": "1", "esfera": "estadual", "uf": sigla,
+                "cod_conta": "DO4.6.00.00.00.00", "cod_funcao": None, "funcao": None, "rotulo_conta": "Amortização da Dívida",
+                "estagio": "Despesas Empenhadas", "valor": desp * 0.03,
                 "data_referencia": f"{ano}-12-31"
             })
             # Transferências Recebidas (Finanças)
@@ -446,10 +484,50 @@ def carregar_dados_federativos() -> tuple[list[dict], list[dict], list[dict], li
                 "cod_conta": "RO1.0.0.0.00.0.0", "cod_funcao": None, "funcao": None, "rotulo_conta": "Receitas Correntes",
                 "estagio": "Receitas Realizadas", "valor": rec_m, "data_referencia": f"{ano}-12-31"
             })
+            # Despesas Municipais por Categoria (Nível 1)
             financas.append({
                 "cod_ibge": ibge_m, "ano": ano, "periodo": "1", "esfera": "municipal", "uf": sigla_m,
                 "cod_conta": "DO3.0.00.00.00.00", "cod_funcao": None, "funcao": None, "rotulo_conta": "Despesas Correntes",
-                "estagio": "Despesas Empenhadas", "valor": desp_m, "data_referencia": f"{ano}-12-31"
+                "estagio": "Despesas Empenhadas", "valor": desp_m * 0.89,
+                "data_referencia": f"{ano}-12-31"
+            })
+            financas.append({
+                "cod_ibge": ibge_m, "ano": ano, "periodo": "1", "esfera": "municipal", "uf": sigla_m,
+                "cod_conta": "DO4.0.00.00.00.00", "cod_funcao": None, "funcao": None, "rotulo_conta": "Despesas de Capital",
+                "estagio": "Despesas Empenhadas", "valor": desp_m * 0.11,
+                "data_referencia": f"{ano}-12-31"
+            })
+
+            # Despesas Municipais por Natureza / GND (Nível 2)
+            financas.append({
+                "cod_ibge": ibge_m, "ano": ano, "periodo": "1", "esfera": "municipal", "uf": sigla_m,
+                "cod_conta": "DO3.1.00.00.00.00", "cod_funcao": None, "funcao": None, "rotulo_conta": "Pessoal e Encargos Sociais",
+                "estagio": "Despesas Empenhadas", "valor": desp_m * 0.49,
+                "data_referencia": f"{ano}-12-31"
+            })
+            financas.append({
+                "cod_ibge": ibge_m, "ano": ano, "periodo": "1", "esfera": "municipal", "uf": sigla_m,
+                "cod_conta": "DO3.2.00.00.00.00", "cod_funcao": None, "funcao": None, "rotulo_conta": "Juros e Encargos da Dívida",
+                "estagio": "Despesas Empenhadas", "valor": desp_m * 0.02,
+                "data_referencia": f"{ano}-12-31"
+            })
+            financas.append({
+                "cod_ibge": ibge_m, "ano": ano, "periodo": "1", "esfera": "municipal", "uf": sigla_m,
+                "cod_conta": "DO3.3.00.00.00.00", "cod_funcao": None, "funcao": None, "rotulo_conta": "Outras Despesas Correntes",
+                "estagio": "Despesas Empenhadas", "valor": desp_m * 0.38,
+                "data_referencia": f"{ano}-12-31"
+            })
+            financas.append({
+                "cod_ibge": ibge_m, "ano": ano, "periodo": "1", "esfera": "municipal", "uf": sigla_m,
+                "cod_conta": "DO4.4.00.00.00.00", "cod_funcao": None, "funcao": None, "rotulo_conta": "Investimentos",
+                "estagio": "Despesas Empenhadas", "valor": desp_m * 0.09,
+                "data_referencia": f"{ano}-12-31"
+            })
+            financas.append({
+                "cod_ibge": ibge_m, "ano": ano, "periodo": "1", "esfera": "municipal", "uf": sigla_m,
+                "cod_conta": "DO4.6.00.00.00.00", "cod_funcao": None, "funcao": None, "rotulo_conta": "Amortização da Dívida",
+                "estagio": "Despesas Empenhadas", "valor": desp_m * 0.02,
+                "data_referencia": f"{ano}-12-31"
             })
             financas.append({
                 "cod_ibge": ibge_m, "ano": ano, "periodo": "1", "esfera": "municipal", "uf": sigla_m,
