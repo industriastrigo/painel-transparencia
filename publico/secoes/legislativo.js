@@ -147,8 +147,8 @@ function renderizarLegislativo(sumario, cotas, dadosParlamentares) {
             <thead>
               <tr>
                 <th>Categoria da Despesa</th>
-                <th class="num" style="width:110px; min-width:95px">Notas</th>
-                <th class="num" style="width:175px; min-width:160px">Total Gasto</th>
+                <th class="centrado" style="width:110px; min-width:95px">Notas</th>
+                <th class="valor" style="width:175px; min-width:160px">Total Gasto</th>
               </tr>
             </thead>
             <tbody>
@@ -157,8 +157,8 @@ function renderizarLegislativo(sumario, cotas, dadosParlamentares) {
                 return `
                   <tr>
                     <td style="line-height:1.35"><strong>${escapar(categoriaLimpa)}</strong></td>
-                    <td class="num">${contagem(c.documentos)}</td>
-                    <td class="num">${dinheiro.format(c.total_gasto)}</td>
+                    <td class="centrado">${contagem(c.documentos)}</td>
+                    <td class="valor">${dinheiro.format(c.total_gasto)}</td>
                   </tr>
                 `;
               }).join('')}
@@ -166,8 +166,8 @@ function renderizarLegislativo(sumario, cotas, dadosParlamentares) {
             <tfoot>
               <tr style="border-top:2px solid var(--borda-forte, #475569); background:var(--superficie-3, rgba(255,255,255,0.06)); font-weight:bold">
                 <td><strong>TOTAL / SOMA</strong></td>
-                <td class="num"><strong style="color:var(--realce, #38bdf8)">${contagem(totalNotasCota)}</strong></td>
-                <td class="num"><strong style="color:var(--calmo, #10b981)">${dinheiro.format(totalGastoCota)}</strong></td>
+                <td class="centrado"><strong style="color:var(--realce, #38bdf8)">${contagem(totalNotasCota)}</strong></td>
+                <td class="valor"><strong style="color:var(--calmo, #10b981)">${dinheiro.format(totalGastoCota)}</strong></td>
               </tr>
             </tfoot>
           </table>
@@ -184,26 +184,26 @@ function renderizarLegislativo(sumario, cotas, dadosParlamentares) {
           <thead>
             <tr>
               <th>Fornecedor / Razão Social</th>
-              <th>CNPJ / CPF</th>
-              <th class="num">Transações</th>
-              <th class="num">Total Recebido</th>
+              <th class="centrado">CNPJ / CPF</th>
+              <th class="centrado">Transações</th>
+              <th class="valor">Total Recebido</th>
             </tr>
           </thead>
           <tbody>
             ${fornecedoresCota.map((f) => `
               <tr>
                 <td><strong>${escapar(f.fornecedor)}</strong></td>
-                <td><span class="subtexto">${escapar(f.cnpj_cpf)}</span></td>
-                <td class="num">${contagem(f.transacoes)}</td>
-                <td class="num"><strong>${dinheiro.format(f.total_recebido)}</strong></td>
+                <td class="centrado"><span class="subtexto">${escapar(f.cnpj_cpf)}</span></td>
+                <td class="centrado">${contagem(f.transacoes)}</td>
+                <td class="valor"><strong>${dinheiro.format(f.total_recebido)}</strong></td>
               </tr>
             `).join('')}
           </tbody>
           <tfoot>
             <tr style="border-top:2px solid var(--borda-forte, #475569); background:var(--superficie-3, rgba(255,255,255,0.06)); font-weight:bold">
               <td colspan="2"><strong>TOTAL / SOMA (Maiores Favorecidos)</strong></td>
-              <td class="num"><strong style="color:var(--realce, #38bdf8)">${contagem(totalTransacoesForn)}</strong></td>
-              <td class="num"><strong style="color:var(--calmo, #10b981)">${dinheiro.format(totalRecebidoForn)}</strong></td>
+              <td class="centrado"><strong style="color:var(--realce, #38bdf8)">${contagem(totalTransacoesForn)}</strong></td>
+              <td class="valor"><strong style="color:var(--calmo, #10b981)">${dinheiro.format(totalRecebidoForn)}</strong></td>
             </tr>
           </tfoot>
         </table>

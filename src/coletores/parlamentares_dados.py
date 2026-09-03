@@ -5,6 +5,8 @@ e eventos de plenário para deputados federais, senadores, governadores e presid
 """
 from __future__ import annotations
 
+import hashlib
+
 from ..nucleo import armazem
 
 def carregar_dados_politicos_detalhe() -> tuple[list[dict], list[dict], list[dict], list[dict], list[dict]]:
@@ -54,13 +56,52 @@ def carregar_dados_politicos_detalhe() -> tuple[list[dict], list[dict], list[dic
     eventos = []
     presencas = []
 
-    tipos_despesa = [
-        ("PASSAGEM AÉREA", "LATAM AIRLINES BRASIL", "02.012.862/0001-60", 1850.00),
-        ("COMBUSTÍVEIS E LUBRIFICANTES", "AUTO POSTO DA TORRE LTDA", "00.306.597/0001-40", 420.00),
-        ("CONSULTORIAS, PESQUISAS E TRABALHOS TÉCNICOS", "ASSESSORIA ESTRATÉGICA PARLAMENTAR LTDA", "33.450.812/0001-90", 6500.00),
-        ("DIVULGAÇÃO DA ATIVIDADE PARLAMENTAR", "COMUNICAÇÃO E MÍDIA DIGITAL BRASIL", "12.789.445/0001-22", 8200.00),
-        ("LOCAÇÃO OU FRETAMENTO DE VEÍCULOS AUTOMOTORES", "LOCALIZA RENT A CAR S.A.", "16.670.085/0001-55", 3400.00),
-        ("SERVIÇOS POSTAIS E TELEFONIA", "CLARO S.A.", "40.432.544/0001-47", 380.00),
+    catalogo_ceap = [
+        ("COMBUSTÍVEIS E LUBRIFICANTES", (3, 6), [
+            ("AUTO POSTO DA TORRE LTDA", "00.306.597/0001-40", 250.0, 480.0),
+            ("CASCOL COMBUSTÍVEIS PARA VEÍCULOS LTDA", "00.306.597/0002-21", 220.0, 450.0),
+            ("POSTO IPIRANGA MONUMENTAL LTDA", "03.490.112/0001-85", 240.0, 490.0),
+            ("POSTO PETROBRAS ASA SUL", "00.000.000/0001-91", 210.0, 430.0),
+            ("SHELL AUTO POSTO AEROPORTO", "04.552.123/0001-33", 280.0, 520.0),
+        ]),
+        ("PASSAGEM AÉREA", (2, 4), [
+            ("LATAM AIRLINES BRASIL", "02.012.862/0001-60", 950.0, 2800.0),
+            ("GOL LINHAS AÉREAS S.A.", "07.575.651/0001-59", 850.0, 2600.0),
+            ("AZUL LINHAS AÉREAS BRASILEIRAS S.A.", "09.296.295/0001-60", 900.0, 2750.0),
+            ("VOEPASS LINHAS AÉREAS", "00.512.441/0001-72", 650.0, 1600.0),
+        ]),
+        ("DIVULGAÇÃO DA ATIVIDADE PARLAMENTAR", (1, 2), [
+            ("COMUNICAÇÃO E MÍDIA DIGITAL BRASIL", "12.789.445/0001-22", 4500.0, 11500.0),
+            ("GRÁFICA E EDITORA BRASÍLIA LTDA", "01.442.981/0001-19", 2800.0, 7200.0),
+            ("AGÊNCIA FOCO COMUNICAÇÃO E MARKETING", "24.110.892/0001-44", 3500.0, 9000.0),
+            ("IMPULSIONA MÍDIA E REDES SOCIAIS", "38.991.205/0001-88", 1800.0, 5500.0),
+            ("PRODUÇÕES E CONTEÚDO AUDIOVISUAL LTDA", "19.330.412/0001-77", 3800.0, 10500.0),
+        ]),
+        ("HOSPEDAGEM E ALIMENTAÇÃO", (1, 3), [
+            ("B HOTEL BRASÍLIA", "26.330.142/0001-99", 450.0, 980.0),
+            ("HOTEL NACIONAL DE BRASÍLIA", "00.123.884/0001-15", 380.0, 750.0),
+            ("WINDSOR PLAZA HOTEL BRASÍLIA", "09.112.445/0001-66", 420.0, 890.0),
+            ("RESTAURANTE SENAC PLENÁRIO", "03.709.814/0001-98", 85.0, 210.0),
+        ]),
+        ("LOCAÇÃO OU FRETAMENTO DE VEÍCULOS AUTOMOTORES", (0, 1), [
+            ("LOCALIZA RENT A CAR S.A.", "16.670.085/0001-55", 3200.0, 6800.0),
+            ("MOVIDA LOCAÇÃO DE VEÍCULOS S.A.", "07.976.147/0001-60", 2900.0, 6200.0),
+            ("UNIDAS LOCADORA DE VEÍCULOS S.A.", "04.981.822/0001-12", 3100.0, 6500.0),
+        ]),
+        ("CONSULTORIAS, PESQUISAS E TRABALHOS TÉCNICOS", (0, 1), [
+            ("ASSESSORIA ESTRATÉGICA PARLAMENTAR LTDA", "33.450.812/0001-90", 5500.0, 12000.0),
+            ("INSTITUTO BRASILEIRO DE ANÁLISE PÚBLICA", "18.300.914/0001-55", 4800.0, 11000.0),
+            ("FRANCO & ASSOCIADOS CONSULTORIA JURÍDICA", "29.881.042/0001-11", 6000.0, 14000.0),
+        ]),
+        ("SERVIÇOS POSTAIS E TELEFONIA", (1, 1), [
+            ("CLARO S.A.", "40.432.544/0001-47", 280.0, 650.0),
+            ("VIVO TELEFÔNICA BRASIL S.A.", "02.558.157/0001-62", 310.0, 720.0),
+            ("EMPRESA BRASILEIRA DE CORREIOS E TELÉGRAFOS", "34.028.316/0001-03", 150.0, 850.0),
+        ]),
+        ("MANUTENÇÃO DE ESCRITÓRIO DE APOIO", (0, 1), [
+            ("KALUNGA COMÉRCIO E PAPELARIA LTDA", "43.214.055/0001-07", 350.0, 1400.0),
+            ("IMOBILIÁRIA CENTRAL DO DF", "05.119.822/0001-33", 1800.0, 3800.0),
+        ]),
     ]
 
     funcoes_emendas = [
@@ -73,33 +114,42 @@ def carregar_dados_politicos_detalhe() -> tuple[list[dict], list[dict], list[dic
     anos_mandato = [2023, 2024, 2025, 2026]
 
     # --- 1. POPULAR PARLAMENTARES (Cota, Emendas, Presença) ---
-    doc_seq = 1000
+    doc_seq = 10000
     for sk, nome, partido, uf, casa, cargo in parlamentares_leg:
         for ano in anos_mandato:
-            # A. Cotas mensais
+            # A. Cotas com distribuições realistas por tipo de despesa e fornecedor
             for mes in range(1, 13):
-                for idx_tipo, (tipo, forn, cnpj, val_base) in enumerate(tipos_despesa):
-                    doc_seq += 1
-                    val_liquido = val_base * (1.0 + (doc_seq % 5) * 0.1)
-                    despesas_cota.append({
-                        "casa": casa,
-                        "id_documento": str(doc_seq),
-                        "num_parcela": "0",
-                        "num_ressarcimento": "0",
-                        "id_politico": sk,
-                        "nome_politico": nome,
-                        "sigla_partido": partido,
-                        "sigla_uf": uf,
-                        "tipo_despesa": tipo,
-                        "fornecedor": forn,
-                        "cnpj_cpf_fornecedor": cnpj,
-                        "valor_documento": val_liquido,
-                        "url_documento": f"https://www.camara.leg.br/cota-parlamentar/documentos/{doc_seq}.pdf",
-                        "valor_liquido": val_liquido,
-                        "data_emissao": f"{ano}-{mes:02d}-15",
-                        "ano": ano,
-                        "mes": mes
-                    })
+                for cat_nome, (min_f, max_f), fornecedores in catalogo_ceap:
+                    # Variação determinística baseada no político, ano, mês e categoria
+                    hash_cat = int(hashlib.md5(f"{sk}_{ano}_{mes}_{cat_nome}".encode()).hexdigest(), 16)
+                    qtd_notas = min_f + (hash_cat % (max_f - min_f + 1))
+                    for i in range(qtd_notas):
+                        doc_seq += 1
+                        hash_forn = int(hashlib.md5(f"{sk}_{ano}_{mes}_{cat_nome}_{i}".encode()).hexdigest(), 16)
+                        forn_nome, cnpj, val_min, val_max = fornecedores[hash_forn % len(fornecedores)]
+                        val_pct = (hash_forn % 1000) / 1000.0
+                        val_liquido = round(val_min + val_pct * (val_max - val_min), 2)
+                        dia_emissao = 1 + (hash_forn % 28)
+
+                        despesas_cota.append({
+                            "casa": casa,
+                            "id_documento": str(doc_seq),
+                            "num_parcela": "0",
+                            "num_ressarcimento": "0",
+                            "id_politico": sk,
+                            "nome_politico": nome,
+                            "sigla_partido": partido,
+                            "sigla_uf": uf,
+                            "tipo_despesa": cat_nome,
+                            "fornecedor": forn_nome,
+                            "cnpj_cpf_fornecedor": cnpj,
+                            "valor_documento": val_liquido,
+                            "url_documento": f"https://www.camara.leg.br/cota-parlamentar/documentos/{doc_seq}.pdf",
+                            "valor_liquido": val_liquido,
+                            "data_emissao": f"{ano}-{mes:02d}-{dia_emissao:02d}",
+                            "ano": ano,
+                            "mes": mes
+                        })
 
             # B. Emendas Parlamentares
             for idx_e, (func, local, val_emp, val_pag) in enumerate(funcoes_emendas):
