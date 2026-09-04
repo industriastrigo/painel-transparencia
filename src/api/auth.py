@@ -25,9 +25,11 @@ BASE_URL = os.getenv("BASE_URL", "").rstrip("/")
 
 
 def emails_permitidos() -> set[str]:
-    """Retorna o conjunto de e-mails autorizados em caixa baixa."""
-    raw = os.getenv("EMAILS_PERMITIDOS", "")
-    if not raw.strip():
+    """Retorna o conjunto de e-mails autorizados em caixa baixa.
+    Se vazio ou contiver '*', permite qualquer e-mail autenticado.
+    """
+    raw = os.getenv("EMAILS_PERMITIDOS", "").strip()
+    if not raw or "*" in raw:
         return set()
     return {e.strip().lower() for e in raw.split(",") if e.strip()}
 
@@ -98,10 +100,11 @@ async def auth_callback(request: Request) -> Any:
 
     permitidos = emails_permitidos()
     if permitidos and email not in permitidos:
+        amb_nome = os.getenv("AMB", "prd").upper()
         log.warning("Acesso negado para %s (não listado em EMAILS_PERMITIDOS)", email)
         return HTMLResponse(
             f"""<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
-            <title>Acesso Não Autorizado — UAT</title>
+            <title>Acesso Não Autorizado — {amb_nome}</title>
             <style>
                 body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
                        background: #0f172a; color: #f8fafc; display: flex; justify-content: center;
@@ -113,12 +116,12 @@ async def auth_callback(request: Request) -> Any:
                 .badge {{ display: inline-block; background: #334155; color: #38bdf8; padding: 4px 10px;
                          border-radius: 6px; font-family: monospace; font-size: 14px; margin: 12px 0; }}
                 a.btn {{ display: inline-block; background: #3b82f6; color: #fff; text-decoration: none;
-                        padding: 10px 20px; border-radius: 8px; font-weight: 500; margin-top: 18px; }}
+                         padding: 10px 20px; border-radius: 8px; font-weight: 500; margin-top: 18px; }}
                 a.btn:hover {{ background: #2563eb; }}
             </style></head>
             <body><div class="box">
                 <h2>⛔ Acesso Não Autorizado</h2>
-                <p>O ambiente de <b>UAT (Testes)</b> é restrito a usuários autorizados.</p>
+                <p>O ambiente de <b>{amb_nome}</b> é restrito a usuários autorizados.</p>
                 <div>Conta conectada:</div>
                 <div class="badge">{email}</div>
                 <p>Se você deveria ter acesso, solicite a inclusão do seu e-mail ao administrador do projeto.</p>
