@@ -243,3 +243,11 @@ def semear_financas() -> None:
 
     armazem.mesclar("financas_ente", financas, "semeador")
     armazem.mesclar("custo_orgao", custos, "semeador")
+
+    # 7. Gerar e sincronizar catálogo inicial do acervo de dados
+    try:
+        from ..nucleo.catalogo import salvar_catalogo
+        salvar_catalogo()
+        log.info("[OK] Catálogo do acervo de dados sincronizado.")
+    except Exception as erro:
+        log.warning("Aviso ao sincronizar catálogo: %s", erro)

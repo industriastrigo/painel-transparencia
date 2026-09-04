@@ -158,6 +158,30 @@ def obter_catalogo_tabelas(
                 COUNT(DISTINCT ano) AS total_anos_distintos
             FROM dim_catalogo_tabela
         """)
+        # Se a tabela ainda estiver vazia no banco, gera e recarrega imediatamente
+        if (not linhas and not any([tabela, camada, ano, orgao, status])) or not resumo_geral or not resumo_geral[0].get("total_tabelas"):
+            salvar_catalogo()
+            recarregar_views()
+            linhas = _consultar(f"""
+                SELECT * FROM dim_catalogo_tabela
+                {where_sql}
+                ORDER BY camada, tabela, ano DESC NULLS LAST
+            """, params)
+            resumo_geral = _consultar("""
+                SELECT 
+                    COUNT(DISTINCT tabela) AS total_tabelas,
+                    COUNT(DISTINCT CASE WHEN camada = 'dim' THEN tabela END) AS total_dim,
+                    COUNT(DISTINCT CASE WHEN camada = 'fato' THEN tabela END) AS total_fato,
+                    SUM(total_linhas) AS total_linhas_global,
+                    COUNT(CASE WHEN status_completude = 'total' OR status_completude = 'total_ufs' THEN 1 END) AS qtd_total,
+                    COUNT(CASE WHEN status_completude ILIKE 'parcial%' THEN 1 END) AS qtd_parcial,
+                    COUNT(CASE WHEN status_completude ILIKE 'amostra%' THEN 1 END) AS qtd_amostra,
+                    COUNT(CASE WHEN status_completude = 'vigente' THEN 1 END) AS qtd_vigente,
+                    MIN(ano) AS ano_min,
+                    MAX(ano) AS ano_max,
+                    COUNT(DISTINCT ano) AS total_anos_distintos
+                FROM dim_catalogo_tabela
+            """)
     except Exception:
         # Se ainda não foi lida na view, gera sob demanda
         salvar_catalogo()

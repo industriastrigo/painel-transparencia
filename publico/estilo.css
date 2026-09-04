@@ -3519,3 +3519,99 @@ a:hover { color: var(--realce-vivo); }
   font-weight: 800;
   border-color: transparent;
 }
+
+/* --------------------------------------------------------------- Catálogo de Dados & APIs / Design System */
+.grade-kpis-trigo {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--e3, 12px);
+  margin-bottom: var(--e4, 16px);
+}
+
+.kpi-card-trigo {
+  background: var(--superficie-2);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  box-shadow: var(--sombra-suave);
+  position: relative;
+  overflow: hidden;
+}
+
+.kpi-card-trigo::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--realce-dourado, #c5a059);
+}
+
+.kpi-rotulo {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--texto-sutil, #888);
+}
+
+.kpi-valor {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: var(--texto, #fff);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+.kpi-subtexto {
+  font-size: 0.78rem;
+  color: var(--texto-fraco, #aaa);
+  margin-top: 2px;
+}
+
+.barra-filtros-trigo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  background: var(--superficie);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  padding: 14px 16px;
+  margin-bottom: var(--e4, 16px);
+  align-items: flex-end;
+}
+
+.filtro-grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 180px;
+}
+
+.filtro-rotulo {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--texto-fraco);
+  letter-spacing: 0.4px;
+}
+
+.filtro-campo {
+  padding: 8px 12px;
+  background: var(--superficie-2);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-p);
+  color: var(--texto);
+  font-size: 0.88rem;
+  font-family: inherit;
+  transition: all var(--transicao);
+}
+
+.filtro-campo:focus {
+  border-color: var(--realce-dourado);
+  outline: none;
+  box-shadow: 0 0 0 2px var(--realce-fraco);
+}
