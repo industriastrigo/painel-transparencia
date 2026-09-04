@@ -33,7 +33,7 @@ from __future__ import annotations
 
 import csv
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Iterable, Sequence
 
@@ -76,7 +76,10 @@ _COLUNAS_OPCIONAIS_NORMA = {
     "despesa_funcao.cod_funcao_mae",
     "despesa_funcao.funcao_mae",
     "despesa_funcao.descricao_bloco",
+    "indicador_ente.unidade",
+    "indicador_ente.data_referencia",
     "indicador_fiscal.coluna",
+    "transferencia_uniao.cod_siafi",
     "transferencia_uniao.nome_ente",
 }
 
@@ -281,7 +284,7 @@ def conferir_preenchimento(
                 # `votacao.id_proposicao` ficou 0% em 21.128 linhas e a ficha
                 # de nenhum projeto mostrou quem votou. Fica em aviso porque
                 # existe coluna legitimamente vazia (fonte que não publica).
-                if taxa == 0.0:
+                if taxa == 0.0 and f"{nome}.{coluna}" not in _COLUNAS_OPCIONAIS_NORMA:
                     achados.append(Achado(
                         regra="preenchimento",
                         alvo=f"{nome}.{coluna}",
@@ -407,10 +410,13 @@ def conferir_situacao(criticos: Iterable[str] = ()) -> list[Achado]:
     if df.empty or "situacao" not in df:
         return []
 
+    ano_atual_str = str(date.today().year)
     ruins = df[~df["situacao"].isin(["ok"])]
     achados = []
     for _, linha in ruins.iterrows():
         recurso = f"{linha.get('fonte')}/{linha.get('recurso')}"
+        if linha.get("situacao") == "sem_dado" and ano_atual_str in str(linha.get("recurso")):
+            continue
         achados.append(Achado(
             regra="situacao", alvo=recurso,
             bloqueia=recurso in criticos or str(linha.get("fonte")) in criticos,

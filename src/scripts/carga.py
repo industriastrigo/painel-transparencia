@@ -266,12 +266,30 @@ def principal(argv: list[str] | None = None) -> int:
     if not pendentes.empty and "situacao" in pendentes:
         nao_ok = pendentes[pendentes["situacao"] != "ok"]
         if not nao_ok.empty:
-            log.warning("%d recorte(s) NÃO concluídos — rode de novo para "
-                        "tentar só eles:", len(nao_ok))
-            for _, linha in nao_ok.head(20).iterrows():
-                log.warning("   %s / %s — %s",
-                            linha.get("fonte"), linha.get("recurso"),
-                            linha.get("situacao"))
+            ano_atual_str = str(date.today().year)
+            falhas = []
+            informativos = []
+            for _, linha in nao_ok.iterrows():
+                rec = str(linha.get("recurso", ""))
+                sit = str(linha.get("situacao", ""))
+                if sit == "sem_dado" and ano_atual_str in rec:
+                    informativos.append(linha)
+                else:
+                    falhas.append(linha)
+
+            if falhas:
+                log.warning("%d recorte(s) NÃO concluídos — rode de novo para "
+                            "tentar só eles:", len(falhas))
+                for linha in falhas[:20]:
+                    log.warning("   %s / %s — %s",
+                                linha.get("fonte"), linha.get("recurso"),
+                                linha.get("situacao"))
+            if informativos:
+                log.info("%d recorte(s) do exercício corrente (%s) ainda sem publicação oficial:",
+                         len(informativos), ano_atual_str)
+                for linha in informativos[:20]:
+                    log.info("   %s / %s — exercício em andamento",
+                             linha.get("fonte"), linha.get("recurso"))
     return 2 if veredito.bloqueia else 0
 
 
