@@ -23,6 +23,13 @@ def semear_se_vazio(forcar: bool = False) -> None:
     dados_dir = Path(config.DADOS) if config.DADOS is not None else Path(__file__).resolve().parents[2] / "dados"
     dados_dir.mkdir(parents=True, exist_ok=True)
 
+    if not forcar:
+        dim_ente = dados_dir / "dim" / "dim_ente.parquet"
+        dim_politico = dados_dir / "dim" / "dim_politico.parquet"
+        if dim_ente.exists() and dim_politico.exists():
+            log.info("Acervo de dados já semeado. Inicialização rápida.")
+            return
+
     # 0. Malhas e Entes Federativos de Referência (27 UFs + Brasil)
     try:
         from .entes_referencia import garantir_malha_brasil, carregar_dados_federativos

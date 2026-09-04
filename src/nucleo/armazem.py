@@ -69,12 +69,13 @@ def conectar(somente_leitura: bool = False) -> duckdb.DuckDBPyConnection:
     con = duckdb.connect(":memory:", read_only=False)
     con.execute("SET TimeZone='UTC'")
     con.execute("SET preserve_insertion_order=false")
+    mem = os.getenv("DUCKDB_MAX_MEMORY", "1GB")
     try:
-        con.execute("SET max_memory='4GB'")
+        con.execute(f"SET max_memory='{mem}'")
     except Exception:
         pass
     if somente_leitura:
-        con.execute("SET threads TO 4")
+        con.execute("SET threads TO 2")
     return con
 
 
