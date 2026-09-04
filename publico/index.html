@@ -128,30 +128,20 @@
       </nav>
     </div>
 
-    <!-- 4. DOCUMENTAÇÃO -->
+    <!-- 4. DOCUMENTAÇÃO & AUDITORIA DE DADOS -->
     <div>
       <div class="drawer-secao-rotulo">
         <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
-        <span>Documentação & Metodologia</span>
+        <span>Documentação & Auditoria</span>
       </div>
       <nav class="drawer-nav-lista">
         <a href="#glossario" class="drawer-nav-item" data-aba="glossario">
           <span class="item-icone"><svg class="item-svg" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg></span>
           <span class="item-texto">Glossário & Metodologia</span>
         </a>
-      </nav>
-    </div>
-
-    <!-- 5. ENGENHARIA & AUDITORIA (Exclusivo para DEV / Local) -->
-    <div id="drawer-secao-dev" class="apenas-dev">
-      <div class="drawer-secao-rotulo">
-        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
-        <span>Engenharia & Auditoria</span>
-      </div>
-      <nav class="drawer-nav-lista">
         <a href="#catalogo" class="drawer-nav-item" data-aba="catalogo">
           <span class="item-icone"><svg class="item-svg" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg></span>
-          <span class="item-texto">Catálogo de Dados & Parquet</span>
+          <span class="item-texto">Catálogo de Dados & APIs</span>
         </a>
       </nav>
     </div>
@@ -1636,8 +1626,8 @@
 
   </section>
 
-  <!-- ------------------------------------------------------------ catálogo (DEV) -->
-  <section id="aba-catalogo" role="tabpanel" tabindex="-1" class="apenas-dev" hidden>
+  <!-- ------------------------------------------------------------ catálogo -->
+  <section id="aba-catalogo" role="tabpanel" tabindex="-1" hidden>
     <div class="banner-informativo" style="border-left: 4px solid var(--realce-dourado);">
       <span class="banner-icone">⚙️</span>
       <div class="banner-texto">
@@ -1760,14 +1750,17 @@
 
 </main>
 
-<dialog id="modal-detalhe-get" class="modal-trigo">
+<dialog id="modal-get-catalogo" class="modal-trigo" style="max-width: 680px; width: 90vw;">
   <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px">
-    <div style="font-size:0.8rem; font-weight:800; text-transform:uppercase; color:var(--realce-dourado); letter-spacing:0.05em">
-      Inspeção de Endpoint GET
+    <div>
+      <div id="modal-get-titulo" style="font-size:1.05rem; font-weight:800; color:var(--texto-destaque)">
+        Requisição Oficial
+      </div>
+      <div id="modal-get-subtitulo" style="font-size:0.8rem; color:var(--texto-suave); margin-top:2px"></div>
     </div>
-    <button onclick="document.getElementById('modal-detalhe-get').close()" style="background:transparent; border:none; color:var(--texto-fraco); font-size:1.2rem; cursor:pointer">✕</button>
+    <button id="modal-get-fechar" onclick="document.getElementById('modal-get-catalogo').close()" style="background:transparent; border:none; color:var(--texto-fraco); font-size:1.2rem; cursor:pointer">✕</button>
   </div>
-  <div id="modal-get-conteudo"></div>
+  <div id="modal-get-corpo"></div>
 </dialog>
 
 <!-- Dica dos políticos. Fica no `body`, e não dentro do cartão, porque

@@ -127,8 +127,8 @@ function renderizarTabelaCatalogo(lista, somaLinhas) {
           <div style="color:var(--texto-suave); font-family:monospace; font-size:0.78rem; margin-top:2px">${escapar(item.endpoint_recurso || '')}</div>
         </td>
         <td style="text-align:center">
-          <button class="secundario btn-ver-get" data-sk="${escapar(item.sk)}" style="padding:4px 8px; font-size:0.8rem; border-radius:4px; cursor:pointer; white-space:nowrap" title="Ver detalhes do GET e executar">
-            👁️ Ver GET
+          <button class="secundario btn-ver-get" data-sk="${escapar(item.sk)}" style="padding:4px 10px; font-size:0.8rem; border-radius:4px; cursor:pointer; font-weight:600; white-space:nowrap" title="Ver detalhes do GET e executar requisição">
+            👁️ Detalhes & GET
           </button>
         </td>
       </tr>
