@@ -1,0 +1,68 @@
+﻿name: Deploy GCP Cloud Run
+
+on:
+  push:
+    branches: [uat, prod]
+  workflow_dispatch:
+    inputs:
+      ambiente:
+        description: 'Ambiente de destino (uat ou prd)'
+        required: true
+        default: 'uat'
+        type: choice
+        options:
+          - uat
+          - prd
+
+jobs:
+  testar-e-implantar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do Código
+        uses: actions/checkout@v4
+
+      - name: Configurar Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Instalar Dependências e Testar
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          python -m pytest
+
+      - name: Autenticar no Google Cloud
+        if: env.GCP_SA_KEY != ''
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Configurar Google Cloud SDK
+        if: env.GCP_SA_KEY != ''
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Deploy no Cloud Run
+        if: env.GCP_SA_KEY != ''
+        run: |
+          ENV_ALVO="${{ github.event.inputs.ambiente || (github.ref_name == 'prod' && 'prd' || 'uat') }}"
+          PROJETO_ID="${{ secrets.GCP_PROJECT_ID }}"
+          REGIAO="${{ secrets.GCP_REGION || 'southamerica-east1' }}"
+          SERVICO_NOME="painel-transparencia-${ENV_ALVO}"
+          
+          gcloud services enable run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com --project "$PROJETO_ID"
+          
+          gcloud run deploy "$SERVICO_NOME" \
+            --source . \
+            --project "$PROJETO_ID" \
+            --region "$REGIAO" \
+            --platform managed \
+            --allow-unauthenticated \
+            --memory 1Gi \
+            --cpu 1 \
+            --min-instances 0 \
+            --max-instances 3 \
+            --set-env-vars="AMB=${ENV_ALVO},EXIGE_AUTH=1,HTTPS_ONLY=1,GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }},GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }},SESSION_SECRET_KEY=${{ secrets.SESSION_SECRET_KEY }},EMAILS_PERMITIDOS=${{ secrets.EMAILS_PERMITIDOS }}"
+        env:
+          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}

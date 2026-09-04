@@ -23,8 +23,8 @@ COPY src/ ./src/
 COPY publico/ ./publico/
 COPY referencias/ ./referencias/
 
-# Cria diretório de dados para inicialização em nuvem
-RUN mkdir -p dados
+# Copia acervo de dados tratados (ignora bruto pelo .dockerignore e .gcloudignore)
+COPY dados/ ./dados/
 
 
 # Porta dinâmica do Cloud Run (padrão 8080)
