@@ -23,8 +23,8 @@ COPY src/ ./src/
 COPY publico/ ./publico/
 COPY referencias/ ./referencias/
 
-# Copia acervo de dados tratados (ignora bruto pelo .dockerignore e .gcloudignore)
-COPY dados/ ./dados/
+# Cria diretório de dados para inicialização e semeadura automática
+RUN mkdir -p dados
 
 
 # Porta dinâmica do Cloud Run (padrão 8080)
