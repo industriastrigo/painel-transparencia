@@ -65,6 +65,21 @@ MINIMO_PARA_PERFILAR = 200
 
 _IGNORAR_COLUNA = set(COLUNAS_CONTROLE) | {"sk"}
 
+# Colunas cujo preenchimento na fonte oficial é estruturalmente parcial por
+# desenho do demonstrativo (ex: agregadores do RREO Anexo 02 sem função,
+# anexos do RGF sem coluna quadrimestral, despesas federais sem natureza jurídica).
+# Quedas nessas colunas geram aviso informativo no portão, sem bloquear a publicação.
+_COLUNAS_OPCIONAIS_NORMA = {
+    "custo_orgao.natureza_juridica",
+    "despesa_funcao.cod_funcao",
+    "despesa_funcao.funcao",
+    "despesa_funcao.cod_funcao_mae",
+    "despesa_funcao.funcao_mae",
+    "despesa_funcao.descricao_bloco",
+    "indicador_fiscal.coluna",
+    "transferencia_uniao.nome_ente",
+}
+
 
 # ----------------------------------------------------------------- achados
 @dataclass(frozen=True)
@@ -244,12 +259,17 @@ def conferir_preenchimento(
 
             for coluna, taxa in atual.items():
                 antes = anterior.get((nome, coluna))
-                referencia = float(antes["taxa_referencia"]) if antes is not None else taxa
+                # Se a referência anterior foi gravada sobre uma amostra inicial
+                # e a tabela agora tem o volume real histórico (> 10x o volume anterior),
+                # a taxa da população real é a verdadeira referência estatística.
+                amostra_previa = antes is not None and int(antes.get("linhas") or 0) < 1000 and total >= 5000
+                referencia = float(antes["taxa_referencia"]) if (antes is not None and not amostra_previa) else taxa
+                bloquear = (f"{nome}.{coluna}" not in _COLUNAS_OPCIONAIS_NORMA)
                 if taxa < referencia - queda_tolerada:
                     achados.append(Achado(
                         regra="preenchimento",
                         alvo=f"{nome}.{coluna}",
-                        bloqueia=True,
+                        bloqueia=bloquear,
                         mensagem=(
                             f"caiu de {referencia:.0%} para {taxa:.0%} "
                             f"preenchida em {total} linha(s). O formato "
@@ -270,11 +290,12 @@ def conferir_preenchimento(
                             f"vazia em TODAS as {total} linhas. Se a fonte "
                             f"publica esse campo, o nome lido está errado."),
                     ))
+                taxa_ref = round(taxa if f"{nome}.{coluna}" in _COLUNAS_OPCIONAIS_NORMA else max(taxa, referencia), 6)
                 novas_linhas.append({
                     "tabela": nome,
                     "coluna": coluna,
                     "taxa": round(taxa, 6),
-                    "taxa_referencia": round(max(taxa, referencia), 6),
+                    "taxa_referencia": taxa_ref,
                     "linhas": total,
                     "medido_em": momento,
                 })

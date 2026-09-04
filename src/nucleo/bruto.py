@@ -543,8 +543,9 @@ def autoteste() -> tuple[bool, str]:
         if not descarregar():
             return False, "nada foi gravado"
         achou = consultar(
-            f"SELECT carga FROM bruto WHERE fonte = '_ensaio'")
-        if achou.empty or marca not in achou["carga"][0]:
+            "SELECT carga FROM bruto WHERE fonte = '_ensaio'",
+            fonte="_ensaio", unico=False)
+        if achou.empty or marca not in str(achou["carga"].iloc[0]):
             return False, "gravou mas não releu"
     except Exception as erro:  # noqa: BLE001
         return False, str(erro)[:200]

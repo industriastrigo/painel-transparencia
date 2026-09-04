@@ -94,6 +94,7 @@ def _linhas(registros: list[dict], nivel: str, ano: int, modalidade: dict) -> li
             cod_ibge = mapa_uf.get(str(uf).upper())
         cod_transf = texto(modalidade.get("cod_transferencia") or _campo(item, "cod_transferencia") or _campo(item, "transferencia"))
         nome_transf = opcional(modalidade.get("transferencia") or _campo(item, "transferencia") or modalidade.get("nome"))
+        ano_reg = inteiro(_campo(item, "ano"), padrao=ano)
         linhas.append({
             "cod_ibge": cod_ibge,
             "nivel": nivel,
@@ -101,11 +102,11 @@ def _linhas(registros: list[dict], nivel: str, ano: int, modalidade: dict) -> li
             "nome_ente": opcional(_campo(item, "municipio") or _campo(item, "nome")),
             "cod_transferencia": cod_transf,
             "transferencia": nome_transf,
-            "ano": int(ano),
+            "ano": int(ano_reg),
             "mes": m,
             "valor": numero(val),
             "cod_siafi": opcional(_campo(item, "cod_siafi")),
-            "data_referencia": f"{ano}-{m:02d}-01",
+            "data_referencia": f"{ano_reg}-{m:02d}-01",
         })
     return linhas
 
