@@ -218,7 +218,7 @@ async function iniciar() {
   }
 }
 
-export function mostrarNotificacaoRecarga(msg = '🔄 Painel atualizado com sucesso!') {
+export function mostrarNotificacaoRecarga(msg = '<svg class="item-svg-inline" viewBox="0 0 24 24" width="16" height="16"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg> Painel atualizado com sucesso!') {
   let toast = $('#toast-notificacao');
   if (!toast) {
     toast = document.createElement('div');
@@ -226,7 +226,7 @@ export function mostrarNotificacaoRecarga(msg = '🔄 Painel atualizado com suce
     toast.style.cssText = 'position:fixed; bottom:24px; right:24px; background:var(--superficie-3, #1e293b); color:var(--texto, #f8fafc); border:1px solid var(--realce, #38bdf8); padding:10px 18px; border-radius:8px; box-shadow:0 10px 25px rgba(0,0,0,0.5); z-index:9999; font-weight:600; display:flex; align-items:center; gap:8px; transition:opacity 0.25s ease, transform 0.25s ease; opacity:0; transform:translateY(10px); pointer-events:none;';
     document.body.appendChild(toast);
   }
-  toast.textContent = msg;
+  toast.innerHTML = msg;
   toast.style.opacity = '1';
   toast.style.transform = 'translateY(0)';
   clearTimeout(toast._timer);
@@ -246,10 +246,10 @@ export async function recarregarPainelCompleto() {
     } else {
       await forcarRecargaAba(abaAtiva);
     }
-    mostrarNotificacaoRecarga('🔄 Painel e dados atualizados com sucesso!');
+    mostrarNotificacaoRecarga('<svg class="item-svg-inline" viewBox="0 0 24 24" width="16" height="16"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg> Painel e dados atualizados com sucesso!');
   } catch (erro) {
     console.error('Erro ao atualizar painel:', erro);
-    mostrarNotificacaoRecarga('⚠️ Erro ao atualizar painel');
+    mostrarNotificacaoRecarga('<svg class="item-svg-inline" viewBox="0 0 24 24" width="16" height="16"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> Erro ao atualizar painel');
   }
 }
 

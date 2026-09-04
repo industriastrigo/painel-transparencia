@@ -139,7 +139,7 @@ export function renderizarWidgetAuth() {
       <button id="btn-abrir-perfil" class="btn-perfil-topbar" title="Perfil: ${usuarioAtual.nome} (${usuarioAtual.email})">
         <img src="${usuarioAtual.foto || 'ativos/logos/icone_trigo_dark.png'}" alt="${usuarioAtual.nome}" class="avatar-topbar" />
         <span class="nome-perfil-topbar">${usuarioAtual.primeiroNome || 'Auditor'}</span>
-        <span class="seta-perfil">▾</span>
+        <span class="seta-perfil" style="display:inline-flex; align-items:center"><svg class="item-svg-inline" viewBox="0 0 24 24" width="12" height="12" style="margin-right:0"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
       </button>
     `;
   } else {
@@ -170,7 +170,7 @@ function configurarEventosAuth() {
         salvarChaveCguPessoal(input.value);
         const feedback = document.getElementById('feedback-chave-cgu');
         if (feedback) {
-          feedback.textContent = '✓ Chave salva com sucesso!';
+          feedback.innerHTML = '<svg class="item-svg-inline" viewBox="0 0 24 24" width="14" height="14"><polyline points="20 6 9 17 4 12"></polyline></svg>Chave salva com sucesso!';
           feedback.style.display = 'block';
           setTimeout(() => { feedback.style.display = 'none'; }, 2500);
         }

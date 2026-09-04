@@ -128,7 +128,7 @@ export async function carregarExecutivo() {
                 <span>Resultado Primário da União</span>
                 <div style="display:flex; flex-direction:column; align-items:flex-end">
                   <strong style="color:${primMandato >= 0 ? 'var(--calmo, #10b981)' : 'var(--risco, #ef4444)'}; font-size:1.15rem">
-                    ${primMandato >= 0 ? '✅ +' : '⚠️ '}${dinheiro.format(primMandato)}
+                    ${primMandato >= 0 ? '<svg class="item-svg-inline" viewBox="0 0 24 24" width="14" height="14"><polyline points="20 6 9 17 4 12"></polyline></svg> +' : '<svg class="item-svg-inline" viewBox="0 0 24 24" width="14" height="14"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> '}${dinheiro.format(primMandato)}
                   </strong>
                   <span style="font-size:0.82rem; color:var(--texto-fraco); margin-top:2px">
                     ${primMandato >= 0 ? 'SUPERÁVIT' : 'DÉFICIT'} (${porcentoExato.format(pctPrimario)}% do PIB médio)
@@ -192,7 +192,7 @@ export async function carregarExecutivo() {
                 <span>Saldo Orçamentário</span>
                 <div style="display:flex; flex-direction:column; align-items:flex-end">
                   <strong style="color:${saldoMandato >= 0 ? 'var(--calmo, #10b981)' : 'var(--risco, #ef4444)'}; font-size:1.15rem">
-                    ${saldoMandato >= 0 ? '✅ +' : '⚠️ '}${dinheiro.format(saldoMandato)}
+                    ${saldoMandato >= 0 ? '<svg class="item-svg-inline" viewBox="0 0 24 24" width="14" height="14"><polyline points="20 6 9 17 4 12"></polyline></svg> +' : '<svg class="item-svg-inline" viewBox="0 0 24 24" width="14" height="14"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> '}${dinheiro.format(saldoMandato)}
                   </strong>
                   <span style="font-size:0.82rem; color:var(--texto-fraco); margin-top:2px">
                     ${saldoMandato >= 0 ? 'SUPERÁVIT NO MANDATO' : 'DÉFICIT NO MANDATO'}
@@ -222,7 +222,7 @@ export async function carregarExecutivo() {
             <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:12px">
               <div>
                 <h2 style="margin:0; font-size:1.35rem; color:var(--texto, #fff)">
-                  🏛️ Painel Comparativo Interfederativo (${escapar(d.ano_selecionado)})
+                  <svg class="item-svg-inline" viewBox="0 0 24 24" width="18" height="18"><line x1="3" y1="22" x2="21" y2="22"></line><line x1="6" y1="18" x2="6" y2="11"></line><line x1="10" y1="18" x2="10" y2="11"></line><line x1="14" y1="18" x2="14" y2="11"></line><line x1="18" y1="18" x2="18" y2="11"></line><polygon points="12 2 20 7 4 7"></polygon></svg>Painel Comparativo Interfederativo (${escapar(d.ano_selecionado)})
                 </h2>
                 <p class="rodape-mapa" style="margin:2px 0 0 0">
                   Comparação direta de arrecadação, despesa per capita e gestão fiscal entre a <strong>União (Presidente)</strong>, o <strong>Estado (Governador)</strong> ${esfera === 'municipal' ? 'e o <strong>Município (Prefeito)</strong>' : ''}:
@@ -365,7 +365,7 @@ export async function carregarExecutivo() {
             <div style="display:flex; justify-content:space-between; align-items:flex-start">
               <div>
                 <span class="selo ${supPrim ? 'calmo' : 'risco'}" style="font-weight:bold; font-size:11px">
-                  ${supPrim ? '✅ SUPERÁVIT PRIMÁRIO' : '⚠️ DÉFICIT PRIMÁRIO'}
+                  ${supPrim ? '<svg class="item-svg-inline" viewBox="0 0 24 24" width="14" height="14"><polyline points="20 6 9 17 4 12"></polyline></svg>SUPERÁVIT PRIMÁRIO' : '<svg class="item-svg-inline" viewBox="0 0 24 24" width="14" height="14"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>DÉFICIT PRIMÁRIO'}
                 </span>
                 <h3 style="margin:6px 0 0 0; font-size:1.6rem; color:${supPrim ? 'var(--calmo, #10b981)' : 'var(--risco, #ef4444)'}">
                   ${supPrim ? '+' : ''}${porcentoExato.format(pctPrim)}%
@@ -384,7 +384,7 @@ export async function carregarExecutivo() {
               <div class="tira"><span>Despesa Primária (Custeio)</span><strong>${dinheiro.format(f.despesa_primaria)}</strong></div>
             </div>
             <p class="pe" style="margin:0; font-size:0.82rem; color:var(--texto-sutil)">
-              💡 <em>Mede se o governo arrecada o suficiente para custear a máquina pública (saúde, educação, segurança e funcionalismo) antes de pagar os juros da dívida.</em>
+              <svg class="item-svg-inline" viewBox="0 0 24 24" width="14" height="14"><line x1="9" y1="18" x2="15" y2="18"></line><line x1="10" y1="22" x2="14" y2="22"></line><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"></path></svg><em>Mede se o governo arrecada o suficiente para custear a máquina pública (saúde, educação, segurança e funcionalismo) antes de pagar os juros da dívida.</em>
             </p>
           </div>
 
@@ -393,7 +393,7 @@ export async function carregarExecutivo() {
             <div style="display:flex; justify-content:space-between; align-items:flex-start">
               <div>
                 <span class="selo ${supNom ? 'calmo' : 'risco'}" style="font-weight:bold; font-size:11px">
-                  ${supNom ? '✅ SUPERÁVIT NOMINAL' : '⚠️ DÉFICIT NOMINAL'}
+                  ${supNom ? '<svg class="item-svg-inline" viewBox="0 0 24 24" width="14" height="14"><polyline points="20 6 9 17 4 12"></polyline></svg>SUPERÁVIT NOMINAL' : '<svg class="item-svg-inline" viewBox="0 0 24 24" width="14" height="14"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>DÉFICIT NOMINAL'}
                 </span>
                 <h3 style="margin:6px 0 0 0; font-size:1.6rem; color:${supNom ? 'var(--calmo, #10b981)' : 'var(--risco, #ef4444)'}">
                   ${supNom ? '+' : ''}${porcentoExato.format(pctNom)}%
@@ -412,7 +412,7 @@ export async function carregarExecutivo() {
               <div class="tira"><span>Juros Nominais da Dívida</span><strong style="color:var(--risco, #ef4444)">− ${dinheiro.format(f.juros_encargos_divida)}</strong></div>
             </div>
             <p class="pe" style="margin:0; font-size:0.82rem; color:var(--texto-sutil)">
-              💡 <em>Mede o fechamento contábil global. Quando negativo, o Estado precisou emitir novos títulos da dívida pública para cobrir o custo dos juros.</em>
+              <svg class="item-svg-inline" viewBox="0 0 24 24" width="14" height="14"><line x1="9" y1="18" x2="15" y2="18"></line><line x1="10" y1="22" x2="14" y2="22"></line><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"></path></svg><em>Mede o fechamento contábil global. Quando negativo, o Estado precisou emitir novos títulos da dívida pública para cobrir o custo dos juros.</em>
             </p>
           </div>
         </div>
@@ -446,7 +446,7 @@ export async function carregarExecutivo() {
           <!-- Ótica da Demanda -->
           <div class="cartao" style="background:var(--superficie-2)">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px">
-              <h3 style="margin:0; font-size:1.15rem">🛒 Ótica da Demanda (Despesa)</h3>
+              <h3 style="margin:0; font-size:1.15rem"><svg class="item-svg-inline" viewBox="0 0 24 24" width="16" height="16"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg> Ótica da Demanda (Despesa)</h3>
               <span class="badge-metodo" style="font-size:10px">PIB = C + I + G + (X − M)</span>
             </div>
             <p class="pe" style="color:var(--texto-fraco); margin-top:0">Quem comprou o que foi produzido na economia:</p>
@@ -480,7 +480,7 @@ export async function carregarExecutivo() {
           <!-- Ótica da Oferta -->
           <div class="cartao" style="background:var(--superficie-2)">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px">
-              <h3 style="margin:0; font-size:1.15rem">🏭 Ótica da Oferta (Produção / VAB)</h3>
+              <h3 style="margin:0; font-size:1.15rem"><svg class="item-svg-inline" viewBox="0 0 24 24" width="16" height="16"><path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"></path></svg> Ótica da Oferta (Produção / VAB)</h3>
               <span class="badge-metodo" style="font-size:10px">VAB + Impostos Líquidos</span>
             </div>
             <p class="pe" style="color:var(--texto-fraco); margin-top:0">Valor Adicionado Bruto gerado por cada setor produtivo:</p>
@@ -524,39 +524,39 @@ export async function carregarExecutivo() {
 
     if (titCartoes) {
       if (esfera === 'geral') {
-        titCartoes.textContent = '💳 Gastos com Cartões de Pagamento & Suprimentos do Poder Executivo';
+        titCartoes.innerHTML = '<svg class="item-svg-inline" viewBox="0 0 24 24" width="18" height="18"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>Gastos com Cartões de Pagamento & Suprimentos do Poder Executivo';
         if (subCartoes) subCartoes.textContent = 'Gastos efetuados com cartões de pagamento e suprimentos de fundos no Poder Executivo (Federal, Estadual e Municipal).';
       } else if (esfera === 'federal') {
-        titCartoes.textContent = '💳 Cartão de Pagamento do Governo Federal (CPGF) — Presidência & Ministérios';
+        titCartoes.innerHTML = '<svg class="item-svg-inline" viewBox="0 0 24 24" width="18" height="18"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>Cartão de Pagamento do Governo Federal (CPGF) — Presidência & Ministérios';
         if (subCartoes) subCartoes.textContent = 'Gastos efetuados com o Cartão de Pagamento do Governo Federal pela Presidência da República e Ministérios.';
       } else {
-        titCartoes.textContent = `💳 Cartões de Pagamento & Suprimentos — ${nomeEnte}${gov ? ' (' + gov.nome + ')' : ''}`;
+        titCartoes.innerHTML = `<svg class="item-svg-inline" viewBox="0 0 24 24" width="18" height="18"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>Cartões de Pagamento & Suprimentos — ${nomeEnte}${gov ? ' (' + gov.nome + ')' : ''}`;
         if (subCartoes) subCartoes.textContent = `Despesas e suprimentos de fundos executados pelas Secretarias e órgãos de ${nomeEnte}.`;
       }
     }
 
     if (titViagens) {
       if (esfera === 'geral') {
-        titViagens.textContent = '✈️ Viagens a Serviço, Diárias & Passagens Oficiais do Poder Executivo';
+        titViagens.innerHTML = '<svg class="item-svg-inline" viewBox="0 0 24 24" width="18" height="18"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3.5c-.5-.5-2.5 0-4 1.5L13.5 8.5 5.3 6.7c-.7-.1-1.3.1-1.8.6l-.5.5 6 4-3 3-2.5-.5L2 15.8l4.2 1.8 1.8 4.2 1.5-1.5-.5-2.5 3-3 4 6 .5-.5c.5-.5.7-1.1.6-1.8z"></path></svg>Viagens a Serviço, Diárias & Passagens Oficiais do Poder Executivo';
         if (subViagens) subViagens.textContent = 'Custos de passagens aéreas, diárias e hospedagem de comitivas e viagens oficiais de gestores públicos.';
       } else if (esfera === 'federal') {
-        titViagens.textContent = '✈️ Viagens a Serviço (PCDP) — Presidência da República & Ministérios';
+        titViagens.innerHTML = '<svg class="item-svg-inline" viewBox="0 0 24 24" width="18" height="18"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3.5c-.5-.5-2.5 0-4 1.5L13.5 8.5 5.3 6.7c-.7-.1-1.3.1-1.8.6l-.5.5 6 4-3 3-2.5-.5L2 15.8l4.2 1.8 1.8 4.2 1.5-1.5-.5-2.5 3-3 4 6 .5-.5c.5-.5.7-1.1.6-1.8z"></path></svg>Viagens a Serviço (PCDP) — Presidência da República & Ministérios';
         if (subViagens) subViagens.textContent = 'Custos de passagens aéreas, diárias e hospedagem de viagens oficiais de ministros e comitivas federais.';
       } else {
-        titViagens.textContent = `✈️ Viagens Oficiais & Diárias — ${nomeEnte}`;
+        titViagens.innerHTML = `<svg class="item-svg-inline" viewBox="0 0 24 24" width="18" height="18"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3.5c-.5-.5-2.5 0-4 1.5L13.5 8.5 5.3 6.7c-.7-.1-1.3.1-1.8.6l-.5.5 6 4-3 3-2.5-.5L2 15.8l4.2 1.8 1.8 4.2 1.5-1.5-.5-2.5 3-3 4 6 .5-.5c.5-.5.7-1.1.6-1.8z"></path></svg>Viagens Oficiais & Diárias — ${nomeEnte}`;
         if (subViagens) subViagens.textContent = `Missões oficiais e diárias de viagens do ${gov ? gov.cargo + ' ' + gov.nome : 'Governo'} e Secretários de ${nomeEnte}.`;
       }
     }
 
     if (titContratos) {
       if (esfera === 'geral') {
-        titContratos.textContent = '📜 Grandes Contratos Públicos, Licitações & Fornecedores do Poder Executivo';
+        titContratos.innerHTML = '<svg class="item-svg-inline" viewBox="0 0 24 24" width="18" height="18"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>Grandes Contratos Públicos, Licitações & Fornecedores do Poder Executivo';
         if (subContratos) subContratos.textContent = 'Contratos administrativos de grande porte e principais fornecedores do Poder Executivo.';
       } else if (esfera === 'federal') {
-        titContratos.textContent = '📜 Contratos Públicos Federais (PNCP) — Governo Federal';
+        titContratos.innerHTML = '<svg class="item-svg-inline" viewBox="0 0 24 24" width="18" height="18"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>Contratos Públicos Federais (PNCP) — Governo Federal';
         if (subContratos) subContratos.textContent = 'Contratos administrativos federais firmados, com destaque para dispensas, inexigibilidades e fornecedores.';
       } else {
-        titContratos.textContent = `📜 Contratos Públicos & Licitações — ${nomeEnte}`;
+        titContratos.innerHTML = `<svg class="item-svg-inline" viewBox="0 0 24 24" width="18" height="18"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>Contratos Públicos & Licitações — ${nomeEnte}`;
         if (subContratos) subContratos.textContent = `Contratos e fornecedores de infraestrutura, saúde, educação e serviços de ${nomeEnte}.`;
       }
     }
@@ -611,7 +611,7 @@ export async function carregarExecutivo() {
               <span style="font-size:1.1rem">Situação Orçamentária (${escapar(d.ano_selecionado)}):</span>
               <div style="display:flex; flex-direction:column; align-items:flex-end">
                 <span class="selo ${superavit ? 'calmo' : 'risco'}" style="font-size:1.05rem; font-weight:bold">
-                  ${superavit ? '✅ +' : '⚠️ '}${porcentoExato.format(pctSaldo)}% (${superavit ? 'SUPERÁVIT' : 'DÉFICIT'})
+                  ${superavit ? '<svg class="item-svg-inline" viewBox="0 0 24 24" width="14" height="14"><polyline points="20 6 9 17 4 12"></polyline></svg> +' : '<svg class="item-svg-inline" viewBox="0 0 24 24" width="14" height="14"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> '}${porcentoExato.format(pctSaldo)}% (${superavit ? 'SUPERÁVIT' : 'DÉFICIT'})
                 </span>
                 <span style="font-size:0.95rem; color:var(--texto); font-weight:600; margin-top:3px">
                   ${Number.isFinite(saldo) ? dinheiro.format(Math.abs(saldo)) : ''}
@@ -664,7 +664,7 @@ export async function carregarExecutivo() {
             </div>
             <p class="pe" style="margin:0">
               Limite Máximo Legal: <strong>${porcento.format(limite)}%</strong> da Receita Corrente Líquida (RCL).
-              ${acima ? '<br><strong style="color:var(--risco)">⚠️ O Ente excedeu o teto legal da Lei de Responsabilidade Fiscal.</strong>' : ' Ente cumpre o limite fiscal.'}
+              ${acima ? '<br><strong style="color:var(--risco)"><svg class="item-svg-inline" viewBox="0 0 24 24" width="14" height="14"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>O Ente excedeu o teto legal da Lei de Responsabilidade Fiscal.</strong>' : ' Ente cumpre o limite fiscal.'}
             </p>
           </div>`;
       }

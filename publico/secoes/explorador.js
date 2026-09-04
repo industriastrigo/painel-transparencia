@@ -56,15 +56,15 @@ function renderizarArvore(filtroTexto = '') {
     return `
       <details class="gcp-dataset" ${aberto} data-dataset="${escapar(ds.id)}">
         <summary class="gcp-dataset-header">
-          <span class="gcp-chevron">▶</span>
-          <span class="gcp-icone-pasta">📁</span>
+          <span class="gcp-chevron"><svg class="item-svg-inline" viewBox="0 0 24 24" width="10" height="10" style="margin-right:0"><polyline points="9 18 15 12 9 6"></polyline></svg></span>
+          <span class="gcp-icone-pasta"><svg class="item-svg-inline" viewBox="0 0 24 24" width="14" height="14"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg></span>
           <strong class="gcp-dataset-nome">${escapar(ds.id)}</strong>
           <span class="gcp-badge-qtd">${tabelasFiltradas.length}</span>
         </summary>
         <ul class="gcp-lista-tabelas">
           ${tabelasFiltradas.map((t) => {
             const isAtiva = t.dataset === _tabelaAtiva.dataset && t.nome === _tabelaAtiva.tabela ? 'ativa' : '';
-            const icone = t.tipo === 'view' ? '📊' : '📄';
+            const icone = t.tipo === 'view' ? '<svg class="item-svg-inline" viewBox="0 0 24 24" width="13" height="13"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>' : '<svg class="item-svg-inline" viewBox="0 0 24 24" width="13" height="13"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>';
             return `
               <li class="gcp-item-tabela ${isAtiva}" data-dataset="${escapar(t.dataset)}" data-tabela="${escapar(t.nome)}" role="button" tabindex="0">
                 <span class="gcp-icone-tabela">${icone}</span>
@@ -80,7 +80,7 @@ function renderizarArvore(filtroTexto = '') {
 
   containerArvore.innerHTML = `
     <div class="gcp-projeto-header">
-      <span class="gcp-icone-proj">🏢</span>
+      <span class="gcp-icone-proj"><svg class="item-svg-inline" viewBox="0 0 24 24" width="14" height="14"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><line x1="9" y1="22" x2="9" y2="22.01"></line><line x1="15" y1="22" x2="15" y2="22.01"></line><line x1="9" y1="18" x2="9" y2="18.01"></line><line x1="15" y1="18" x2="15" y2="18.01"></line><line x1="9" y1="14" x2="9" y2="14.01"></line><line x1="15" y1="14" x2="15" y2="14.01"></line><line x1="9" y1="10" x2="9" y2="10.01"></line><line x1="15" y1="10" x2="15" y2="10.01"></line><line x1="9" y1="6" x2="9" y2="6.01"></line><line x1="15" y1="6" x2="15" y2="6.01"></line></svg></span>
       <div class="gcp-proj-info">
         <span class="gcp-proj-label">PROJETO</span>
         <strong>${escapar(_arvoreDados.projeto || 'painel-transparencia')}</strong>
@@ -203,7 +203,7 @@ async function carregarEsquema(dataset, tabela) {
                 <td><span class="gcp-tag-tipo tipo-${escapar(tipoGcp.toLowerCase())}">${escapar(tipoGcp)}</span></td>
                 <td class="tipo-fisico">${escapar(tipoFisico)}</td>
                 <td><span class="gcp-modo ${escapar(modo.toLowerCase())}">${escapar(modo)}</span></td>
-                <td>${c.is_pk ? '<span class="gcp-pk-badge" title="Chave de junção / PK">🔑 PK</span>' : '—'}</td>
+                <td>${c.is_pk ? '<span class="gcp-pk-badge" title="Chave de junção / PK"><svg class="item-svg-inline" viewBox="0 0 24 24" width="12" height="12"><path d="M21 2l-2 2m-1.5 1.5L14 9l-1.5-1.5-4 4 1.5 1.5L8 15l-1.5-1.5-4 4 1.5 1.5L1 22h3l3-3 1.5 1.5L11 18l-1.5-1.5 4-4 1.5 1.5 3.5-3.5a5.5 5.5 0 1 0-7.78-7.78z"></path></svg>PK</span>' : '—'}</td>
               </tr>
             `;
           }).join('')}
@@ -449,7 +449,7 @@ async function executarConsultaSql() {
     const { colunas, linhas, total_linhas: total, tempo_ms: tempo } = data;
 
     if (statusMsg) {
-      statusMsg.innerHTML = `✓ Consulta concluída em <strong>${tempo} ms</strong> (${contagem(total)} linhas retornadas)`;
+      statusMsg.innerHTML = `<svg class="item-svg-inline" viewBox="0 0 24 24" width="14" height="14"><polyline points="20 6 9 17 4 12"></polyline></svg>Consulta concluída em <strong>${tempo} ms</strong> (${contagem(total)} linhas retornadas)`;
     }
 
     if (!linhas.length) {

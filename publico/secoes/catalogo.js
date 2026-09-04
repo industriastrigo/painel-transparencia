@@ -83,22 +83,22 @@ function renderizarTabelaCatalogo(lista, somaLinhas) {
 
     let badgeStatus = '';
     if (linhasAcervo > linhasOrigem) {
-      badgeStatus = `<span class="selo" style="background:rgba(239,68,68,0.18); color:#fca5a5; border:1px solid rgba(239,68,68,0.4); font-weight:700" title="Divergência / Possível duplicidade: Acervo (${linhasAcervo.toLocaleString('pt-BR')}) possui mais registros que a Origem (${linhasOrigem.toLocaleString('pt-BR')})">⚠️ Divergência (+${diff.toLocaleString('pt-BR')})</span>`;
+      badgeStatus = `<span class="selo" style="background:rgba(239,68,68,0.18); color:#fca5a5; border:1px solid rgba(239,68,68,0.4); font-weight:700" title="Divergência / Possível duplicidade: Acervo (${linhasAcervo.toLocaleString('pt-BR')}) possui mais registros que a Origem (${linhasOrigem.toLocaleString('pt-BR')})"><svg class="item-svg-inline" viewBox="0 0 24 24" width="13" height="13"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>Divergência (+${diff.toLocaleString('pt-BR')})</span>`;
     } else if (linhasAcervo < linhasOrigem) {
       if (item.ano_particao === '2026' || st.includes('parcial')) {
         const pct = Math.round((linhasAcervo / linhasOrigem) * 100);
-        badgeStatus = `<span class="selo" style="background:rgba(245,158,11,0.15); color:#fbbf24; border:1px solid rgba(245,158,11,0.4)" title="Exercício 2026 em andamento: ${linhasAcervo.toLocaleString('pt-BR')} de ${linhasOrigem.toLocaleString('pt-BR')} registros coletados">⚠️ Parcial (${pct}%)</span>`;
+        badgeStatus = `<span class="selo" style="background:rgba(245,158,11,0.15); color:#fbbf24; border:1px solid rgba(245,158,11,0.4)" title="Exercício 2026 em andamento: ${linhasAcervo.toLocaleString('pt-BR')} de ${linhasOrigem.toLocaleString('pt-BR')} registros coletados"><svg class="item-svg-inline" viewBox="0 0 24 24" width="13" height="13"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>Parcial (${pct}%)</span>`;
       } else if (st.includes('amostra')) {
-        badgeStatus = '<span class="selo" style="background:rgba(168,85,247,0.15); color:#c084fc; border:1px solid rgba(168,85,247,0.4)" title="Amostra de teste / Cúpula">🔍 Amostra</span>';
+        badgeStatus = '<span class="selo" style="background:rgba(168,85,247,0.15); color:#c084fc; border:1px solid rgba(168,85,247,0.4)" title="Amostra de teste / Cúpula"><svg class="item-svg-inline" viewBox="0 0 24 24" width="13" height="13"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>Amostra</span>';
       } else {
         const falta = linhasOrigem - linhasAcervo;
-        badgeStatus = `<span class="selo" style="background:rgba(239,68,68,0.15); color:#f87171; border:1px solid rgba(239,68,68,0.4)" title="Incompleto: faltam ${falta.toLocaleString('pt-BR')} registros para bater com a origem">⚠️ Incompleto (-${falta.toLocaleString('pt-BR')})</span>`;
+        badgeStatus = `<span class="selo" style="background:rgba(239,68,68,0.15); color:#f87171; border:1px solid rgba(239,68,68,0.4)" title="Incompleto: faltam ${falta.toLocaleString('pt-BR')} registros para bater com a origem"><svg class="item-svg-inline" viewBox="0 0 24 24" width="13" height="13"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>Incompleto (-${falta.toLocaleString('pt-BR')})</span>`;
       }
     } else {
       if (st.includes('amostra')) {
-        badgeStatus = '<span class="selo" style="background:rgba(168,85,247,0.15); color:#c084fc; border:1px solid rgba(168,85,247,0.4)">🔍 Amostra</span>';
+        badgeStatus = '<span class="selo" style="background:rgba(168,85,247,0.15); color:#c084fc; border:1px solid rgba(168,85,247,0.4)"><svg class="item-svg-inline" viewBox="0 0 24 24" width="13" height="13"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>Amostra</span>';
       } else {
-        badgeStatus = '<span class="selo" style="background:rgba(16,185,129,0.15); color:#34d399; border:1px solid rgba(16,185,129,0.4)" title="Dados 100% íntegros e coincidentes com a fonte oficial">✓ Total (100%)</span>';
+        badgeStatus = '<span class="selo" style="background:rgba(16,185,129,0.15); color:#34d399; border:1px solid rgba(16,185,129,0.4)" title="Dados 100% íntegros e coincidentes com a fonte oficial"><svg class="item-svg-inline" viewBox="0 0 24 24" width="13" height="13"><polyline points="20 6 9 17 4 12"></polyline></svg>Total (100%)</span>';
       }
     }
 
@@ -128,8 +128,8 @@ function renderizarTabelaCatalogo(lista, somaLinhas) {
           <div style="color:var(--texto-suave); font-family:monospace; font-size:0.78rem; margin-top:2px">${escapar(item.endpoint_recurso || '')}</div>
         </td>
         <td style="text-align:center">
-          <button class="secundario btn-ver-get" data-sk="${escapar(item.sk)}" style="padding:4px 10px; font-size:0.8rem; border-radius:4px; cursor:pointer; font-weight:600; white-space:nowrap" title="Ver detalhes do GET e executar requisição">
-            👁️ Detalhes & GET
+          <button class="secundario btn-ver-get" data-sk="${escapar(item.sk)}" style="padding:4px 10px; font-size:0.8rem; border-radius:4px; cursor:pointer; font-weight:600; white-space:nowrap; display:inline-flex; align-items:center; gap:5px" title="Ver detalhes do GET e executar requisição">
+            <svg class="item-svg-inline" viewBox="0 0 24 24" width="13" height="13"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>Detalhes & GET
           </button>
         </td>
       </tr>
@@ -163,7 +163,7 @@ function renderizarTabelaCatalogo(lista, somaLinhas) {
           ${somaOrigem.toLocaleString('pt-BR')}
         </td>
         <td colspan="4" style="text-align:center; color:var(--favor, #34d399); font-weight:700; font-size:0.85rem; padding:10px 12px">
-          ✓ Acervo 100% íntegro e sincronizado
+          <svg class="item-svg-inline" viewBox="0 0 24 24" width="13" height="13"><polyline points="20 6 9 17 4 12"></polyline></svg>Acervo 100% íntegro e sincronizado
         </td>
       </tr>
     `;
@@ -201,11 +201,11 @@ export async function carregarHistoricoAuditoria() {
       let badgeStatus = '';
       const st = item.status_validacao || 'sem_alteracao';
       if (st === 'sem_alteracao') {
-        badgeStatus = '<span class="selo" style="background:rgba(16,185,129,0.15); color:#34d399; border:1px solid rgba(16,185,129,0.4)">✓ Sem Alteração (Íntegro)</span>';
+        badgeStatus = '<span class="selo" style="background:rgba(16,185,129,0.15); color:#34d399; border:1px solid rgba(16,185,129,0.4)"><svg class="item-svg-inline" viewBox="0 0 24 24" width="13" height="13"><polyline points="20 6 9 17 4 12"></polyline></svg>Sem Alteração (Íntegro)</span>';
       } else if (st === 'reprocessado') {
-        badgeStatus = '<span class="selo" style="background:rgba(56,189,248,0.15); color:#38bdf8; border:1px solid rgba(56,189,248,0.4)">🔄 Reprocessado</span>';
+        badgeStatus = '<span class="selo" style="background:rgba(56,189,248,0.15); color:#38bdf8; border:1px solid rgba(56,189,248,0.4)"><svg class="item-svg-inline" viewBox="0 0 24 24" width="13" height="13"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>Reprocessado</span>';
       } else {
-        badgeStatus = '<span class="selo" style="background:rgba(239,68,68,0.15); color:#f87171; border:1px solid rgba(239,68,68,0.4)">❌ Falha / Erro</span>';
+        badgeStatus = '<span class="selo" style="background:rgba(239,68,68,0.15); color:#f87171; border:1px solid rgba(239,68,68,0.4)"><svg class="item-svg-inline" viewBox="0 0 24 24" width="13" height="13"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>Falha / Erro</span>';
       }
 
       const inc = Number(item.linhas_incluidas) || 0;
@@ -257,13 +257,13 @@ function abrirModalGet(item) {
     bannerAuth = `
       <div style="background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.3); border-radius:6px; padding:12px 14px; margin-bottom:14px; color:#fca5a5; font-size:0.85rem">
         <div style="font-weight:700; margin-bottom:4px; display:flex; align-items:center; gap:6px">
-          <span>🔒</span> Chave Individual Exigida (CGU / Portal da Transparência)
+          <svg class="item-svg-inline" viewBox="0 0 24 24" width="14" height="14"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>Chave Individual Exigida (CGU / Portal da Transparência)
         </div>
         <div>
           O Portal da Transparência exige que cada usuário informe sua própria chave no cabeçalho HTTP <code>chave-api-dados</code>. Por segurança e respeito às cotas de requisição, o sistema não expõe nem compartilha chaves fixas.
         </div>
-        <div style="margin-top:6px">
-          👉 <a href="https://portaldatransparencia.gov.br/api-de-dados/cadastrar-email" target="_blank" rel="noopener" style="color:#38bdf8; font-weight:700; text-decoration:underline">Cadastre sua chave gratuita no Portal da Transparência</a>
+        <div style="margin-top:6px; display:flex; align-items:center; gap:6px">
+          <svg class="item-svg-inline" viewBox="0 0 24 24" width="14" height="14"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg><a href="https://portaldatransparencia.gov.br/api-de-dados/cadastrar-email" target="_blank" rel="noopener" style="color:#38bdf8; font-weight:700; text-decoration:underline">Cadastre sua chave gratuita no Portal da Transparência</a>
         </div>
       </div>
     `;
@@ -271,7 +271,7 @@ function abrirModalGet(item) {
   } else {
     bannerAuth = `
       <div style="background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.3); border-radius:6px; padding:10px 14px; margin-bottom:14px; color:#6ee7b7; font-size:0.85rem">
-        <strong>✓ API Aberta & Pública:</strong> Este endpoint não exige autenticação ou chave de acesso. Você pode abri-lo diretamente no navegador.
+        <strong><svg class="item-svg-inline" viewBox="0 0 24 24" width="14" height="14"><polyline points="20 6 9 17 4 12"></polyline></svg>API Aberta & Pública:</strong> Este endpoint não exige autenticação ou chave de acesso. Você pode abri-lo diretamente no navegador.
       </div>
     `;
   }
@@ -301,14 +301,17 @@ function abrirModalGet(item) {
       </div>
     </div>
 
-    <div style="background:var(--superficie-2); border:1px solid var(--borda); border-radius:6px; padding:10px 12px; margin-bottom:14px; font-size:0.8rem; color:var(--texto-suave)">
-      💡 <strong>Como ler a contagem no retorno da API:</strong> No JSON retornado, a quantidade de linhas desta requisição vem indicada no campo <code>"count"</code> e no tamanho do array <code>"items"</code>. O acervo local consolida o somatório das varreduras de todos os entes federativos.
+    <div style="background:var(--superficie-2); border:1px solid var(--borda); border-radius:6px; padding:10px 12px; margin-bottom:14px; font-size:0.8rem; color:var(--texto-suave); display:flex; gap:8px; align-items:flex-start">
+      <svg class="item-svg-inline" viewBox="0 0 24 24" width="16" height="16" style="flex-shrink:0; margin-top:2px"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+      <div><strong>Como ler a contagem no retorno da API:</strong> No JSON retornado, a quantidade de linhas desta requisição vem indicada no campo <code>"count"</code> e no tamanho do array <code>"items"</code>. O acervo local consolida o somatório das varreduras de todos os entes federativos.</div>
     </div>
 
     <div style="margin-bottom:16px">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px">
         <label style="font-size:0.75rem; text-transform:uppercase; font-weight:700; color:var(--texto-suave)">Comando cURL (Terminal)</label>
-        <button id="btn-copiar-curl" class="secundario" style="padding:2px 8px; font-size:0.75rem; cursor:pointer">📋 Copiar cURL</button>
+        <button id="btn-copiar-curl" class="secundario" style="padding:2px 8px; font-size:0.75rem; cursor:pointer; display:inline-flex; align-items:center; gap:4px">
+          <svg class="item-svg-inline" viewBox="0 0 24 24" width="12" height="12"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>Copiar cURL
+        </button>
       </div>
       <pre style="background:var(--superficie); padding:10px 12px; border-radius:6px; border:1px solid var(--borda); font-family:monospace; font-size:0.8rem; overflow-x:auto; margin:0; color:#38bdf8">${escapar(curlComando)}</pre>
     </div>
@@ -316,7 +319,7 @@ function abrirModalGet(item) {
     <div style="display:flex; justify-content:flex-end; gap:10px; border-top:1px solid var(--borda); padding-top:14px">
       ${!exigeChave && urlReq.startsWith('http') ? `
         <a href="${escapar(urlReq)}" target="_blank" rel="noopener" class="principal" style="padding:8px 14px; border-radius:6px; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:6px">
-          <span>🌐</span> Abrir GET no Navegador
+          <svg class="item-svg-inline" viewBox="0 0 24 24" width="14" height="14"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>Abrir GET no Navegador
         </a>
       ` : ''}
       <button id="btn-fechar-modal-get" class="secundario" style="padding:8px 14px; border-radius:6px; font-weight:600; cursor:pointer">
@@ -329,8 +332,8 @@ function abrirModalGet(item) {
     navigator.clipboard.writeText(curlComando).then(() => {
       const b = $('#btn-copiar-curl');
       if (b) {
-        b.textContent = '✓ Copiado!';
-        setTimeout(() => { b.textContent = '📋 Copiar cURL'; }, 1800);
+        b.innerHTML = '<svg class="item-svg-inline" viewBox="0 0 24 24" width="12" height="12"><polyline points="20 6 9 17 4 12"></polyline></svg>Copiado!';
+        setTimeout(() => { b.innerHTML = '<svg class="item-svg-inline" viewBox="0 0 24 24" width="12" height="12"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>Copiar cURL'; }, 1800);
       }
     });
   });
@@ -390,7 +393,7 @@ export function configurarEventosCatalogo() {
     } finally {
       if (btn) {
         btn.disabled = false;
-        btn.innerHTML = '<span>⚡</span> Validar Acervo vs. Origem';
+        btn.innerHTML = '<svg class="item-svg-inline" viewBox="0 0 24 24" width="14" height="14"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>Validar Acervo vs. Origem';
       }
     }
   });

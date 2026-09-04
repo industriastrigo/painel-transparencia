@@ -52,7 +52,7 @@
         <span class="brand-subtitle" style="font-size:0.68rem">Governança Pública</span>
       </div>
     </a>
-    <button id="btn-fechar-drawer" class="drawer-fechar" aria-label="Fechar menu">✕</button>
+    <button id="btn-fechar-drawer" class="drawer-fechar" aria-label="Fechar menu"><svg class="item-svg-inline" viewBox="0 0 24 24" width="16" height="16" style="margin-right:0"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
   </div>
 
   <div class="drawer-corpo">
@@ -158,7 +158,7 @@
     <div style="font-size:0.8rem; font-weight:800; text-transform:uppercase; color:var(--realce-dourado); letter-spacing:0.05em">
       Perfil do Auditor
     </div>
-    <button onclick="document.getElementById('modal-perfil-usuario').close()" style="background:transparent; border:none; color:var(--texto-fraco); font-size:1.2rem; cursor:pointer">✕</button>
+    <button onclick="document.getElementById('modal-perfil-usuario').close()" style="background:transparent; border:none; color:var(--texto-fraco); cursor:pointer; display:flex; align-items:center; padding:4px"><svg class="item-svg-inline" viewBox="0 0 24 24" width="18" height="18" style="margin-right:0"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
   </div>
 
   <div class="perfil-card-header">
@@ -167,14 +167,14 @@
       <h3 id="perfil-modal-nome">Johnny Trigo</h3>
       <p id="perfil-modal-email">johnny.trigo@industriastrigo.com.br</p>
       <div style="display:inline-block; margin-top:6px; background:rgba(197,160,89,0.18); border:1px solid rgba(197,160,89,0.4); border-radius:12px; padding:2px 10px; font-size:0.75rem; font-weight:700; color:var(--realce-dourado)">
-        ✦ Auditor Verificado
+        <svg class="item-svg-inline" viewBox="0 0 24 24" width="12" height="12"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>Auditor Verificado
       </div>
     </div>
   </div>
 
   <!-- Preferências de Tema -->
   <div class="perfil-secao">
-    <div class="perfil-secao-titulo">🌓 Modo Visual & Tema</div>
+    <div class="perfil-secao-titulo"><svg class="item-svg-inline" viewBox="0 0 24 24" width="14" height="14"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a10 10 0 0 0 0 20z"></path></svg>Modo Visual & Tema</div>
     <div style="display:flex; align-items:center; justify-content:space-between; background:var(--superficie-2); padding:10px 14px; border-radius:var(--raio); border:1px solid var(--borda)">
       <div>
         <div style="font-weight:600; font-size:0.9rem">Esquema de Cores</div>
@@ -188,7 +188,7 @@
 
   <!-- Chave CGU Individual -->
   <div class="perfil-secao">
-    <div class="perfil-secao-titulo">🔒 Chave Pessoal do Portal da Transparência (CGU)</div>
+    <div class="perfil-secao-titulo"><svg class="item-svg-inline" viewBox="0 0 24 24" width="14" height="14"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>Chave Pessoal do Portal da Transparência (CGU)</div>
     <p style="font-size:0.8rem; color:var(--texto-fraco); margin:0 0 8px">
       Sua chave individual é armazenada localmente com total segurança no seu navegador.
     </p>
@@ -201,8 +201,8 @@
 
   <!-- Ações do Perfil -->
   <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--borda); padding-top:14px; margin-top:16px">
-    <button id="btn-logout-perfil" style="background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.3); color:#ef4444; padding:8px 14px; border-radius:var(--raio); font-weight:600; cursor:pointer; font-size:0.85rem">
-      🚪 Desconectar
+    <button id="btn-logout-perfil" style="background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.3); color:#ef4444; padding:8px 14px; border-radius:var(--raio); font-weight:600; cursor:pointer; font-size:0.85rem; display:flex; align-items:center; gap:6px">
+      <svg class="item-svg-inline" viewBox="0 0 24 24" width="14" height="14"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>Desconectar
     </button>
     <button onclick="document.getElementById('modal-perfil-usuario').close()" class="secundario" style="padding:8px 16px; border-radius:var(--raio); font-weight:600; cursor:pointer">
       Fechar
@@ -214,9 +214,9 @@
 <dialog id="modal-aviso-registro" class="modal-trigo">
   <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px">
     <div style="font-size:0.8rem; font-weight:800; text-transform:uppercase; color:var(--realce-dourado); letter-spacing:0.05em">
-      🔒 Acesso ao Painel de Dados
+      <svg class="item-svg-inline" viewBox="0 0 24 24" width="14" height="14"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>Acesso ao Painel de Dados
     </div>
-    <button onclick="document.getElementById('modal-aviso-registro').close()" style="background:transparent; border:none; color:var(--texto-fraco); font-size:1.2rem; cursor:pointer">✕</button>
+    <button onclick="document.getElementById('modal-aviso-registro').close()" style="background:transparent; border:none; color:var(--texto-fraco); cursor:pointer; display:flex; align-items:center; padding:4px"><svg class="item-svg-inline" viewBox="0 0 24 24" width="18" height="18" style="margin-right:0"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
   </div>
 
   <div style="text-align:center; padding:12px 6px;">
@@ -250,8 +250,8 @@
         <label for="input-login-email" style="display:block; font-size:0.75rem; text-transform:uppercase; font-weight:700; color:var(--texto-fraco); margin-bottom:4px">Seu E-mail</label>
         <input type="email" id="input-login-email" required placeholder="Ex: johnny@empresa.com.br" style="width:100%; padding:9px 12px; border-radius:var(--raio); border:1px solid var(--borda); background:var(--superficie-2); color:var(--texto); font-size:0.9rem" />
       </div>
-      <button id="btn-submit-login-direto" class="secundario" style="width:100%; padding:10px; border-radius:var(--raio); font-weight:700; font-size:0.9rem; cursor:pointer; border-color:var(--realce-dourado); color:var(--realce-dourado); margin-top:4px">
-        ✓ Confirmar e Acessar Painel
+      <button id="btn-submit-login-direto" class="secundario" style="width:100%; padding:10px; border-radius:var(--raio); font-weight:700; font-size:0.9rem; cursor:pointer; border-color:var(--realce-dourado); color:var(--realce-dourado); margin-top:4px; display:flex; align-items:center; justify-content:center; gap:6px">
+        <svg class="item-svg-inline" viewBox="0 0 24 24" width="14" height="14"><polyline points="20 6 9 17 4 12"></polyline></svg>Confirmar e Acessar Painel
       </button>
     </form>
 
@@ -270,7 +270,7 @@
     <div class="hero-inicio">
       <div class="hero-conteudo">
         <div class="hero-badge">
-          <span>✦</span> GOVERNANÇA PÚBLICA & CONTROLE CIDADÃO
+          <svg class="item-svg-inline" viewBox="0 0 24 24" width="12" height="12"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>GOVERNANÇA PÚBLICA & CONTROLE CIDADÃO
         </div>
         
         <div class="hero-brand-destaque">
@@ -376,7 +376,7 @@
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
           </div>
           <input type="text" id="busca-faq-glossario" class="busca-google-input" placeholder="Pesquise por 'empenho', 'login', 'teto constitucional', 'cartão corporativo', 'município'..." autocomplete="off" />
-          <button id="btn-limpar-busca-inicio" class="btn-limpar-busca" style="display:none" title="Limpar busca">✕</button>
+          <button id="btn-limpar-busca-inicio" class="btn-limpar-busca" style="display:none" title="Limpar busca"><svg class="item-svg-inline" viewBox="0 0 24 24" width="14" height="14" style="margin-right:0"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
         </div>
       </div>
 
@@ -820,7 +820,7 @@
     <!-- Termômetro Macroeconômico do Exercício -->
     <div class="cartao" style="margin-bottom:16px; border-top: 3px solid var(--realce, #38bdf8);">
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px">
-        <h2 id="executivo-titulo-macro" style="margin:0">🌡️ Termômetro Macroeconômico & Indicadores Chave</h2>
+        <h2 id="executivo-titulo-macro" style="margin:0"><svg class="item-svg-inline" viewBox="0 0 24 24" width="18" height="18"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"></path></svg>Termômetro Macroeconômico & Indicadores Chave</h2>
         <span class="badge-metodo">IBGE · Banco Central · Tesouro Nacional · MDS / CadÚnico</span>
       </div>
       <p class="rodape-mapa" style="margin-top:4px; margin-bottom:12px">
@@ -832,7 +832,7 @@
     <!-- Defasagem Fiscal: Resultado Primário vs Resultado Nominal -->
     <div class="cartao" style="margin-bottom:16px; border-top: 3px solid #10b981;">
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px">
-        <h2 id="executivo-titulo-defasagem" style="margin:0">⚖️ Defasagem Fiscal: O Cálculo do Déficit ou Superávit</h2>
+        <h2 id="executivo-titulo-defasagem" style="margin:0"><svg class="item-svg-inline" viewBox="0 0 24 24" width="18" height="18"><path d="M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1zM2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1zM7 21h10M12 3v18M3 7h18"></path></svg>Defasagem Fiscal: O Cálculo do Déficit ou Superávit</h2>
         <span class="badge-metodo">Metodologia Senado / LRF</span>
       </div>
       <p class="rodape-mapa" style="margin-top:4px; margin-bottom:12px">
@@ -844,7 +844,7 @@
     <!-- Produto Interno Bruto (PIB) & Contas Nacionais -->
     <div class="cartao" style="margin-bottom:16px; border-top: 3px solid #f59e0b;">
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px">
-        <h2 id="executivo-titulo-pib" style="margin:0">🌐 Produto Interno Bruto (PIB) & Contas Nacionais</h2>
+        <h2 id="executivo-titulo-pib" style="margin:0"><svg class="item-svg-inline" viewBox="0 0 24 24" width="18" height="18"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>Produto Interno Bruto (PIB) & Contas Nacionais</h2>
         <span class="badge-metodo">Metodologia IBGE / SCN</span>
       </div>
       <p class="rodape-mapa" style="margin-top:4px; margin-bottom:12px">
@@ -890,7 +890,7 @@
     <!-- Bloco de Cartões Corporativos do Executivo -->
     <div class="cartao" style="margin-top:16px" id="executivo-secao-cartoes">
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px">
-        <h2 id="executivo-titulo-cartoes">💳 Gastos com Cartões de Pagamento & Suprimentos</h2>
+        <h2 id="executivo-titulo-cartoes"><svg class="item-svg-inline" viewBox="0 0 24 24" width="18" height="18"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>Gastos com Cartões de Pagamento & Suprimentos</h2>
         <span class="badge-metodo">Transparência Pública</span>
       </div>
       <p id="executivo-subtitulo-cartoes" class="rodape-mapa" style="margin-top:-4px; margin-bottom:12px">
@@ -922,7 +922,7 @@
     <!-- Bloco de Diárias e Passagens de Viagens a Serviço -->
     <div class="cartao" style="margin-top:16px" id="executivo-secao-viagens">
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px">
-        <h2 id="executivo-titulo-viagens">✈️ Viagens a Serviço, Diárias & Passagens Oficiais</h2>
+        <h2 id="executivo-titulo-viagens"><svg class="item-svg-inline" viewBox="0 0 24 24" width="18" height="18"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3.5c-.5-.5-2.5 0-4 1.5L13.5 8.5 5.3 6.7c-.7-.1-1.3.1-1.8.6l-.5.5 6 4-3 3-2.5-.5L2 15.8l4.2 1.8 1.8 4.2 1.5-1.5-.5-2.5 3-3 4 6 .5-.5c.5-.5.7-1.1.6-1.8z"></path></svg>Viagens a Serviço, Diárias & Passagens Oficiais</h2>
         <span class="badge-metodo">Transparência Pública</span>
       </div>
       <p id="executivo-subtitulo-viagens" class="rodape-mapa" style="margin-top:-4px; margin-bottom:12px">
@@ -950,7 +950,7 @@
     <!-- Bloco de Contratos Públicos e Fornecedores -->
     <div class="cartao" style="margin-top:16px" id="executivo-secao-contratos">
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px">
-        <h2 id="executivo-titulo-contratos">📜 Contratos Públicos, Licitações & Fornecedores</h2>
+        <h2 id="executivo-titulo-contratos"><svg class="item-svg-inline" viewBox="0 0 24 24" width="18" height="18"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>Contratos Públicos, Licitações & Fornecedores</h2>
         <span class="badge-metodo">Compras Governamentais</span>
       </div>
       <p id="executivo-subtitulo-contratos" class="rodape-mapa" style="margin-top:-4px; margin-bottom:12px">
@@ -1113,7 +1113,7 @@
     <!-- Tabela de Magistrados -->
     <div class="cartao" style="margin-top: 16px;">
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px">
-        <h2>⚖️ Ministros, Desembargadores e Juízes</h2>
+        <h2><svg class="item-svg-inline" viewBox="0 0 24 24" width="18" height="18"><path d="M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1zM2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1zM7 21h10M12 3v18M3 7h18"></path></svg>Ministros, Desembargadores e Juízes</h2>
         <span class="badge-metodo" id="jud-total-filtrado">Carregando...</span>
       </div>
       <p class="rodape-mapa" style="margin-top:-4px; margin-bottom:12px">
@@ -1221,7 +1221,7 @@
     <!-- Tabela de Membros do MP -->
     <div class="cartao" style="margin-top: 16px;">
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px">
-        <h2>⚖️ Procuradores e Promotores de Justiça</h2>
+        <h2><svg class="item-svg-inline" viewBox="0 0 24 24" width="18" height="18"><path d="M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1zM2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1zM7 21h10M12 3v18M3 7h18"></path></svg>Procuradores e Promotores de Justiça</h2>
         <span class="badge-metodo" id="mp-total-filtrado">Carregando...</span>
       </div>
       <p class="rodape-mapa" style="margin-top:-4px; margin-bottom:12px">
@@ -1336,9 +1336,9 @@
     <details class="aviso-expansivel" style="margin-top:10px; margin-bottom:12px">
       <summary>
         <div class="expansivel-titulo">
-          <span class="icone-guia">💡</span>
+          <span class="icone-guia"><svg class="item-svg-inline" viewBox="0 0 24 24" width="16" height="16"><line x1="9" y1="18" x2="15" y2="18"></line><line x1="10" y1="22" x2="14" y2="22"></line><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"></path></svg></span>
           <strong>Guia Rápido para o Cidadão (Como interpretar)</strong>
-          <span class="seta-expandir">▼</span>
+          <span class="seta-expandir"><svg class="item-svg-inline" viewBox="0 0 24 24" width="12" height="12"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
         </div>
       </summary>
       <div class="expansivel-conteudo">
@@ -1385,45 +1385,45 @@
            aria-labelledby="aba-btn-glossario" hidden>
     
     <div class="indice-glossario">
-      <a href="#glos-abas">📑 1. Abas do Painel</a>
-      <a href="#glos-filtros">🎛️ 2. Guia de Filtros</a>
-      <a href="#glos-formulas">📐 3. Metodologia & Fórmulas</a>
-      <a href="#glos-adrs">🏛️ 4. Decisões Arquiteturais (ADRs)</a>
-      <a href="#glos-apis">🌐 5. Fontes & Roadmap de APIs</a>
+      <a href="#glos-abas"><svg class="item-svg-inline" viewBox="0 0 24 24" width="14" height="14"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>1. Abas do Painel</a>
+      <a href="#glos-filtros"><svg class="item-svg-inline" viewBox="0 0 24 24" width="14" height="14"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg>2. Guia de Filtros</a>
+      <a href="#glos-formulas"><svg class="item-svg-inline" viewBox="0 0 24 24" width="14" height="14"><path d="M21.17 8.01L15.99 2.83a2 2 0 0 0-2.83 0L2.83 13.16a2 2 0 0 0 0 2.83l5.18 5.18a2 2 0 0 0 2.83 0l10.33-10.33a2 2 0 0 0 0-2.83z"></path><line x1="7" y1="11" x2="9" y2="13"></line><line x1="10" y1="8" x2="12" y2="10"></line><line x1="13" y1="5" x2="15" y2="7"></line></svg>3. Metodologia & Fórmulas</a>
+      <a href="#glos-adrs"><svg class="item-svg-inline" viewBox="0 0 24 24" width="14" height="14"><line x1="3" y1="22" x2="21" y2="22"></line><line x1="6" y1="18" x2="6" y2="11"></line><line x1="10" y1="18" x2="10" y2="11"></line><line x1="14" y1="18" x2="14" y2="11"></line><line x1="18" y1="18" x2="18" y2="11"></line><polygon points="12 2 20 7 4 7"></polygon></svg>4. Decisões Arquiteturais (ADRs)</a>
+      <a href="#glos-apis"><svg class="item-svg-inline" viewBox="0 0 24 24" width="14" height="14"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>5. Fontes & Roadmap de APIs</a>
     </div>
 
     <!-- 1. Abas -->
     <div class="cartao secao-glossario" id="glos-abas">
-      <h2>📑 1. Estrutura e Abas do Painel</h2>
+      <h2><svg class="item-svg-inline" viewBox="0 0 24 24" width="18" height="18"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>1. Estrutura e Abas do Painel</h2>
       <p class="rodape-mapa">O Painel da Transparência organiza as finanças e a atuação pública brasileira em 7 visões complementares:</p>
       
       <div class="grid-glossario">
         <div class="cartao" style="background:var(--superficie-2)">
-          <h3>🗺️ Mapa do Brasil</h3>
+          <h3><svg class="item-svg-inline" viewBox="0 0 24 24" width="16" height="16"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>Mapa do Brasil</h3>
           <p>Visão territorial do país, estados e municípios. Permite navegar visualmente pelo mapa interativo, consultar 14 métricas fiscais/socioeconômicas e visualizar rankings de despesa, receita e saúde fiscal.</p>
         </div>
         <div class="cartao" style="background:var(--superficie-2)">
-          <h3>🏛️ Políticos & Mandatos</h3>
+          <h3><svg class="item-svg-inline" viewBox="0 0 24 24" width="16" height="16"><line x1="3" y1="22" x2="21" y2="22"></line><line x1="6" y1="18" x2="6" y2="11"></line><line x1="10" y1="18" x2="10" y2="11"></line><line x1="14" y1="18" x2="14" y2="11"></line><line x1="18" y1="18" x2="18" y2="11"></line><polygon points="12 2 20 7 4 7"></polygon></svg>Políticos & Mandatos</h3>
           <p>Catálogo unificado de governantes e parlamentares (do Presidente e Governadores a Deputados, Senadores, Prefeitos e Vereadores). Traz biografia, mandatos, votos nominais e gastos da Cota Parlamentar (CEAP).</p>
         </div>
         <div class="cartao" style="background:var(--superficie-2)">
-          <h3>📜 Projetos de Lei & Votações</h3>
+          <h3><svg class="item-svg-inline" viewBox="0 0 24 24" width="16" height="16"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>Projetos de Lei & Votações</h3>
           <p>Acompanhamento de proposições legislativas na Câmara e no Senado, com situação de tramitação, ementa oficial, resultado de votações no plenário e índice de fidelidade partidária.</p>
         </div>
         <div class="cartao" style="background:var(--superficie-2)">
-          <h3>💰 Custo do Estado</h3>
+          <h3><svg class="item-svg-inline" viewBox="0 0 24 24" width="16" height="16"><circle cx="12" cy="12" r="10"></circle><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"></path><line x1="12" y1="6" x2="12" y2="8"></line><line x1="12" y1="16" x2="12" y2="18"></line></svg>Custo do Estado</h3>
           <p>Análise comparativa das três realidades fiscais do país por <strong>Ano de Competência</strong>: Arrecadação de Tributos, Despesas Empenhadas e Salários/Subsídios Oficiais das autoridades dos Três Poderes.</p>
         </div>
         <div class="cartao" style="background:var(--superficie-2)">
-          <h3>📚 Glossário & Metodologia</h3>
+          <h3><svg class="item-svg-inline" viewBox="0 0 24 24" width="16" height="16"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>Glossário & Metodologia</h3>
           <p>Documentação pública completa de todas as fórmulas matemáticas, conceitos fiscais, filtros e decisões arquiteturais do projeto.</p>
         </div>
         <div class="cartao" style="background:var(--superficie-2)">
-          <h3>🏢 Fontes Oficiais</h3>
+          <h3><svg class="item-svg-inline" viewBox="0 0 24 24" width="16" height="16"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><line x1="9" y1="22" x2="9" y2="22.01"></line><line x1="15" y1="22" x2="15" y2="22.01"></line><line x1="9" y1="18" x2="9" y2="18.01"></line><line x1="15" y1="18" x2="15" y2="18.01"></line><line x1="9" y1="14" x2="9" y2="14.01"></line><line x1="15" y1="14" x2="15" y2="14.01"></line><line x1="9" y1="10" x2="9" y2="10.01"></line><line x1="15" y1="10" x2="15" y2="10.01"></line><line x1="9" y1="6" x2="9" y2="6.01"></line><line x1="15" y1="6" x2="15" y2="6.01"></line></svg>Fontes Oficiais</h3>
           <p>Inventário dos órgãos governamentais de onde os dados são extraídos (SICONFI, Tesouro Nacional, Câmara, Senado, TSE, IBGE e CGU), com datas e status de cada coleta.</p>
         </div>
         <div class="cartao" style="background:var(--superficie-2)">
-          <h3>🔄 Atualizar Dados</h3>
+          <h3><svg class="item-svg-inline" viewBox="0 0 24 24" width="16" height="16"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>Atualizar Dados</h3>
           <p>Central de controle que permite disparar coletas incrementais, atualizar exercícios fiscais e gerenciar chaves de acesso a APIs governamentais.</p>
         </div>
       </div>
@@ -1431,28 +1431,28 @@
 
     <!-- 2. Filtros -->
     <div class="cartao secao-glossario" id="glos-filtros">
-      <h2>🎛️ 2. Guia de Filtros e Seletores</h2>
+      <h2><svg class="item-svg-inline" viewBox="0 0 24 24" width="18" height="18"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg>2. Guia de Filtros e Seletores</h2>
       <p class="rodape-mapa">Como tirar o melhor proveito dos controles interativos disponíveis em cada tela:</p>
 
       <div class="grid-glossario">
         <div class="cartao" style="background:var(--superficie-2)">
-          <h3>📅 Ano de Competência / Exercício</h3>
+          <h3><svg class="item-svg-inline" viewBox="0 0 24 24" width="16" height="16"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>Ano de Competência / Exercício</h3>
           <p>Presente no Mapa e no Custo do Estado. Define o ano contábil do orçamento analisado. As fontes fecham em calendários distintos (o RREO sai durante o ano corrente; o DCA fecha no ano seguinte).</p>
         </div>
         <div class="cartao" style="background:var(--superficie-2)">
-          <h3>📊 Seletor de Métrica (Mapa)</h3>
+          <h3><svg class="item-svg-inline" viewBox="0 0 24 24" width="16" height="16"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>Seletor de Métrica (Mapa)</h3>
           <p>Organizado em 5 grupos temáticos: <em>Quanto Gasta</em>, <em>Quanto Arrecada</em>, <em>Quanto Recebe da União</em>, <em>Em Que Gasta (Saúde/Educação)</em> e <em>Saúde Fiscal (LRF/Dívida)</em>.</p>
         </div>
         <div class="cartao" style="background:var(--superficie-2)">
-          <h3>🔍 Busca Textual (Políticos e Projetos)</h3>
+          <h3><svg class="item-svg-inline" viewBox="0 0 24 24" width="16" height="16"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>Busca Textual (Políticos e Projetos)</h3>
           <p>Filtro instantâneo sem necessidade de recarregar. Busca por nome do político, número da proposição, partido ou palavra-chave na ementa.</p>
         </div>
         <div class="cartao" style="background:var(--superficie-2)">
-          <h3>⚖️ Filtro por Poder (Custo do Estado)</h3>
+          <h3><svg class="item-svg-inline" viewBox="0 0 24 24" width="16" height="16"><path d="M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1zM2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1zM7 21h10M12 3v18M3 7h18"></path></svg>Filtro por Poder (Custo do Estado)</h3>
           <p>Permite isolar a análise de remuneração e cargos entre Executivo, Legislativo, Judiciário e Ministério Público.</p>
         </div>
         <div class="cartao" style="background:var(--superficie-2)">
-          <h3>🏷️ Rótulos & Destaque no Mapa</h3>
+          <h3><svg class="item-svg-inline" viewBox="0 0 24 24" width="16" height="16"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>Rótulos & Destaque no Mapa</h3>
           <p>Permite alternar entre exibição automática de siglas, exibição de todos os entes ou mapa limpo para análise de densidade de cor.</p>
         </div>
       </div>
@@ -1460,7 +1460,7 @@
 
     <!-- 3. Metodologia & Fórmulas -->
     <div class="cartao secao-glossario" id="glos-formulas">
-      <h2>📐 3. Metodologia & Fórmulas Explicadas</h2>
+      <h2><svg class="item-svg-inline" viewBox="0 0 24 24" width="18" height="18"><path d="M21.17 8.01L15.99 2.83a2 2 0 0 0-2.83 0L2.83 13.16a2 2 0 0 0 0 2.83l5.18 5.18a2 2 0 0 0 2.83 0l10.33-10.33a2 2 0 0 0 0-2.83z"></path><line x1="7" y1="11" x2="9" y2="13"></line><line x1="10" y1="8" x2="12" y2="10"></line><line x1="13" y1="5" x2="15" y2="7"></line></svg>3. Metodologia & Fórmulas Explicadas</h2>
       <p class="rodape-mapa">Todas as contas do painel são abertas, auditáveis e fundamentadas em normas públicas:</p>
 
       <div class="cartao" style="background:var(--superficie-2); margin-top:12px">
@@ -1526,7 +1526,7 @@
 
     <!-- 4. ADRs -->
     <div class="cartao secao-glossario" id="glos-adrs">
-      <h2>🏛️ 4. Decisões Arquiteturais Registradas (ADRs)</h2>
+      <h2><svg class="item-svg-inline" viewBox="0 0 24 24" width="18" height="18"><line x1="3" y1="22" x2="21" y2="22"></line><line x1="6" y1="18" x2="6" y2="11"></line><line x1="10" y1="18" x2="10" y2="11"></line><line x1="14" y1="18" x2="14" y2="11"></line><line x1="18" y1="18" x2="18" y2="11"></line><polygon points="12 2 20 7 4 7"></polygon></svg>4. Decisões Arquiteturais Registradas (ADRs)</h2>
       <p class="rodape-mapa">Princípios inegociáveis de engenharia de dados do projeto:</p>
 
       <div class="grid-glossario">
@@ -1551,7 +1551,7 @@
 
     <!-- 5. Fontes & Roadmap -->
     <div class="cartao secao-glossario" id="glos-apis">
-      <h2>🌐 5. Fontes Atuais & Roadmap de Novas APIs</h2>
+      <h2><svg class="item-svg-inline" viewBox="0 0 24 24" width="18" height="18"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>5. Fontes Atuais & Roadmap de Novas APIs</h2>
       <p class="rodape-mapa">Origem das informações e próximos passos de expansão:</p>
 
       <div class="rolagem">
@@ -1629,7 +1629,7 @@
   <!-- ------------------------------------------------------------ catálogo -->
   <section id="aba-catalogo" role="tabpanel" tabindex="-1" hidden>
     <div class="banner-informativo" style="border-left: 4px solid var(--realce-dourado);">
-      <span class="banner-icone">⚙️</span>
+      <span class="banner-icone"><svg class="item-svg-inline" viewBox="0 0 24 24" width="18" height="18"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></span>
       <div class="banner-texto">
         <strong>Console de Engenharia & Auditoria de Dados:</strong> Inventário físico de partições Parquet, aferição de volumetria (*local vs origem*), metadados do Data Lakehouse e inspeção interativa de requisições GET.
       </div>
@@ -1758,7 +1758,7 @@
       </div>
       <div id="modal-get-subtitulo" style="font-size:0.8rem; color:var(--texto-suave); margin-top:2px"></div>
     </div>
-    <button id="modal-get-fechar" onclick="document.getElementById('modal-get-catalogo').close()" style="background:transparent; border:none; color:var(--texto-fraco); font-size:1.2rem; cursor:pointer">✕</button>
+    <button id="modal-get-fechar" onclick="document.getElementById('modal-get-catalogo').close()" style="background:transparent; border:none; color:var(--texto-fraco); cursor:pointer; display:flex; align-items:center; padding:4px"><svg class="item-svg-inline" viewBox="0 0 24 24" width="18" height="18" style="margin-right:0"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
   </div>
   <div id="modal-get-corpo"></div>
 </dialog>
@@ -1769,7 +1769,7 @@
 <div class="dica dica-solta" id="dica-politico" hidden></div>
 
 <dialog id="detalhe">
-  <button type="button" class="fechar" id="fechar-detalhe" aria-label="Fechar" title="Fechar (Esc)" onclick="document.getElementById('detalhe').close()">✕</button>
+  <button type="button" class="fechar" id="fechar-detalhe" aria-label="Fechar" title="Fechar (Esc)" onclick="document.getElementById('detalhe').close()"><svg class="item-svg-inline" viewBox="0 0 24 24" width="18" height="18" style="margin-right:0"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
   <div id="detalhe-conteudo"></div>
 </dialog>
 

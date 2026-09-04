@@ -766,7 +766,7 @@ button.discreto:disabled { opacity: .45; cursor: not-allowed; }
 /* Falha de servidor não é "não há dados". A tela precisa distinguir as duas,
    senão manda o usuário coletar um acervo que já está cheio. */
 .vazio.falhou { color: var(--contra); }
-.vazio.falhou::before { content: "⚠ "; }
+.vazio.falhou::before { content: "! "; font-weight: bold; }
 
 /* Esqueleto de carregamento: mantém a altura da região e diz que algo está
    vindo. Sem ele, a tabela antiga fica congelada e parece que o clique não
@@ -2405,6 +2405,38 @@ a:hover { color: var(--realce-vivo); }
 
 .drawer-nav-item:hover .badge-lock-drawer {
   opacity: 1;
+}
+
+.item-svg-inline {
+  display: inline-block;
+  vertical-align: -0.16em;
+  margin-right: 5px;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none !important;
+  width: 14px;
+  height: 14px;
+}
+
+.item-svg,
+.item-svg-inline,
+.drawer-nav-item svg,
+.topbar-trigo svg,
+.btn-toggle-tema svg,
+.pilar-icone svg,
+.card-aderencia-icone svg,
+.busca-google-icone svg,
+.badge-lock-drawer svg,
+.modal-trigo svg,
+.card-stat-cargo svg,
+.gcp-dataset-header svg,
+.btn-ver-get svg {
+  fill: none !important;
+  stroke: currentColor !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
 }
 
 .item-icone {

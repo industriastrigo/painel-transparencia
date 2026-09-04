@@ -14,13 +14,13 @@ const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun',
 /* ---------------------------------------------------------------- listagem */
 
 const ICONES_CARGO = {
-  presidente: '🇧🇷',
-  governador: '🏛️',
-  senador: '📜',
-  deputado_federal: '⚖️',
-  deputado_estadual: '📋',
-  prefeito: '🏙️',
-  vereador: '👥',
+  presidente: '<svg class="item-svg-inline" viewBox="0 0 24 24" width="16" height="16"><circle cx="12" cy="12" r="10"></circle><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>',
+  governador: '<svg class="item-svg-inline" viewBox="0 0 24 24" width="16" height="16"><line x1="3" y1="22" x2="21" y2="22"></line><line x1="6" y1="18" x2="6" y2="11"></line><line x1="10" y1="18" x2="10" y2="11"></line><line x1="14" y1="18" x2="14" y2="11"></line><line x1="18" y1="18" x2="18" y2="11"></line><polygon points="12 2 20 7 4 7"></polygon></svg>',
+  senador: '<svg class="item-svg-inline" viewBox="0 0 24 24" width="16" height="16"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>',
+  deputado_federal: '<svg class="item-svg-inline" viewBox="0 0 24 24" width="16" height="16"><path d="M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1zM2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1zM7 21h10M12 3v18M3 7h18"></path></svg>',
+  deputado_estadual: '<svg class="item-svg-inline" viewBox="0 0 24 24" width="16" height="16"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>',
+  prefeito: '<svg class="item-svg-inline" viewBox="0 0 24 24" width="16" height="16"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>',
+  vereador: '<svg class="item-svg-inline" viewBox="0 0 24 24" width="16" height="16"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>',
 };
 
 const NOMES_CARGO = {
@@ -44,7 +44,7 @@ async function carregarResumoPoliticos(uf) {
       return;
     }
     const cardsCargos = dados.cargos.map((c) => {
-      const icone = ICONES_CARGO[c.cargo] || '👤';
+      const icone = ICONES_CARGO[c.cargo] || '<svg class="item-svg-inline" viewBox="0 0 24 24" width="16" height="16"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>';
       const nomeCargo = NOMES_CARGO[c.cargo] || txt(c.cargo);
       return `
         <div class="card-stat-cargo">
@@ -61,7 +61,7 @@ async function carregarResumoPoliticos(uf) {
       <div class="resumo-cargos-grid">
         <div class="card-stat-cargo total">
           <div class="cargo-ident">
-            <span class="cargo-icone">👥</span>
+            <span class="cargo-icone"><svg class="item-svg-inline" viewBox="0 0 24 24" width="16" height="16"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></span>
             <span class="cargo-nome">Total Geral de Eleitos</span>
           </div>
           <span class="cargo-qtd">${Number(dados.total).toLocaleString('pt-BR')}</span>
@@ -160,7 +160,7 @@ function renderizarExecutivo() {
 
     container.innerHTML = `
       <div class="cartao-executivo-destaque">
-        <div class="executivo-foto">🏛️</div>
+        <div class="executivo-foto"><svg class="item-svg-inline" viewBox="0 0 24 24" width="28" height="28" style="margin-right:0"><line x1="3" y1="22" x2="21" y2="22"></line><line x1="6" y1="18" x2="6" y2="11"></line><line x1="10" y1="18" x2="10" y2="11"></line><line x1="14" y1="18" x2="14" y2="11"></line><line x1="18" y1="18" x2="18" y2="11"></line><polygon points="12 2 20 7 4 7"></polygon></svg></div>
         <div class="executivo-info">
           <span class="rotulo-cargo">PRESIDENTE DA REPÚBLICA (${ano})</span>
           <h2>${txt(pres.nome)}</h2>
@@ -676,7 +676,7 @@ function abaDePatrimonio(f) {
   if (!bens.length && !historico.length) {
     return `
       <div style="padding:24px; text-align:center; background:var(--superficie-2); border-radius:8px; border:1px solid var(--borda); margin-top:12px">
-        <span style="font-size:2.5rem">📋</span>
+        <span style="font-size:2.5rem; display:block; margin-bottom:4px"><svg class="item-svg-inline" viewBox="0 0 24 24" width="38" height="38" style="margin-right:0"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg></span>
         <h3 style="margin:10px 0 6px">Declaração de Bens do TSE</h3>
         <p style="color:var(--texto-fraco); max-width:520px; margin:0 auto 12px; font-size:13px; line-height:1.5">
           A declaração de bens é prestada pelo candidato no registro de candidatura junto à Justiça Eleitoral.

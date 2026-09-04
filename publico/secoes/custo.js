@@ -102,9 +102,9 @@ function renderizarAvisosDeCusto(resumo) {
     <details class="aviso-expansivel atencao" style="margin-top:10px; margin-bottom:14px">
       <summary>
         <div class="expansivel-titulo">
-          <span class="icone-guia">⚠️</span>
+          <span class="icone-guia"><svg class="item-svg-inline" viewBox="0 0 24 24" width="16" height="16"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></span>
           <strong>Leia antes de citar estes números (${avisos.length} observações metodológicas)</strong>
-          <span class="seta-expandir">▼</span>
+          <span class="seta-expandir"><svg class="item-svg-inline" viewBox="0 0 24 24" width="12" height="12"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
         </div>
       </summary>
       <div class="expansivel-conteudo">
@@ -142,7 +142,7 @@ function renderizarTabelaDeCusto(cargos) {
       <td class="valor">${c.valor_mensal == null ? '—'
         : escapar(dinheiro.format(c.valor_mensal))}
         ${c.valor_mensal != null && !c.conferido
-          ? ' <span class="nao-conferido" title="valor transcrito e ainda não conferido contra a norma">⚠ a conferir</span>'
+          ? ' <span class="nao-conferido" title="valor transcrito e ainda não conferido contra a norma"><svg class="item-svg-inline" viewBox="0 0 24 24" width="12" height="12"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>a conferir</span>'
           : ''}</td>
       <td class="valor">${c.custo_anual_estimado == null ? '—'
         : escapar(dinheiro.format(c.custo_anual_estimado))}</td>
@@ -194,7 +194,7 @@ function renderizarLateralDeCusto(resumo) {
             l.completo === false
               ? `<br><span class="nao-conferido" title="A coleta deste recorte terminou como '${
                   atributo(l.situacao_coleta || 'incompleta')}': o valor é um piso, não o total apurado."
-                  >⚠ coleta incompleta</span>`
+                  ><svg class="item-svg-inline" viewBox="0 0 24 24" width="12" height="12"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>coleta incompleta</span>`
               : ''}${l.linhas != null
               ? `<br><span class="cadencia">${contagem(l.linhas)} linha(s)</span>` : ''}</td>
         </tr>`).join('')

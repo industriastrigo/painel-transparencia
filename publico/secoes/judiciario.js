@@ -180,7 +180,7 @@ export async function abrirFichaMagistrado(sk) {
 
         ${ultrapassaTeto ? `
           <div class="alerta-teto-constitucional">
-            <strong>⚠️ Total de Créditos Brutos (${dinheiro.format(ultimaFolha.total_bruto)}) acima do Teto do STF (${dinheiro.format(tetoSTF)})</strong>
+            <strong><svg class="item-svg-inline" viewBox="0 0 24 24" width="14" height="14"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>Total de Créditos Brutos (${dinheiro.format(ultimaFolha.total_bruto)}) acima do Teto do STF (${dinheiro.format(tetoSTF)})</strong>
             <p>Valores que excedem o teto decorrem de verbas indenizatórias (como auxílio-alimentação e moradia) e gratificações por acúmulo de processos autorizadas pelo CNJ.</p>
           </div>
         ` : ''}
