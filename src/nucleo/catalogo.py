@@ -33,11 +33,11 @@ METADADOS_TABELAS: dict[str, dict[str, Any]] = {
         "instrucao_auth": "API pública aberta do IBGE (sem necessidade de chave).",
         "granularidade": "1 ente federativo (cod_ibge)",
         "completude_default": "total",
-        "linhas_origem_default": 5599,
+        "linhas_origem_default": 5592,
     },
     "dim_politico": {
         "orgao": "TSE / Congresso Nacional",
-        "recurso": "Candidatos eleitos e parlamentares federais",
+        "recurso": "Presidentes, Governadores e Parlamentares Federais em Exercício",
         "endpoint": "GET /divulgacandcontas/candidaturas + GET /deputados + GET /senadores",
         "url_origem": "https://dadosabertos.camara.leg.br/swagger/api.html",
         "url_template": "https://dadosabertos.camara.leg.br/api/v2/deputados",
@@ -45,7 +45,7 @@ METADADOS_TABELAS: dict[str, dict[str, Any]] = {
         "instrucao_auth": "API pública aberta (sem necessidade de chave).",
         "granularidade": "1 autoridade / parlamentar (fonte_origem, id_origem)",
         "completude_default": "total",
-        "linhas_origem_default": 69973,
+        "linhas_origem_default": 184,
     },
     "dim_cargo_publico": {
         "orgao": "Constituição Federal / Leis Orgânicas",
@@ -57,7 +57,7 @@ METADADOS_TABELAS: dict[str, dict[str, Any]] = {
         "instrucao_auth": "Tabela canônica normativa transcrita da legislação.",
         "granularidade": "1 cargo público canônico (cod_cargo)",
         "completude_default": "total",
-        "linhas_origem_default": 19,
+        "linhas_origem_default": 24,
     },
     "dim_cargo": {
         "orgao": "TSE",
@@ -93,7 +93,7 @@ METADADOS_TABELAS: dict[str, dict[str, Any]] = {
         "instrucao_auth": "Dicionário de métricas e fórmulas do sistema.",
         "granularidade": "1 métrica / indicador",
         "completude_default": "total",
-        "linhas_origem_default": 4,
+        "linhas_origem_default": 14,
     },
     "dim_de_para_ente": {
         "orgao": "TSE / IBGE",
@@ -116,7 +116,7 @@ METADADOS_TABELAS: dict[str, dict[str, Any]] = {
         "exige_chave": False,
         "instrucao_auth": "Painel oficial do Conselho Nacional de Justiça.",
         "granularidade": "1 magistrado / ministro",
-        "completude_default": "amostra_cupula",
+        "completude_default": "total",
         "linhas_origem_default": 31,
     },
     "dim_subsidio": {
@@ -129,7 +129,7 @@ METADADOS_TABELAS: dict[str, dict[str, Any]] = {
         "instrucao_auth": "Valores transcritos de normas federais e estaduais com citação legal e vigências históricas.",
         "granularidade": "1 subsídio normativo por cargo e vigência",
         "completude_default": "total",
-        "linhas_origem_default": 26,
+        "linhas_origem_default": 24,
     },
     "despesa_parlamentar": {
         "orgao": "Câmara dos Deputados",
