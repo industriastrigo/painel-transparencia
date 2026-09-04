@@ -23,13 +23,13 @@ COPY src/ ./src/
 COPY publico/ ./publico/
 COPY referencias/ ./referencias/
 
-# Cria diretório de dados para inicialização e semeadura automática
-RUN mkdir -p dados
-
+# Cria diretório e gera o acervo do Lakehouse durante o build da imagem
+RUN mkdir -p dados && \
+    python -c "from src.coletores.semeador import semear_se_vazio; semear_se_vazio()"
 
 # Porta dinâmica do Cloud Run (padrão 8080)
 EXPOSE 8080
 
-# Inicia o servidor ASGI Uvicorn
-CMD exec uvicorn src.api.servidor:app --host 0.0.0.0 --port ${PORT} --proxy-headers --forwarded-allow-ips="*"
+# Inicia o servidor ASGI Uvicorn expandindo ${PORT} com fallback para 8080
+CMD ["sh", "-c", "exec uvicorn src.api.servidor:app --host 0.0.0.0 --port ${PORT:-8080} --proxy-headers --forwarded-allow-ips='*'"]
 
