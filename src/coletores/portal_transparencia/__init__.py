@@ -6,8 +6,8 @@ from ...nucleo import armazem, config, controle, rede
 from ...nucleo.erros import ConfiguracaoAusente
 from ...nucleo.registro import obter as obter_log
 
-from .cliente import buscar_emendas, buscar_cartoes
-from .parser import TIPOS_EMENDA, normalizar_emenda, normalizar_cartao
+from .cliente import buscar_emendas, buscar_cartoes, buscar_viagens, buscar_contratos
+from .parser import TIPOS_EMENDA, normalizar_emenda, normalizar_cartao, normalizar_viagem, normalizar_contrato
 from .erros import ErroPortalTransparencia, diagnosticar_erro
 
 log = obter_log("coletores.portal")
@@ -84,11 +84,85 @@ def coletar_cartoes(ano: int, mes_inicio: int = 1, mes_fim: int = 12, paginas_ma
                           detalhe=f"teto de {paginas_max} páginas atingido" if truncado else "")
     return len(linhas)
 
+def coletar_viagens(ano: int, mes_inicio: int = 1, mes_fim: int = 12, paginas_max: int = 2000) -> int:
+    if not config.CHAVE_PORTAL_TRANSPARENCIA:
+        controle.gravar_marca(FONTE, f"viagens_{ano}", None, situacao="sem_chave",
+                              detalhe="defina CHAVE_PORTAL_TRANSPARENCIA no .env")
+        raise ConfiguracaoAusente(
+            "o Portal da Transparência exige uma chave gratuita e ela não está configurada.",
+            "Cadastre seu e-mail em portaldatransparencia.gov.br/api-de-dados/cadastrar-email "
+            "e escreva o código recebido em CHAVE_PORTAL_TRANSPARENCIA no arquivo .env.")
+
+    linhas = []
+    truncado = False
+
+    for mes in range(mes_inicio, mes_fim + 1):
+        pagina = 1
+        while True:
+            if pagina > paginas_max:
+                truncado = True
+                break
+            try:
+                lote = buscar_viagens(ano, mes, pagina)
+            except Exception as erro_req:
+                log.warning("viagens %d/%02d pagina %d: %s", ano, mes, pagina, erro_req)
+                break
+            if not lote:
+                break
+            for v in lote:
+                linhas.append(normalizar_viagem(v, ano, mes))
+            pagina += 1
+
+    if linhas:
+        armazem.mesclar("viagem_servico", linhas, FONTE)
+
+    controle.gravar_marca(FONTE, f"viagens_{ano}", ano, len(linhas),
+                          situacao="truncado" if truncado else "ok",
+                          detalhe=f"teto de {paginas_max} páginas atingido" if truncado else "")
+    return len(linhas)
+
+def coletar_contratos(ano: int, paginas_max: int = 2000) -> int:
+    if not config.CHAVE_PORTAL_TRANSPARENCIA:
+        controle.gravar_marca(FONTE, f"contratos_{ano}", None, situacao="sem_chave",
+                              detalhe="defina CHAVE_PORTAL_TRANSPARENCIA no .env")
+        raise ConfiguracaoAusente(
+            "o Portal da Transparência exige uma chave gratuita e ela não está configurada.",
+            "Cadastre seu e-mail em portaldatransparencia.gov.br/api-de-dados/cadastrar-email "
+            "e escreva o código recebido em CHAVE_PORTAL_TRANSPARENCIA no arquivo .env.")
+
+    linhas, pagina = [], 1
+    truncado = False
+
+    while True:
+        if pagina > paginas_max:
+            truncado = True
+            break
+        try:
+            lote = buscar_contratos(ano, pagina)
+        except Exception as erro_req:
+            log.warning("contratos %d pagina %d: %s", ano, pagina, erro_req)
+            break
+        if not lote:
+            break
+        for c in lote:
+            linhas.append(normalizar_contrato(c, ano))
+        pagina += 1
+
+    if linhas:
+        armazem.mesclar("contrato_governo", linhas, FONTE)
+
+    controle.gravar_marca(FONTE, f"contratos_{ano}", ano, len(linhas),
+                          situacao="truncado" if truncado else "ok",
+                          detalhe=f"teto de {paginas_max} páginas atingido" if truncado else "")
+    return len(linhas)
+
 def executar(anos: list[int] | None = None) -> None:
     for ano in anos or [date.today().year - 1, date.today().year]:
         try:
             coletar_emendas(ano)
             coletar_cartoes(ano)
+            coletar_viagens(ano)
+            coletar_contratos(ano)
         except ConfiguracaoAusente:
             raise
         except Exception as erro:  # noqa: BLE001

@@ -42,7 +42,7 @@ import {
 } from './secoes/custo.js';
 
 import {
-  carregarInicio
+  carregarInicio, configurarEventosInicio
 } from './secoes/inicio.js';
 
 import {
@@ -50,7 +50,7 @@ import {
 } from './secoes/glossario.js';
 
 import {
-  carregarCatalogo
+  carregarCatalogo, configurarEventosCatalogo
 } from './secoes/catalogo.js';
 
 // Registro dos ganchos de carregamento preguiçoso por aba
@@ -74,9 +74,9 @@ registrarGanchoAba('catalogo', carregarCatalogo);
 
 async function iniciar() {
   // Inicialização do Design System Indústrias Trigo
-  inicializarTema();
-  inicializarAuth();
-  inicializarDrawer();
+  try { inicializarTema(); } catch (e) { console.warn('Erro ao inicializar tema:', e); }
+  try { inicializarAuth(); } catch (e) { console.warn('Erro ao inicializar auth:', e); }
+  try { inicializarDrawer(); } catch (e) { console.warn('Erro ao inicializar drawer:', e); }
 
   // Controle dinâmico de visibilidade de ferramentas de engenharia por ambiente
   try {
@@ -96,7 +96,7 @@ async function iniciar() {
 
   // Evento do botão de alternância de tema
   $$('.btn-toggle-tema').forEach((btn) => {
-    btn.addEventListener('click', () => {
+    btn?.addEventListener('click', () => {
       alternarTema();
       reavaliarTema();
       if (estado.entes && estado.entes.length) carregarMapa().catch(() => {});
@@ -104,58 +104,60 @@ async function iniciar() {
   });
 
   const botoesAbas = $$('header nav button[data-aba], .drawer-nav-item[data-aba]');
-  botoesAbas.forEach((b) => b.addEventListener('click', () => trocarAba(b.dataset.aba)));
-  ligarTeclasDasAbas();
+  botoesAbas.forEach((b) => b?.addEventListener('click', () => trocarAba(b.dataset.aba)));
+  try { ligarTeclasDasAbas(); } catch (e) {}
 
   const abaInicial = location.hash.slice(1) || 'inicio';
-  trocarAba(abaInicial);
+  try { trocarAba(abaInicial); } catch (e) {}
 
   window.addEventListener('hashchange', () => {
     const aba = location.hash.slice(1);
     if (aba) trocarAba(aba);
   });
 
-  $('#ano').addEventListener('change', (e) => {
+  $('#ano')?.addEventListener('change', (e) => {
     estado.ano = Number(e.target.value);
     avisarAnoParcial();
     carregarMapa();
   });
-  $('#metrica').addEventListener('change', (e) => {
+  $('#metrica')?.addEventListener('change', (e) => {
     estado.metrica = e.target.value;
     carregarMapa();
   });
-  ligarControlesDoMapa();
-  ligarDicaDePoliticos();
+  try { ligarControlesDoMapa(); } catch (e) {}
+  try { ligarDicaDePoliticos(); } catch (e) {}
 
   window.matchMedia?.('(prefers-color-scheme: dark)')?.addEventListener?.('change', () => {
     reavaliarTema();
-    if (estado.entes.length) carregarMapa().catch(() => {});
+    if (estado.entes?.length) carregarMapa().catch(() => {});
   });
 
-  $('#buscar-politicos').addEventListener('click', carregarPoliticos);
+  $('#buscar-politicos')?.addEventListener('click', carregarPoliticos);
   $('#filtro-ano-politico')?.addEventListener('change', carregarPoliticos);
   $('#filtro-cargo')?.addEventListener('change', carregarPoliticos);
-  $('#buscar-proposicoes').addEventListener('click', carregarProposicoes);
+  $('#buscar-proposicoes')?.addEventListener('click', carregarProposicoes);
   ['#filtro-uf', '#filtro-nome', '#filtro-partido'].forEach((sel) => {
     $(sel)?.addEventListener('keydown', (ev) => {
       if (ev.key === 'Enter') carregarPoliticos();
     });
   });
-  $('#filtro-situacao').addEventListener('change', carregarProposicoes);
-  $('#filtro-tipo').addEventListener('change', carregarProposicoes);
-  $('#filtro-proposicao').addEventListener('keydown', (ev) => {
+  $('#filtro-situacao')?.addEventListener('change', carregarProposicoes);
+  $('#filtro-tipo')?.addEventListener('change', carregarProposicoes);
+  $('#filtro-proposicao')?.addEventListener('keydown', (ev) => {
     if (ev.key === 'Enter') carregarProposicoes();
   });
-  $('#limpar-proposicoes').addEventListener('click', () => {
+  $('#limpar-proposicoes')?.addEventListener('click', () => {
     ['#filtro-proposicao', '#filtro-situacao', '#filtro-tipo',
-     '#filtro-de', '#filtro-ate'].forEach((s) => { $(s).value = ''; });
+     '#filtro-de', '#filtro-ate'].forEach((s) => { const el = $(s); if (el) el.value = ''; });
     carregarProposicoes();
   });
-  configurarEventosExecutivo();
-  inicializarEventosLegislativo();
-  configurarEventosJudiciario();
-  inicializarEventosMp();
-  configurarEventosCatalogo();
+
+  try { configurarEventosExecutivo(); } catch (e) { console.warn('Aviso executivo:', e); }
+  try { inicializarEventosLegislativo(); } catch (e) { console.warn('Aviso legislativo:', e); }
+  try { configurarEventosJudiciario(); } catch (e) { console.warn('Aviso judiciario:', e); }
+  try { inicializarEventosMp(); } catch (e) { console.warn('Aviso mp:', e); }
+  try { configurarEventosCatalogo(); } catch (e) { console.warn('Aviso catalogo:', e); }
+  try { configurarEventosInicio(); } catch (e) { console.warn('Aviso inicio:', e); }
 
   const modalDetalhe = $('#detalhe');
   const btnFechar = $('#fechar-detalhe');
@@ -178,9 +180,9 @@ async function iniciar() {
     });
   }
 
-  $('#botao-atualizar').addEventListener('click', dispararColeta);
-  $('#salvar-chave').addEventListener('click', salvarChave);
-  $('#campo-chave').addEventListener('keydown', (ev) => {
+  $('#botao-atualizar')?.addEventListener('click', dispararColeta);
+  $('#salvar-chave')?.addEventListener('click', salvarChave);
+  $('#campo-chave')?.addEventListener('keydown', (ev) => {
     if (ev.key === 'Enter') salvarChave();
   });
 
@@ -197,24 +199,35 @@ async function iniciar() {
     recarregarPainelCompleto();
   });
 
-  await carregarAnos();
-
-  const ultima = await buscar('/api/coleta').catch(() => null);
-  if (ultima && ultima.situacao !== 'nenhuma') {
-    await montarCatalogo();
-    renderizarColeta(ultima);
-    if (ultima.situacao === 'executando') {
-      $('#botao-atualizar').disabled = true;
-      acompanharColeta();
-    }
+  try {
+    await carregarAnos();
+  } catch (e) {
+    console.warn('Aviso ao carregar anos:', e);
   }
+
+  try {
+    const ultima = await buscar('/api/coleta').catch(() => null);
+    if (ultima && ultima.situacao !== 'nenhuma') {
+      await montarCatalogo();
+      renderizarColeta(ultima);
+      if (ultima.situacao === 'executando') {
+        const btnAt = $('#botao-atualizar');
+        if (btnAt) btnAt.disabled = true;
+        acompanharColeta();
+      }
+    }
+  } catch (e) {}
+
   if (estado.ano) {
     await carregarMapa().catch((erro) => {
-      $('#rodape-mapa').textContent = `Não foi possível montar o mapa: ${erro.message}`;
+      const rod = $('#rodape-mapa');
+      if (rod) rod.textContent = `Não foi possível montar o mapa: ${erro.message}`;
     });
   } else {
-    $('#rodape-mapa').textContent =
-      'Nenhum dado no armazém. Rode a primeira carga: INSTALAR.bat';
+    const rod = $('#rodape-mapa');
+    if (rod) {
+      rod.textContent = 'Nenhum dado no armazém. Rode a primeira carga: INSTALAR.bat';
+    }
   }
 }
 

@@ -347,6 +347,9 @@ def _executar_coletor_tabela(tabela: str, ano: int | None = None) -> int:
     elif tabela == "presenca_evento":
         from ..coletores.camara import coletar_presencas
         return coletar_presencas(ano_val)
+    elif tabela == "tramitacao":
+        from ..coletores.camara import coletar_tramitacoes_ano
+        return coletar_tramitacoes_ano(ano_val)
     elif tabela == "dim_ente":
         from ..coletores import ibge
         return ibge.executar()
@@ -373,8 +376,17 @@ def _executar_coletor_tabela(tabela: str, ano: int | None = None) -> int:
         from ..coletores import tesouro
         return tesouro.executar(anos=[ano_val], refazer=True)
     elif tabela == "emenda_parlamentar":
-        from ..coletores import transparencia
-        return transparencia.executar(anos=[ano_val], refazer=True)
+        from ..coletores import portal_transparencia
+        return portal_transparencia.coletar_emendas(ano_val)
+    elif tabela == "cartao_corporativo":
+        from ..coletores import portal_transparencia
+        return portal_transparencia.coletar_cartoes(ano_val)
+    elif tabela == "viagem_servico":
+        from ..coletores import portal_transparencia
+        return portal_transparencia.coletar_viagens(ano_val)
+    elif tabela == "contrato_governo":
+        from ..coletores import portal_transparencia
+        return portal_transparencia.coletar_contratos(ano_val)
     
     return 0
 

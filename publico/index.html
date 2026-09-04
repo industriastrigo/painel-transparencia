@@ -10,6 +10,13 @@
 </head>
 <body>
 
+<div class="tarja-aviso-demo" role="alert">
+  <div class="tarja-conteudo">
+    <svg class="item-svg-inline" viewBox="0 0 24 24" width="16" height="16" style="margin-right:6px"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+    <span><strong>Ambiente de Engenharia & Homologação:</strong> Painel em conformidade com as regras fiscais e constitucionais. Esteira de ingestão direta das fontes oficiais ativada.</span>
+  </div>
+</div>
+
 <header class="topbar-trigo">
   <div class="topbar-esquerda">
     <button id="btn-menu-hamburguer" class="btn-hamburguer" aria-label="Abrir menu de navegação">
@@ -233,28 +240,6 @@
       <span>Entrar com a Conta Google</span>
     </button>
 
-    <!-- Divisor Elegante -->
-    <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px">
-      <div style="flex:1; height:1px; background:var(--borda)"></div>
-      <span style="font-size:0.75rem; text-transform:uppercase; color:var(--texto-sutil); font-weight:600">ou identificação cívica</span>
-      <div style="flex:1; height:1px; background:var(--borda)"></div>
-    </div>
-
-    <!-- Formulário Direto Resiliente -->
-    <form id="form-login-direto" onsubmit="return false;" style="display:flex; flex-direction:column; gap:10px; text-align:left; margin-bottom:14px">
-      <div>
-        <label for="input-login-nome" style="display:block; font-size:0.75rem; text-transform:uppercase; font-weight:700; color:var(--texto-fraco); margin-bottom:4px">Seu Nome Completo</label>
-        <input type="text" id="input-login-nome" required placeholder="Ex: Johnny Trigo" style="width:100%; padding:9px 12px; border-radius:var(--raio); border:1px solid var(--borda); background:var(--superficie-2); color:var(--texto); font-size:0.9rem" />
-      </div>
-      <div>
-        <label for="input-login-email" style="display:block; font-size:0.75rem; text-transform:uppercase; font-weight:700; color:var(--texto-fraco); margin-bottom:4px">Seu E-mail</label>
-        <input type="email" id="input-login-email" required placeholder="Ex: johnny@empresa.com.br" style="width:100%; padding:9px 12px; border-radius:var(--raio); border:1px solid var(--borda); background:var(--superficie-2); color:var(--texto); font-size:0.9rem" />
-      </div>
-      <button id="btn-submit-login-direto" class="secundario" style="width:100%; padding:10px; border-radius:var(--raio); font-weight:700; font-size:0.9rem; cursor:pointer; border-color:var(--realce-dourado); color:var(--realce-dourado); margin-top:4px; display:flex; align-items:center; justify-content:center; gap:6px">
-        <svg class="item-svg-inline" viewBox="0 0 24 24" width="14" height="14"><polyline points="20 6 9 17 4 12"></polyline></svg>Confirmar e Acessar Painel
-      </button>
-    </form>
-
     <button onclick="document.getElementById('modal-aviso-registro').close()" style="background:transparent; border:none; color:var(--texto-sutil); font-size:0.8rem; cursor:pointer; text-decoration:underline">
       Continuar apenas no Início
     </button>
@@ -287,7 +272,7 @@
 
         <p class="hero-descricao">
           Este painel foi criado para que qualquer cidadão brasileiro possa auditar, comparar e acompanhar
-          as contas de todos os <strong>5.570 municípios</strong>, dos <strong>27 estados</strong> e dos
+          as contas de todos os <strong>5.570 municípios</strong>, dos <strong>26 estados e o Distrito Federal</strong> e dos
           <strong>Três Poderes da República</strong> de forma simples, visual e 100% transparente.
         </p>
 
@@ -363,91 +348,18 @@
       </div>
     </div>
 
-    <!-- CAMPO DE BUSCA ESTILO GOOGLE -->
+    <!-- FAIXA INFORMATIVA DE TRANSPARÊNCIA, DATA-BASE & LINHAGEM (A-12) - SEM REDIRECIONAMENTOS EXTERNOS -->
     <div class="secao-inicio-bloco">
-      <div class="inicio-secao-cabecalho">
-        <h3>Central de Dúvidas & Perguntas Frequentes</h3>
-        <p>Pesquise qualquer dúvida sobre o painel, termos do orçamento público ou funcionamento</p>
-      </div>
-
-      <div class="busca-google-container">
-        <div class="busca-google-box">
-          <div class="busca-google-icone">
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-          </div>
-          <input type="text" id="busca-faq-glossario" class="busca-google-input" placeholder="Pesquise por 'empenho', 'login', 'teto constitucional', 'cartão corporativo', 'município'..." autocomplete="off" />
-          <button id="btn-limpar-busca-inicio" class="btn-limpar-busca" style="display:none" title="Limpar busca"><svg class="item-svg-inline" viewBox="0 0 24 24" width="14" height="14" style="margin-right:0"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
-        </div>
-      </div>
-
-      <div id="aviso-busca-sem-resultado" class="aviso-busca-vazia" style="display:none"></div>
-
-      <!-- FAQ ACCORDION -->
-      <div class="faq-container">
-        <!-- 1 -->
-        <div class="faq-item">
-          <button class="faq-pergunta">
-            <span>O que é este painel e qual é o objetivo do projeto?</span>
-            <svg class="faq-seta" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
-          </button>
-          <div class="faq-resposta">
-            <p>O Painel da Transparência & Controle foi desenvolvido pelas <strong>Indústrias Trigo</strong> para democratizar o acesso aos dados fiscais e legislativos do Brasil. O objetivo é transformar relatórios orçamentários complexos e dispersos em uma plataforma única, didática e intuitiva, permitindo que qualquer pessoa exerça o controle social e a cidadania ativa.</p>
+      <div class="tarja-transparencia-inicio" style="background:var(--superficie-2); border:1px solid var(--borda); border-left:4px solid var(--realce-dourado); border-radius:var(--raio); padding:14px 18px; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; font-size:0.85rem; color:var(--texto-fraco)">
+        <div style="display:flex; align-items:center; gap:10px">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--realce-dourado); flex-shrink:0"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+          <div>
+            <strong style="color:var(--texto)">Data-base do Acervo:</strong> Exercícios de 2015 a 2026 · Sincronização contínua via APIs e bases abertas oficiais (Tesouro Nacional, SICONFI, SADIPEM, Câmara dos Deputados, Senado Federal, TSE, CNJ e CGU).
           </div>
         </div>
-
-        <!-- 2 -->
-        <div class="faq-item">
-          <button class="faq-pergunta">
-            <span>Por que é solicitado entrar com uma conta para acessar os dados?</span>
-            <svg class="faq-seta" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
-          </button>
-          <div class="faq-resposta">
-            <p>A autenticação simples serve para monitorarmos a <strong>aderência e o alcance do projeto</strong> (quantos cidadãos, estudantes, jornalistas e auditores utilizam o sistema), além de garantir que as consultas às bases oficiais sejam feitas com segurança e sem sobrecarga dos servidores públicos. Não exigimos senhas de bancos ou de contas governamentais.</p>
-          </div>
-        </div>
-
-        <!-- 3 -->
-        <div class="faq-item">
-          <button class="faq-pergunta">
-            <span>O acesso ao painel é gratuito? Meus dados pessoais estão seguros?</span>
-            <svg class="faq-seta" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
-          </button>
-          <div class="faq-resposta">
-            <p><strong>Sim, 100% gratuito!</strong> Este é um projeto cívico e de governança aberta. Suas informações de login são tratadas com total privacidade, e sua eventual chave individual da CGU fica gravada exclusivamente no seu próprio navegador, sem ser enviada para servidores de terceiros.</p>
-          </div>
-        </div>
-
-        <!-- 4 -->
-        <div class="faq-item">
-          <button class="faq-pergunta">
-            <span>De onde vêm os dados exibidos nas tabelas e gráficos?</span>
-            <svg class="faq-seta" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
-          </button>
-          <div class="faq-resposta">
-            <p>Todos os dados são <strong>oficiais e auditáveis</strong>, obtidos diretamente de órgãos públicos de controle: Tesouro Nacional (SICONFI/SADIPEM), Câmara dos Deputados, Senado Federal, Tribunal Superior Eleitoral (TSE), Conselho Nacional de Justiça (CNJ) e Portal da Transparência do Governo Federal (CGU).</p>
-          </div>
-        </div>
-
-        <!-- 5 -->
-        <div class="faq-item">
-          <button class="faq-pergunta">
-            <span>Qualquer cidadão pode auditar e fiscalizar as contas públicas por aqui?</span>
-            <svg class="faq-seta" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
-          </button>
-          <div class="faq-resposta">
-            <p>Sim. A Constituição Brasileira (CF/88) e a Lei de Acesso à Informação (Lei 12.527/2011) garantem que todo cidadão tem o direito de fiscalizar os gastos do Estado. O painel disponibiliza links diretos para as requisições originais nos portais do governo para que qualquer informação possa ser confrontada.</p>
-          </div>
-        </div>
-
-        <!-- 6 -->
-        <div class="faq-item">
-          <button class="faq-pergunta">
-            <span>Como posso pesquisar as despesas da minha cidade ou do meu estado?</span>
-            <svg class="faq-seta" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
-          </button>
-          <div class="faq-resposta">
-            <p>Basta acessar a seção <strong>Mapa Interativo & Rankings</strong> no menu lateral. Você poderá selecionar qualquer um dos 5.570 municípios ou estados, escolher o ano desejado e visualizar os gastos por habitante em educação, saúde, saneamento, segurança e folha de pagamento.</p>
-          </div>
+        <div style="display:flex; align-items:center; gap:8px; font-weight:600; color:var(--texto)">
+          <span class="badge-status total" style="font-size:0.72rem">Acervo Auditável</span>
+          <span>Governança Pública & Código Auditado</span>
         </div>
       </div>
     </div>
@@ -509,6 +421,214 @@
           <div class="termo-rotulo">Lei de Responsabilidade Fiscal (LRF)</div>
           <div class="termo-conceito">Lei que impõe limites rígidos para gastos com folha de pagamento e dívidas públicas de prefeitos, governadores e do Presidente da República.</div>
         </div>
+      </div>
+    </div>
+
+    <!-- CENTRAL DE DÚVIDAS & PERGUNTAS FREQUENTES (FAQ EXPANDIDO - POSICIONAMENTO FINAL) -->
+    <div class="secao-inicio-bloco">
+      <div class="inicio-secao-cabecalho">
+        <h3>Central de Dúvidas & Perguntas Frequentes</h3>
+        <p>Pesquise qualquer dúvida sobre navegação, termos orçamentários, cálculos e regras fiscais</p>
+      </div>
+
+      <!-- CAMPO DE BUSCA ESTILO GOOGLE EM TEMPO REAL -->
+      <div class="busca-google-container">
+        <div class="busca-google-box">
+          <div class="busca-google-icone">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          </div>
+          <input type="text" id="busca-faq-glossario" class="busca-google-input" placeholder="Pesquise por 'mapa', 'empenho', 'login', 'teto', 'cota', 'lrf', 'cartão', 'município'..." autocomplete="off" />
+          <button id="btn-limpar-busca-inicio" class="btn-limpar-busca" style="display:none" title="Limpar busca"><svg class="item-svg-inline" viewBox="0 0 24 24" width="14" height="14" style="margin-right:0"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+        </div>
+      </div>
+
+      <div id="aviso-busca-sem-resultado" class="aviso-busca-vazia" style="display:none"></div>
+
+      <!-- FAQ ACCORDION -->
+      <div class="faq-container">
+        
+        <!-- ==================== GRUPO 1: CONCEITOS BÁSICOS & SEGURANÇA ==================== -->
+        
+        <!-- 1 -->
+        <div class="faq-item">
+          <button class="faq-pergunta">
+            <span>O que é o Painel da Transparência & Controle e qual é o propósito do projeto?</span>
+            <svg class="faq-seta" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          <div class="faq-resposta">
+            <p>O Painel da Transparência & Controle foi desenvolvido pelas <strong>Indústrias Trigo</strong> como uma iniciativa cívica, apartidária e aberta para democratizar o acesso às contas públicas brasileiras. O sistema consolida relatórios orçamentários complexos e dispersos em uma plataforma unificada, didática e de fácil navegação, permitindo que qualquer cidadão, jornalista, estudante ou pesquisador exerça o controle social e fiscalize o uso do dinheiro dos impostos.</p>
+          </div>
+        </div>
+
+        <!-- 2 -->
+        <div class="faq-item">
+          <button class="faq-pergunta">
+            <span>De onde vêm os dados exibidos nas tabelas, mapas e gráficos?</span>
+            <svg class="faq-seta" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          <div class="faq-resposta">
+            <p>Todos os dados são <strong>100% oficiais, auditáveis e rastreáveis</strong>. As informações são extraídas diretamente dos órgãos públicos de controle através de suas APIs e bases abertas: <strong>Tesouro Nacional</strong> (SICONFI, SADIPEM e Siafi), <strong>Câmara dos Deputados</strong> (Dados Abertos e CEAP), <strong>Senado Federal</strong>, <strong>Tribunal Superior Eleitoral (TSE)</strong>, <strong>Conselho Nacional de Justiça (CNJ)</strong>, <strong>IBGE</strong> e <strong>Controladoria-Geral da União (CGU / Portal da Transparência)</strong>.</p>
+          </div>
+        </div>
+
+        <!-- 3 -->
+        <div class="faq-item">
+          <button class="faq-pergunta">
+            <span>Por que é solicitado entrar com a Conta Google? Meus dados pessoais estão seguros?</span>
+            <svg class="faq-seta" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          <div class="faq-resposta">
+            <p>A autenticação simples com conta Google tem duas finalidades exclusivas: <strong>medir o alcance e engajamento cívico</strong> do projeto na sociedade e <strong>proteger as integrações com os servidores governamentais</strong> contra abusos, robôs maliciosos e sobrecargas de tráfego. O acesso é <strong>100% gratuito e seguro</strong>: não temos acesso às suas senhas, respeitamos integralmente a LGPD e não compartilhamos seus dados com terceiros.</p>
+          </div>
+        </div>
+
+        <!-- 4 -->
+        <div class="faq-item">
+          <button class="faq-pergunta">
+            <span>O painel cobra alguma mensalidade ou possui planos pagos?</span>
+            <svg class="faq-seta" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          <div class="faq-resposta">
+            <p><strong>Não. O painel é e sempre será 100% gratuito.</strong> Não existem planos premium, assinaturas ou cobranças. Todo o acervo de dados, rankings, gráficos, ferramentas de auditoria e tabelas históricas está disponível publicamente para toda a sociedade brasileira.</p>
+          </div>
+        </div>
+
+        <!-- ==================== GRUPO 2: COMO USAR O PAINEL & NAVEGAR PELAS ABAS ==================== -->
+
+        <!-- 5 -->
+        <div class="faq-item">
+          <button class="faq-pergunta">
+            <span>Como posso pesquisar as finanças e despesas da minha cidade ou do meu estado?</span>
+            <svg class="faq-seta" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          <div class="faq-resposta">
+            <p>Abra a aba <strong>Mapa Interativo & Rankings</strong> no menu lateral. Lá você pode selecionar o exercício desejado (de 2015 a 2026) e a métrica de interesse (como <em>Despesas por Habitante em Saúde</em>, <em>Educação</em>, <em>Arrecadação de Tributos</em> ou <em>Transferências da União / FPM</em>). O mapa colorirá os entes por faixas de valores e exibirá um ranking ordenado das capitais e municípios.</p>
+          </div>
+        </div>
+
+        <!-- 6 -->
+        <div class="faq-item">
+          <button class="faq-pergunta">
+            <span>Como consultar os gastos de gabinete, projetos e votos de deputados e senadores?</span>
+            <svg class="faq-seta" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          <div class="faq-resposta">
+            <p>Nas abas <strong>Políticos & Mandatos</strong> e <strong>Projetos de Lei & Votações</strong>, você pode filtrar parlamentares por nome, partido, estado ou ano. Clicando no cartão do político, o painel abre um dossiê com o histórico de mandatos, notas fiscais da Cota Parlamentar (CEAP), empresas fornecedoras, frequência em sessões legislativas e como ele votou em matérias de relevância nacional.</p>
+          </div>
+        </div>
+
+        <!-- 7 -->
+        <div class="faq-item">
+          <button class="faq-pergunta">
+            <span>Como auditar as despesas dos Três Poderes (Executivo, Legislativo, Judiciário e MP)?</span>
+            <svg class="faq-seta" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          <div class="faq-resposta">
+            <p>O menu lateral conta com seções dedicadas para cada poder: <strong>Poder Executivo</strong> (Ministérios, Secretarias Estaduais e Prefeituras), <strong>Poder Legislativo</strong> (Câmara e Senado), <strong>Poder Judiciário</strong> (STF, STJ, TST, TRFs e TJs) e <strong>Ministério Público</strong> (MPF e MPEs). Cada seção detalha a composição dos orçamentos entre folha de pagamento, despesas operacionais de custeio e investimentos públicos.</p>
+          </div>
+        </div>
+
+        <!-- 8 -->
+        <div class="faq-item">
+          <button class="faq-pergunta">
+            <span>Onde encontro os salários de autoridades, diárias de viagens e cartões corporativos?</span>
+            <svg class="faq-seta" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          <div class="faq-resposta">
+            <p>Na aba <strong>Custo do Estado & Subsídios</strong>, você pode auditar os valores de subsídios normativos estabelecidos em lei para cada cargo constitucional (Presidente, Ministros, Governadores, Prefeitos, Magistrados e Deputados), as diárias e passagens concedidas a servidores em viagens a serviço (PCDP) e as faturas mensais de suprimento de fundos do Cartão de Pagamento do Governo Federal (CPGF).</p>
+          </div>
+        </div>
+
+        <!-- 9 -->
+        <div class="faq-item">
+          <button class="faq-pergunta">
+            <span>Como posso consultar o dicionário de tabelas ou a linhagem das fontes?</span>
+            <svg class="faq-seta" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          <div class="faq-resposta">
+            <p>Acesse a seção <strong>Catálogo de Dados & APIs</strong> no menu lateral. O catálogo lista todas as 17 tabelas FATO e DIMENSÃO do acervo colunar Parquet, informando a volumetria exata de registros, status de integridade com a fonte governamental, órgão de origem, endpoint da requisição e documentação técnica de cada conjunto de dados.</p>
+          </div>
+        </div>
+
+        <!-- ==================== GRUPO 3: ENTENDENDO OS DADOS, SIGLAS E REGRAS FISCAIS ==================== -->
+
+        <!-- 10 -->
+        <div class="faq-item">
+          <button class="faq-pergunta">
+            <span>O que significa a cor cinza ou a indicação 'Sem dados' no Mapa Interativo?</span>
+            <svg class="faq-seta" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          <div class="faq-resposta">
+            <p>A tonalidade cinza indica que, para o ano e métrica selecionados, aquele município ou estado <strong>ainda não transmitiu ou homologou sua declaração contábil oficial</strong> no sistema SICONFI do Tesouro Nacional. O painel segue a regra de fidelidade à fonte: se o governo local não publicou o dado oficial, o sistema marca 'sem dado' em vez de inventar ou estimar números.</p>
+          </div>
+        </div>
+
+        <!-- 11 -->
+        <div class="faq-item">
+          <button class="faq-pergunta">
+            <span>Qual é a diferença prática entre Empenho, Liquidação e Pagamento?</span>
+            <svg class="faq-seta" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          <div class="faq-resposta">
+            <p>O orçamento público passa obrigatoriamente por três etapas cronológicas: <strong>1. Empenho:</strong> o governo reserva formalmente a verba para aquele contrato (o gasto é planejado); <strong>2. Liquidação:</strong> o órgão público atesta e comprova que a obra foi feita ou o produto entregue; <strong>3. Pagamento:</strong> o dinheiro sai da conta do Tesouro e é depositado na conta do fornecedor. As análises fiscais de comprometimento de receita costumam usar as despesas empenhadas.</p>
+          </div>
+        </div>
+
+        <!-- 12 -->
+        <div class="faq-item">
+          <button class="faq-pergunta">
+            <span>Como funciona o limite da Lei de Responsabilidade Fiscal (LRF) para gastos com servidores?</span>
+            <svg class="faq-seta" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          <div class="faq-resposta">
+            <p>A LRF (Lei Complementar 101/2000) impõe um teto para despesas com pessoal em relação à Receita Corrente Líquida (RCL): <strong>60% nos Estados e Municípios</strong> e <strong>50% na União</strong>. Esse limite é subdividido entre os poderes (ex: nos municípios, 54% para a Prefeitura e 6% para a Câmara de Vereadores). O painel monitora esses percentuais e alerta quando um ente ultrapassa o limite de alerta (90% do teto) ou o limite prudencial (95% do teto).</p>
+          </div>
+        </div>
+
+        <!-- 13 -->
+        <div class="faq-item">
+          <button class="faq-pergunta">
+            <span>O que é o Teto Constitucional e como funciona a regra do 'Abate-Teto'?</span>
+            <svg class="faq-seta" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          <div class="faq-resposta">
+            <p>O artigo 37, XI da Constituição Federal determina que nenhuma remuneração ou benefício no setor público pode ultrapassar o subsídio mensal de Ministro do Supremo Tribunal Federal (STF). Quando a soma de vencimentos, gratificações e vantagens de um servidor ou magistrado ultrapassa esse limite, o valor excedente deve ser obrigatoriamente retido na folha de pagamento através do desconto denominado <strong>Abate-Teto</strong>.</p>
+          </div>
+        </div>
+
+        <!-- 14 -->
+        <div class="faq-item">
+          <button class="faq-pergunta">
+            <span>A Cota Parlamentar (CEAP) faz parte do salário do deputado ou senador?</span>
+            <svg class="faq-seta" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          <div class="faq-resposta">
+            <p><strong>Não. A Cota Parlamentar não é salário.</strong> Trata-se de uma verba indenizatória destinada exclusivamente a cobrir gastos operacionais estritamente ligados ao exercício do mandato parlamentar (como passagens de avião para a base eleitoral, hospedagem, combustível, telefonia, segurança e consultorias técnicas). O parlamentar precisa apresentar notas fiscais para ser ressarcido pela Câmara ou Senado.</p>
+          </div>
+        </div>
+
+        <!-- 15 -->
+        <div class="faq-item">
+          <button class="faq-pergunta">
+            <span>O que são os relatórios RREO e RGF e por que eles saem durante o ano?</span>
+            <svg class="faq-seta" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          <div class="faq-resposta">
+            <p>O <strong>RREO (Relatório Resumido de Execução Orçamentária)</strong> é publicado a cada 2 meses e detalha o quanto o governo arrecadou e gastou por área (saúde, educação, infraestrutura). O <strong>RGF (Relatório de Gestão Fiscal)</strong> sai a cada 4 ou 6 meses e afere o endividamento e os limites de folha de pagamento da LRF. Eles são publicados durante o próprio exercício para permitir a fiscalização e a correção de rumos antes do ano fechar.</p>
+          </div>
+        </div>
+
+        <!-- 16 -->
+        <div class="faq-item">
+          <button class="faq-pergunta">
+            <span>Por que alguns números podem divergir de notícias da imprensa ou portais municipais?</span>
+            <svg class="faq-seta" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          <div class="faq-resposta">
+            <p>Divergências pontuais ocorrem principalmente por dois motivos: <strong>regime contábil</strong> (o painel segue o padrão nacional padronizado pela Secretaria do Tesouro Nacional / SICONFI, enquanto notícias locais podem misturar previsões orçamentárias com pagamentos efetivos) e <strong>retificações de balanços</strong> (órgãos públicos frequentemente revisam e republicam demonstrativos após auditorias dos Tribunais de Contas).</p>
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -1660,7 +1780,7 @@
     </div>
 
     <!-- Filtros do Catálogo -->
-    <div class="barra-filtros-trigo" style="margin-bottom: var(--e3);">
+    <div class="barra-filtros-trigo" style="margin-bottom: var(--e3); align-items:flex-end; flex-wrap:wrap; gap:12px;">
       <div class="filtro-grupo">
         <label for="cat-filtro-busca" class="filtro-rotulo">Buscar Tabela</label>
         <input type="text" id="cat-filtro-busca" class="filtro-campo" placeholder="Ex: dim_ente, despesa..." />
@@ -1679,6 +1799,7 @@
           <option value="">Todos os Status</option>
           <option value="total">100% Total</option>
           <option value="parcial">Parcial</option>
+          <option value="amostra">Amostra</option>
           <option value="divergencia">Divergência</option>
         </select>
       </div>
@@ -1691,7 +1812,14 @@
           <option value="tesouro">Tesouro Nacional / SICONFI</option>
           <option value="tse">TSE</option>
           <option value="ibge">IBGE</option>
+          <option value="cnj">CNJ (Conselho Nacional de Justiça)</option>
+          <option value="cgu">Portal da Transparência / CGU</option>
         </select>
+      </div>
+      <div class="filtro-grupo" style="margin-bottom:0">
+        <button id="btn-limpar-filtros-cat" class="secundario" style="height:38px; padding:0 14px; display:inline-flex; align-items:center; gap:6px; font-weight:600; cursor:pointer" title="Limpar todos os filtros">
+          <svg class="item-svg-inline" viewBox="0 0 24 24" width="14" height="14"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>Limpar Filtros
+        </button>
       </div>
     </div>
 

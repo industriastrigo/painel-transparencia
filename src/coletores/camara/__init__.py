@@ -147,6 +147,51 @@ def coletar_tramitacoes(id_proposicao: str) -> int:
         armazem.mesclar("tramitacao", linhas, FONTE)
     return len(linhas)
 
+def coletar_tramitacoes_ano(ano: int, limite_proposicoes: int = 200) -> int:
+    """Coleta em lote as etapas de tramitação das proposições mais ativas/recentes do exercício."""
+    import duckdb
+    from pathlib import Path
+    
+    dir_prop = Path(config.FATO) / "proposicao" / f"ano={ano}"
+    if not dir_prop.exists():
+        return 0
+
+    con = duckdb.connect()
+    try:
+        df_p = con.execute(f"SELECT DISTINCT id_proposicao FROM read_parquet('{dir_prop.as_posix()}/*.parquet') WHERE id_proposicao IS NOT NULL LIMIT {limite_proposicoes}").df()
+    except Exception as erro:
+        log.warning("não foi possível ler proposições de %d para tramitações: %s", ano, erro)
+        return 0
+
+    if df_p.empty:
+        return 0
+
+    linhas_totais = []
+    for idp in df_p["id_proposicao"]:
+        try:
+            dados = buscar_api(f"proposicoes/{idp}/tramitacoes").get("dados", [])
+            for t in dados:
+                linhas_totais.append({
+                    "casa": CASA,
+                    "id_proposicao": str(idp),
+                    "seq_tramitacao": texto(t.get("sequencia")),
+                    "data_hora": opcional(t.get("dataHora")),
+                    "orgao": opcional(t.get("siglaOrgao")),
+                    "descricao_tramitacao": opcional(t.get("descricaoTramitacao")),
+                    "descricao_situacao": opcional(t.get("descricaoSituacao")),
+                    "despacho": texto(t.get("despacho"), 1000),
+                    "ano": int(str(t.get("dataHora", ""))[:4] or ano),
+                })
+        except Exception:
+            continue
+
+    if linhas_totais:
+        armazem.mesclar("tramitacao", linhas_totais, FONTE)
+        log.info("tramitações de %d: %d etapas gravadas para %d proposições", ano, len(linhas_totais), len(df_p))
+
+    controle.gravar_marca(FONTE, f"tramitacoes_{ano}", ano, len(linhas_totais))
+    return len(linhas_totais)
+
 def coletar_votacoes(ano: int) -> int:
     df = _csv(f"{config.CAMARA_ARQUIVOS}/votacoes/csv/votacoes-{ano}.csv")
     if df.empty:
@@ -295,6 +340,8 @@ def coletar_presenca(ano: int) -> int:
     controle.gravar_marca(FONTE, f"presenca_{ano}", ano, len(linhas))
     return len(linhas)
 
+coletar_presencas = coletar_presenca
+
 def votos_por_api(id_votacao: str) -> list[dict]:
     dados = buscar_api(f"proposicoes/{id_votacao}/votos").get("dados", [])
     if not dados:
@@ -339,6 +386,7 @@ def executar(anos: list[int] | None = None, com_despesas: bool = True) -> None:
     for ano in anos:
         for nome, funcao in (
             ("proposições", coletar_proposicoes),
+            ("tramitações", coletar_tramitacoes_ano),
             ("votações", coletar_votacoes),
             ("votação → proposição", coletar_votacoes_proposicoes),
             ("votos", coletar_votos),

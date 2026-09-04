@@ -154,7 +154,14 @@ def principal(argv: list[str] | None = None) -> int:
     elif args.sem_bruto:
         bruto.ligar(False)
 
-    from ..coletores import sadipem, tesouro, transferencias  # noqa: PLC0415
+    from ..coletores import (  # noqa: PLC0415
+        camara,
+        portal_transparencia,
+        sadipem,
+        siconfi,
+        tesouro,
+        transferencias,
+    )
 
     def anos(padrao: list[int]) -> list[int]:
         primeiro = args.desde or padrao[0]
@@ -176,6 +183,8 @@ def principal(argv: list[str] | None = None) -> int:
         ("Custos do Governo Federal",
          lambda: tesouro.executar(anos=anos(tesouro.anos_disponiveis()),
                                   conjuntos=conjuntos, refazer=args.refazer)),
+        ("Câmara — Deputados federais",
+         lambda: camara.coletar_deputados()),
     ]
 
     # RREO e RGF nas 27 UFs: barato (~1 min por ano em cada relatório) e é o
@@ -186,9 +195,9 @@ def principal(argv: list[str] | None = None) -> int:
     # `--ate` para no ano anterior porque quase toda fonte só fecha o
     # exercício passado. Estas duas são a exceção: elas saem DURANTE o ano,
     # então o ano corrente entra mesmo assim.
-    from ..coletores import siconfi  # noqa: PLC0415
     primeiro = args.desde or 2015
-    for ano in range(primeiro, date.today().year + 1):
+    limite_ano = (args.ate or date.today().year)
+    for ano in range(primeiro, limite_ano + 1):
         etapas.append((
             f"SICONFI RREO função {ano}",
             lambda a=ano: siconfi.executar(ano=a, recursos=("funcao",),
@@ -197,6 +206,44 @@ def principal(argv: list[str] | None = None) -> int:
             f"SICONFI RGF {ano}",
             lambda a=ano: siconfi.executar(ano=a, recursos=("rgf",),
                                            refazer_tudo=args.refazer)))
+        # Câmara dos Deputados — proposições, tramitações, votações, eventos e cota
+        etapas.append((
+            f"Câmara — proposições {ano}",
+            lambda a=ano: camara.coletar_proposicoes(a)))
+        etapas.append((
+            f"Câmara — tramitações {ano}",
+            lambda a=ano: camara.coletar_tramitacoes_ano(a)))
+        etapas.append((
+            f"Câmara — votações {ano}",
+            lambda a=ano: camara.coletar_votacoes(a)))
+        etapas.append((
+            f"Câmara — votos nominais {ano}",
+            lambda a=ano: camara.coletar_votos(a)))
+        etapas.append((
+            f"Câmara — orientações de bancada {ano}",
+            lambda a=ano: camara.coletar_orientacoes(a)))
+        etapas.append((
+            f"Câmara — eventos {ano}",
+            lambda a=ano: camara.coletar_eventos(a)))
+        etapas.append((
+            f"Câmara — presenças em eventos {ano}",
+            lambda a=ano: camara.coletar_presenca(a)))
+        etapas.append((
+            f"Câmara — despesas CEAP {ano}",
+            lambda a=ano: camara.coletar_despesas(a)))
+        # Portal da Transparência (CGU) — viagens, contratos, emendas e cartões
+        etapas.append((
+            f"Portal da Transparência — viagens a serviço {ano}",
+            lambda a=ano: portal_transparencia.coletar_viagens(ano=a)))
+        etapas.append((
+            f"Portal da Transparência — contratos {ano}",
+            lambda a=ano: portal_transparencia.coletar_contratos(ano=a)))
+        etapas.append((
+            f"Portal da Transparência — emendas parlamentares {ano}",
+            lambda a=ano: portal_transparencia.coletar_emendas(ano=a)))
+        etapas.append((
+            f"Portal da Transparência — cartões corporativos {ano}",
+            lambda a=ano: portal_transparencia.coletar_cartoes(ano=a)))
 
     if args.com_municipios:
         for ano in anos(list(range(2015, date.today().year))):

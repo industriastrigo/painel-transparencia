@@ -120,7 +120,8 @@ def obter_catalogo_tabelas(
     params = []
     
     if tabela:
-        condicoes.append("tabela ILIKE ?")
+        condicoes.append("(tabela ILIKE ? OR descricao_recurso ILIKE ?)")
+        params.append(f"%{tabela}%")
         params.append(f"%{tabela}%")
     if camada:
         condicoes.append("camada = ?")
@@ -129,11 +130,37 @@ def obter_catalogo_tabelas(
         condicoes.append("ano = ?")
         params.append(ano)
     if orgao:
-        condicoes.append("orgao_origem ILIKE ?")
-        params.append(f"%{orgao}%")
+        orgao_low = orgao.lower()
+        if orgao_low in ("cgu", "portal", "portal_transparencia"):
+            condicoes.append("(orgao_origem ILIKE '%cgu%' OR orgao_origem ILIKE '%transparência%' OR orgao_origem ILIKE '%transparencia%' OR orgao_origem ILIKE '%comprasgov%')")
+        elif orgao_low in ("tesouro", "siconfi", "sadipem", "siafi"):
+            condicoes.append("(orgao_origem ILIKE '%tesouro%' OR orgao_origem ILIKE '%siconfi%' OR orgao_origem ILIKE '%sadipem%' OR orgao_origem ILIKE '%siafi%')")
+        elif orgao_low in ("camara", "câmara"):
+            condicoes.append("(orgao_origem ILIKE '%câmara%' OR orgao_origem ILIKE '%camara%')")
+        elif orgao_low in ("cnj", "judiciario", "judiciário"):
+            condicoes.append("(orgao_origem ILIKE '%cnj%' OR orgao_origem ILIKE '%justiça%' OR orgao_origem ILIKE '%justica%')")
+        elif orgao_low == "senado":
+            condicoes.append("(orgao_origem ILIKE '%senado%' OR orgao_origem ILIKE '%congresso%')")
+        elif orgao_low == "tse":
+            condicoes.append("(orgao_origem ILIKE '%tse%' OR orgao_origem ILIKE '%eleitoral%')")
+        elif orgao_low == "ibge":
+            condicoes.append("orgao_origem ILIKE '%ibge%'")
+        else:
+            condicoes.append("orgao_origem ILIKE ?")
+            params.append(f"%{orgao}%")
     if status:
-        condicoes.append("status_completude ILIKE ?")
-        params.append(f"%{status}%")
+        st_low = status.lower()
+        if st_low == "total":
+            condicoes.append("(status_completude ILIKE 'total%' OR total_linhas = linhas_origem)")
+        elif st_low == "parcial":
+            condicoes.append("(status_completude ILIKE 'parcial%' OR (total_linhas < linhas_origem AND status_completude NOT ILIKE 'amostra%'))")
+        elif st_low == "amostra":
+            condicoes.append("status_completude ILIKE 'amostra%'")
+        elif st_low == "divergencia":
+            condicoes.append("(total_linhas > linhas_origem)")
+        else:
+            condicoes.append("status_completude ILIKE ?")
+            params.append(f"%{status}%")
 
     where_sql = f"WHERE {' AND '.join(condicoes)}" if condicoes else ""
     
@@ -253,6 +280,12 @@ def executar_validacao_carga(payload: dict | None = None):
 @router.post("/api/controle/semear")
 def disparar_semeadura():
     """Força a execução da semeadura de dados e recarrega todas as views DuckDB."""
+    import os
+    if os.getenv("PERMITIR_SEMEADURA", "false").lower() != "true" and os.getenv("AMB", "prd") != "desenvolvimento":
+        raise HTTPException(
+            status_code=403,
+            detail="Semeadura sintética desativada em produção. Utilize a esteira oficial de ingestão e validação de carga."
+        )
     from ...coletores.semeador import semear_se_vazio
     semear_se_vazio(forcar=True)
     criadas = recarregar_views()

@@ -148,6 +148,31 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/* Tarja de Notificação e Homologação de Dados */
+.tarja-aviso-demo {
+  background: var(--atencao-fraco, #fef3c7);
+  color: var(--atencao, #92400e);
+  border-bottom: 1px solid var(--realce-borda, #e2c88d);
+  font-size: 0.8rem;
+  padding: 6px 16px;
+  line-height: 1.4;
+  position: relative;
+  z-index: 100;
+}
+[data-tema="dark"] .tarja-aviso-demo,
+.dark-theme .tarja-aviso-demo {
+  background: #271a06;
+  color: #fcd34d;
+  border-bottom: 1px solid #785408;
+}
+.tarja-conteudo {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 /* Todo número do painel é para ser comparado com o de cima e o de baixo. Sem
    algarismo de largura fixa, a coluna "dança" e a comparação exige ler em vez
    de bater o olho. */

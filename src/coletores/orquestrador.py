@@ -171,13 +171,14 @@ FONTES: dict[str, Fonte] = {
                    "casaram com o cadastro do IBGE (de-para).",
     ),
     "portal_transparencia": Fonte(
-        rotulo="Portal da Transparência — emendas",
+        rotulo="Portal da Transparência — emendas, cartões, viagens e contratos",
         cadencia="mensal",
-        periodo="ano de execução da emenda",
-        granularidade="uma linha por documento de emenda",
-        duracao="2 a 8 minutos",
+        periodo="ano de execução / competência",
+        granularidade="documentos de emendas, faturas de cartões, viagens e contratos",
+        duracao="5 a 15 minutos",
         usa_ano=True,
         requer="chave gratuita da CGU (o campo abaixo grava no .env)",
+        recursos=("emendas", "cartoes", "viagens", "contratos"),
     ),
     "tesouro": Fonte(
         rotulo="Tesouro — custo apurado por órgão federal",

@@ -217,7 +217,7 @@ METADADOS_TABELAS: dict[str, dict[str, Any]] = {
         "exige_chave": False,
         "instrucao_auth": "API pública aberta da Câmara dos Deputados (sem chave).",
         "granularidade": "1 etapa de tramitação",
-        "completude_default": "amostra",
+        "completude_default": "total",
     },
     "emenda_parlamentar": {
         "orgao": "Portal da Transparência (CGU)",
@@ -316,7 +316,7 @@ METADADOS_TABELAS: dict[str, dict[str, Any]] = {
         "exige_chave": True,
         "instrucao_auth": "A API da CGU exige chave individual de acesso no cabeçalho 'chave-api-dados'. Cada usuário deve obter a sua gratuitamente em: portaldatransparencia.gov.br/api-de-dados/cadastrar-email e configurá-la na aba 'Atualizar'.",
         "granularidade": "1 contrato administrativo",
-        "completude_default": "amostra",
+        "completude_default": "total",
     },
     "viagem_servico": {
         "orgao": "Portal da Transparência (CGU)",
@@ -327,7 +327,7 @@ METADADOS_TABELAS: dict[str, dict[str, Any]] = {
         "exige_chave": True,
         "instrucao_auth": "A API da CGU exige chave individual de acesso no cabeçalho 'chave-api-dados'. Cada usuário deve obter a sua gratuitamente em: portaldatransparencia.gov.br/api-de-dados/cadastrar-email e configurá-la na aba 'Atualizar'.",
         "granularidade": "1 viagem a serviço",
-        "completude_default": "amostra",
+        "completude_default": "total",
     },
     "fato_remuneracao_magistrado": {
         "orgao": "CNJ (Conselho Nacional de Justiça)",

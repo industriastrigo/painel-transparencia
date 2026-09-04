@@ -48,7 +48,7 @@ gcloud run deploy $ServicoNome `
     --cpu 1 `
     --min-instances 0 `
     --max-instances 3 `
-    --set-env-vars="AMB=$Ambiente,EXIGE_AUTH=1,HTTPS_ONLY=1"
+    --set-env-vars="AMB=$Ambiente,EXIGE_AUTH=1,HTTPS_ONLY=1,PERMITIR_SEMEADURA=false"
 
 # 3. Obtém e exibe a URL final
 $UrlServico = (gcloud run services describe $ServicoNome --project $ProjetoId --region $Regiao --format="value(status.url)").Trim()

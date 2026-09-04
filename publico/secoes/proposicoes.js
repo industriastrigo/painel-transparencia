@@ -157,6 +157,10 @@ async function abrirProposicao(casa, id) {
             : ''}`}
 
     <h2>Votações</h2>
+    <p class="pe" style="margin:2px 0 10px 0; color:var(--texto-fraco); font-size:0.82rem">
+      <svg class="item-svg-inline" viewBox="0 0 24 24" width="14" height="14"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+      <em>Votações nominais e painéis de votos auditados diretamente nas APIs oficiais do Congresso Nacional.</em>
+    </p>
     ${votacoes.length ? votacoes.map((v) => `
       <div class="cartao" style="margin-bottom:12px">
         <strong>${formatarData(v.data_hora, true)} · ${escapar(v.sigla_orgao ?? '')}</strong>

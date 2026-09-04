@@ -377,7 +377,7 @@ export async function carregarExecutivo() {
               <span class="badge-metodo" style="font-size:10px">Sem juros</span>
             </div>
             <p class="pe" style="margin:6px 0 10px 0; color:var(--texto-fraco)">
-              <strong>Fórmula:</strong> Receitas Primárias (R$ ${dinheiroCurto.format(f.receita_primaria)}) − Despesas Primárias (R$ ${dinheiroCurto.format(f.despesa_primaria)}).
+              <strong>Fórmula:</strong> Receitas Primárias (${dinheiroCurto.format(f.receita_primaria)}) − Despesas Primárias (${dinheiroCurto.format(f.despesa_primaria)}).
             </p>
             <div class="tiras" style="margin-bottom:8px">
               <div class="tira"><span>Receita Primária</span><strong>${dinheiro.format(f.receita_primaria)}</strong></div>
@@ -405,7 +405,7 @@ export async function carregarExecutivo() {
               <span class="badge-metodo" style="font-size:10px">Com juros da dívida</span>
             </div>
             <p class="pe" style="margin:6px 0 10px 0; color:var(--texto-fraco)">
-              <strong>Fórmula:</strong> Resultado Primário − Juros & Encargos da Dívida Pública (R$ ${dinheiroCurto.format(f.juros_encargos_divida)}).
+              <strong>Fórmula:</strong> Resultado Primário − Juros & Encargos da Dívida Pública (${dinheiroCurto.format(f.juros_encargos_divida)}).
             </p>
             <div class="tiras" style="margin-bottom:8px">
               <div class="tira"><span>Resultado Primário Base</span><strong>${dinheiro.format(f.resultado_primario)}</strong></div>

@@ -408,7 +408,8 @@ async function abrirFichaDoPolitico(sk, ano) {
     <!-- 2. RESUMO E MANDATOS -->
     <div class="painel-ficha" data-painel="resumo" ${isExecutivo ? '' : 'hidden'}>
       <div class="rolagem" style="margin-top:10px">
-        <h3>Mandatos Registrados na Justiça Eleitoral / Congresso</h3>
+        <h3>Histórico de Mandatos na Carreira Política (TSE / Congresso)</h3>
+        <p class="pe" style="color:var(--texto-fraco); margin-bottom:8px">Trajetória e cargos eletivos registrados ao longo da carreira pública do titular.</p>
         <table>
           <thead><tr><th>Cargo</th><th class="centrado">Período</th><th class="centrado">Situação</th><th class="centrado">Fonte</th></tr></thead>
           <tbody>

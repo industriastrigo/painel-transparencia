@@ -97,10 +97,12 @@ app.include_router(auth_router)
 # 4. Inicialização de dados e views no startup
 @app.on_event("startup")
 def inicializar_dados():
-    """Garante auto-semeadura dos dados essenciais e criação das views DuckDB."""
+    """Garante auto-semeadura apenas quando explicitamente autorizado em dev, e criação resiliente das views DuckDB."""
     try:
-        from ..coletores.semeador import semear_se_vazio
-        semear_se_vazio()
+        permitir = os.getenv("PERMITIR_SEMEADURA", "false").lower() == "true" and os.getenv("AMB", "prd") == "desenvolvimento"
+        if permitir:
+            from ..coletores.semeador import semear_se_vazio
+            semear_se_vazio()
         recarregar_views()
     except Exception as erro:
         log.warning("Aviso durante inicialização de dados: %s", erro)

@@ -1,4 +1,4 @@
-﻿name: Deploy GCP Cloud Run
+name: Deploy GCP Cloud Run
 
 on:
   push:
@@ -63,6 +63,6 @@ jobs:
             --cpu 1 \
             --min-instances 0 \
             --max-instances 3 \
-            --set-env-vars="AMB=${ENV_ALVO},EXIGE_AUTH=1,HTTPS_ONLY=1,GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }},GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }},SESSION_SECRET_KEY=${{ secrets.SESSION_SECRET_KEY }},EMAILS_PERMITIDOS=${{ secrets.EMAILS_PERMITIDOS }}"
+            --set-env-vars="AMB=${ENV_ALVO},EXIGE_AUTH=1,HTTPS_ONLY=1,PERMITIR_SEMEADURA=false,GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }},GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }},SESSION_SECRET_KEY=${{ secrets.SESSION_SECRET_KEY }},EMAILS_PERMITIDOS=${{ secrets.EMAILS_PERMITIDOS }}"
         env:
           GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}

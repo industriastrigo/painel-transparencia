@@ -5,8 +5,14 @@ import { buscar } from '../nucleo/api.js';
 import { contagem, escapar } from '../nucleo/formatadores.js';
 
 let catalogoCache = [];
+let eventosConfigurados = false;
 
 export async function carregarCatalogo() {
+  if (!eventosConfigurados) {
+    configurarEventosCatalogo();
+    eventosConfigurados = true;
+  }
+
   const corpo = $('#tabela-catalogo-corpo');
   if (!corpo) return;
 
@@ -18,13 +24,12 @@ export async function carregarCatalogo() {
     const status = $('#cat-filtro-status')?.value || '';
     const orgao = $('#cat-filtro-orgao')?.value || '';
 
-    const params = new URLSearchParams();
-    if (busca) params.set('tabela', busca);
-    if (camada) params.set('camada', camada);
-    if (status) params.set('status', status);
-    if (orgao) params.set('orgao', orgao);
-
-    const dados = await buscar(`/api/catalogo?${params.toString()}`);
+    const dados = await buscar('/api/catalogo', {
+      tabela: busca,
+      camada: camada,
+      status: status,
+      orgao: orgao,
+    });
     if (!dados) return;
 
     // 1. Atualizar KPIs do Topo
