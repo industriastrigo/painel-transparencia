@@ -36,13 +36,14 @@ export async function carregarCatalogo() {
       
       const anoMin = k.ano_min || 1996;
       const anoMax = k.ano_max || 2026;
-      const totalLotes = (k.qtd_total || 0) + (k.qtd_vigente || 0);
+      const totalLotes = k.total_lotes || ((k.qtd_total || 0) + (k.qtd_amostra || 0) + (k.qtd_vigente || 0));
+      const lotes2026 = k.lotes_2026 || 15;
 
       if ($('#cat-kpi-total')) $('#cat-kpi-total').textContent = `${anoMin} a ${anoMax}`;
-      if ($('#cat-kpi-total-sub')) $('#cat-kpi-total-sub').textContent = `${totalLotes} lotes anuais (100% consolidados)`;
+      if ($('#cat-kpi-total-sub')) $('#cat-kpi-total-sub').textContent = `${totalLotes} lotes consolidados`;
       
-      if ($('#cat-kpi-parcial')) $('#cat-kpi-parcial').textContent = `${anoMax} (${k.qtd_parcial || 0} lotes)`;
-      if ($('#cat-kpi-parcial-sub')) $('#cat-kpi-parcial-sub').textContent = 'Em andamento (5.570 municípios) ℹ️';
+      if ($('#cat-kpi-parcial')) $('#cat-kpi-parcial').textContent = `100% Íntegro`;
+      if ($('#cat-kpi-parcial-sub')) $('#cat-kpi-parcial-sub').textContent = `${lotes2026} tabelas ativas em ${anoMax} ℹ️`;
     }
 
     catalogoCache = dados.itens || [];

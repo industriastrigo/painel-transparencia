@@ -137,27 +137,31 @@ def obter_catalogo_tabelas(
 
     where_sql = f"WHERE {' AND '.join(condicoes)}" if condicoes else ""
     
+    sql_resumo = """
+        SELECT 
+            COUNT(DISTINCT tabela) AS total_tabelas,
+            COUNT(DISTINCT CASE WHEN camada = 'dim' THEN tabela END) AS total_dim,
+            COUNT(DISTINCT CASE WHEN camada = 'fato' THEN tabela END) AS total_fato,
+            SUM(total_linhas) AS total_linhas_global,
+            COUNT(*) AS total_lotes,
+            COUNT(CASE WHEN ano = 2026 THEN 1 END) AS lotes_2026,
+            COUNT(CASE WHEN status_completude = 'total' OR status_completude = 'total_ufs' THEN 1 END) AS qtd_total,
+            COUNT(CASE WHEN status_completude ILIKE 'parcial%' THEN 1 END) AS qtd_parcial,
+            COUNT(CASE WHEN status_completude ILIKE 'amostra%' THEN 1 END) AS qtd_amostra,
+            COUNT(CASE WHEN status_completude = 'vigente' THEN 1 END) AS qtd_vigente,
+            MIN(ano) AS ano_min,
+            MAX(ano) AS ano_max,
+            COUNT(DISTINCT ano) AS total_anos_distintos
+        FROM dim_catalogo_tabela
+    """
+    
     try:
         linhas = _consultar(f"""
             SELECT * FROM dim_catalogo_tabela
             {where_sql}
             ORDER BY camada, tabela, ano DESC NULLS LAST
         """, params)
-        resumo_geral = _consultar("""
-            SELECT 
-                COUNT(DISTINCT tabela) AS total_tabelas,
-                COUNT(DISTINCT CASE WHEN camada = 'dim' THEN tabela END) AS total_dim,
-                COUNT(DISTINCT CASE WHEN camada = 'fato' THEN tabela END) AS total_fato,
-                SUM(total_linhas) AS total_linhas_global,
-                COUNT(CASE WHEN status_completude = 'total' OR status_completude = 'total_ufs' THEN 1 END) AS qtd_total,
-                COUNT(CASE WHEN status_completude ILIKE 'parcial%' THEN 1 END) AS qtd_parcial,
-                COUNT(CASE WHEN status_completude ILIKE 'amostra%' THEN 1 END) AS qtd_amostra,
-                COUNT(CASE WHEN status_completude = 'vigente' THEN 1 END) AS qtd_vigente,
-                MIN(ano) AS ano_min,
-                MAX(ano) AS ano_max,
-                COUNT(DISTINCT ano) AS total_anos_distintos
-            FROM dim_catalogo_tabela
-        """)
+        resumo_geral = _consultar(sql_resumo)
         # Se a tabela ainda estiver vazia no banco, gera e recarrega imediatamente
         if (not linhas and not any([tabela, camada, ano, orgao, status])) or not resumo_geral or not resumo_geral[0].get("total_tabelas"):
             salvar_catalogo()
@@ -167,21 +171,7 @@ def obter_catalogo_tabelas(
                 {where_sql}
                 ORDER BY camada, tabela, ano DESC NULLS LAST
             """, params)
-            resumo_geral = _consultar("""
-                SELECT 
-                    COUNT(DISTINCT tabela) AS total_tabelas,
-                    COUNT(DISTINCT CASE WHEN camada = 'dim' THEN tabela END) AS total_dim,
-                    COUNT(DISTINCT CASE WHEN camada = 'fato' THEN tabela END) AS total_fato,
-                    SUM(total_linhas) AS total_linhas_global,
-                    COUNT(CASE WHEN status_completude = 'total' OR status_completude = 'total_ufs' THEN 1 END) AS qtd_total,
-                    COUNT(CASE WHEN status_completude ILIKE 'parcial%' THEN 1 END) AS qtd_parcial,
-                    COUNT(CASE WHEN status_completude ILIKE 'amostra%' THEN 1 END) AS qtd_amostra,
-                    COUNT(CASE WHEN status_completude = 'vigente' THEN 1 END) AS qtd_vigente,
-                    MIN(ano) AS ano_min,
-                    MAX(ano) AS ano_max,
-                    COUNT(DISTINCT ano) AS total_anos_distintos
-                FROM dim_catalogo_tabela
-            """)
+            resumo_geral = _consultar(sql_resumo)
     except Exception:
         # Se ainda não foi lida na view, gera sob demanda
         salvar_catalogo()
@@ -191,21 +181,7 @@ def obter_catalogo_tabelas(
             {where_sql}
             ORDER BY camada, tabela, ano DESC NULLS LAST
         """, params)
-        resumo_geral = _consultar("""
-            SELECT 
-                COUNT(DISTINCT tabela) AS total_tabelas,
-                COUNT(DISTINCT CASE WHEN camada = 'dim' THEN tabela END) AS total_dim,
-                COUNT(DISTINCT CASE WHEN camada = 'fato' THEN tabela END) AS total_fato,
-                SUM(total_linhas) AS total_linhas_global,
-                COUNT(CASE WHEN status_completude = 'total' OR status_completude = 'total_ufs' THEN 1 END) AS qtd_total,
-                COUNT(CASE WHEN status_completude ILIKE 'parcial%' THEN 1 END) AS qtd_parcial,
-                COUNT(CASE WHEN status_completude ILIKE 'amostra%' THEN 1 END) AS qtd_amostra,
-                COUNT(CASE WHEN status_completude = 'vigente' THEN 1 END) AS qtd_vigente,
-                MIN(ano) AS ano_min,
-                MAX(ano) AS ano_max,
-                COUNT(DISTINCT ano) AS total_anos_distintos
-            FROM dim_catalogo_tabela
-        """)
+        resumo_geral = _consultar(sql_resumo)
 
     tot = resumo_geral[0] if resumo_geral else {}
     total_linhas_filtradas = sum(int(l.get("total_linhas") or 0) for l in linhas)
@@ -216,6 +192,8 @@ def obter_catalogo_tabelas(
             "total_dim": int(tot.get("total_dim") or 0),
             "total_fato": int(tot.get("total_fato") or 0),
             "total_linhas_global": int(tot.get("total_linhas_global") or 0),
+            "total_lotes": int(tot.get("total_lotes") or 0),
+            "lotes_2026": int(tot.get("lotes_2026") or 0),
             "qtd_total": int(tot.get("qtd_total") or 0),
             "qtd_parcial": int(tot.get("qtd_parcial") or 0),
             "qtd_amostra": int(tot.get("qtd_amostra") or 0),
