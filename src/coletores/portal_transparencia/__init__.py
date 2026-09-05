@@ -121,7 +121,7 @@ def coletar_viagens(ano: int, mes_inicio: int = 1, mes_fim: int = 12, paginas_ma
                           detalhe=f"teto de {paginas_max} páginas atingido" if truncado else "")
     return len(linhas)
 
-def coletar_contratos(ano: int, paginas_max: int = 2000) -> int:
+def coletar_contratos(ano: int, mes_inicio: int = 1, mes_fim: int = 12, paginas_max: int = 5000) -> int:
     if not config.CHAVE_PORTAL_TRANSPARENCIA:
         controle.gravar_marca(FONTE, f"contratos_{ano}", None, situacao="sem_chave",
                               detalhe="defina CHAVE_PORTAL_TRANSPARENCIA no .env")
@@ -130,23 +130,27 @@ def coletar_contratos(ano: int, paginas_max: int = 2000) -> int:
             "Cadastre seu e-mail em portaldatransparencia.gov.br/api-de-dados/cadastrar-email "
             "e escreva o código recebido em CHAVE_PORTAL_TRANSPARENCIA no arquivo .env.")
 
-    linhas, pagina = [], 1
+    linhas = []
     truncado = False
 
-    while True:
-        if pagina > paginas_max:
-            truncado = True
-            break
-        try:
-            lote = buscar_contratos(ano, pagina)
-        except Exception as erro_req:
-            log.warning("contratos %d pagina %d: %s", ano, pagina, erro_req)
-            break
-        if not lote:
-            break
-        for c in lote:
-            linhas.append(normalizar_contrato(c, ano))
-        pagina += 1
+    for mes in range(mes_inicio, mes_fim + 1):
+        pagina = 1
+        while True:
+            if paginas_max and pagina > paginas_max:
+                truncado = True
+                break
+            try:
+                lote = buscar_contratos(ano, mes, pagina)
+            except Exception as erro_req:
+                log.warning("contratos %d/%02d pagina %d: %s", ano, mes, pagina, erro_req)
+                break
+            if not lote:
+                break
+            for c in lote:
+                linhas.append(normalizar_contrato(c, ano, mes))
+            if len(lote) < 15:
+                break
+            pagina += 1
 
     if linhas:
         armazem.mesclar("contrato_governo", linhas, FONTE)

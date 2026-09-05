@@ -72,13 +72,15 @@ def normalizar_viagem(v: dict, ano: int, mes: int | None = None) -> dict:
         "data_referencia": f"{ano}-{mes_calc:02d}-01",
     }
 
-def normalizar_contrato(c: dict, ano: int) -> dict:
+def normalizar_contrato(c: dict, ano: int, mes: int | None = None) -> dict:
     orgao = c.get("unidadeGestora") or c.get("orgao") or {}
     fornecedor = c.get("fornecedor") or {}
     modalidade = c.get("modalidadeCompra") or {}
+    mes_calc = mes or int(str(c.get("dataInicioVigencia") or c.get("dataAssinatura") or "")[3:5] or 1)
     
     return {
         "ano": int(ano),
+        "mes": int(mes_calc),
         "id_contrato": texto(c.get("id") or c.get("idContrato") or c.get("numero")),
         "numero_contrato": opcional(c.get("numero") or c.get("numeroContrato")),
         "codigo_orgao": texto(orgao.get("codigo") or c.get("codigoOrgao")),
@@ -91,5 +93,5 @@ def normalizar_contrato(c: dict, ano: int) -> dict:
         "valor_atualizado": numero(c.get("valorFinalCompra") or c.get("valorTotal") or c.get("valorAtualizado")),
         "data_inicio_vigencia": opcional(c.get("dataInicioVigencia")),
         "data_fim_vigencia": opcional(c.get("dataFimVigencia")),
-        "data_referencia": f"{ano}-12-31",
+        "data_referencia": f"{ano}-{mes_calc:02d}-01",
     }

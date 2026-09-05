@@ -27,9 +27,11 @@ def buscar_viagens(ano: int, mes: int, pagina: int = 1) -> list[dict]:
         "pagina": pagina
     })
 
-def buscar_contratos(ano: int, pagina: int = 1) -> list[dict]:
-    data_inicio = f"01/01/{ano}"
-    data_fim = f"31/12/{ano}"
+def buscar_contratos(ano: int, mes: int, pagina: int = 1) -> list[dict]:
+    import calendar
+    _, ultimo_dia = calendar.monthrange(ano, mes)
+    data_inicio = f"01/{mes:02d}/{ano}"
+    data_fim = f"{ultimo_dia:02d}/{mes:02d}/{ano}"
     return rede.buscar(FONTE, f"{config.PORTAL_TRANSPARENCIA}/contratos", {
         "dataInicial": data_inicio,
         "dataFinal": data_fim,

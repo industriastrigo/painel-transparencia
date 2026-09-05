@@ -147,8 +147,8 @@ def coletar_tramitacoes(id_proposicao: str) -> int:
         armazem.mesclar("tramitacao", linhas, FONTE)
     return len(linhas)
 
-def coletar_tramitacoes_ano(ano: int, limite_proposicoes: int = 200) -> int:
-    """Coleta em lote as etapas de tramitação das proposições mais ativas/recentes do exercício."""
+def coletar_tramitacoes_ano(ano: int, limite_proposicoes: int | None = None) -> int:
+    """Coleta em lote as etapas de tramitação das proposições do exercício."""
     import duckdb
     from pathlib import Path
     
@@ -158,7 +158,8 @@ def coletar_tramitacoes_ano(ano: int, limite_proposicoes: int = 200) -> int:
 
     con = duckdb.connect()
     try:
-        df_p = con.execute(f"SELECT DISTINCT id_proposicao FROM read_parquet('{dir_prop.as_posix()}/*.parquet') WHERE id_proposicao IS NOT NULL LIMIT {limite_proposicoes}").df()
+        limite_sql = f"LIMIT {limite_proposicoes}" if limite_proposicoes else ""
+        df_p = con.execute(f"SELECT DISTINCT id_proposicao FROM read_parquet('{dir_prop.as_posix()}/*.parquet') WHERE id_proposicao IS NOT NULL {limite_sql}").df()
     except Exception as erro:
         log.warning("não foi possível ler proposições de %d para tramitações: %s", ano, erro)
         return 0

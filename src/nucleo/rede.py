@@ -303,13 +303,22 @@ def buscar(
             raise
         except Exception as erro:  # noqa: BLE001
             ultimo_erro = erro
-            if isinstance(erro, requests.HTTPError) and getattr(erro, "response", None) is not None and getattr(erro.response, "status_code", None) == 429:
-                headers = getattr(erro.response, "headers", None) or {}
-                retry_header = headers.get("Retry-After") if isinstance(headers, dict) else None
-                if retry_header and str(retry_header).isdigit():
-                    espera = max(int(retry_header), 5)
+            if isinstance(erro, requests.HTTPError) and getattr(erro, "response", None) is not None:
+                status_code = getattr(erro.response, "status_code", 0)
+                if status_code == 429:
+                    headers = getattr(erro.response, "headers", None) or {}
+                    retry_header = headers.get("Retry-After") if isinstance(headers, dict) else None
+                    if retry_header and str(retry_header).isdigit():
+                        espera = max(int(retry_header), 5)
+                    else:
+                        espera = min(5 * (2 ** tentativa), 120)
+                    # Ajuste dinâmico: aumenta o freio da fonte temporariamente ao tomar 429
+                    novo_intervalo = max(intervalo_de(fonte) * 1.5, 1.0)
+                    definir_intervalo(fonte, novo_intervalo)
+                elif status_code in (503, 504):
+                    espera = min(3 * (2 ** tentativa), 60)
                 else:
-                    espera = min(4 * (2 ** tentativa), 60)
+                    espera = min(2 ** tentativa, 30)
             else:
                 espera = min(2 ** tentativa, 30)
 
